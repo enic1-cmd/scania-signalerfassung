@@ -1,0 +1,16 @@
+# Lokale Messdaten und Exporte nicht versehentlich versionieren.
+*.txt
+*.xlsx
+*.xls
+*.pdf
+*.csv
+*.tsv
+
+# Browser-/Systemdateien
+.edge-*
+Thumbs.db
+.DS_Store
+
+# Arbeits-/Pruefordner
+xlsx_inspect*/
+*.tmp

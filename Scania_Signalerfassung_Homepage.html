@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SWS / SDP3 Signalerfassung Analyse-Tool</title>
+  <meta name="description" content="Professionelle Uebersicht zum SWS / SDP3 Signalerfassung Analyse-Tool fuer Diagnose, Werkstatt und Support.">
+  <style>
+    :root{
+      --navy:#002b55;
+      --blue:#0054a6;
+      --blue-2:#0f6fc6;
+      --ice:#eaf4fb;
+      --paper:#ffffff;
+      --ink:#06172d;
+      --muted:#64748b;
+      --line:#d9e6f2;
+      --gold:#f2a900;
+      --red:#e0262d;
+      --green:#118447;
+      --shadow:0 22px 60px rgba(0,35,75,.16);
+      --radius:24px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:"Bahnschrift","Aptos","Trebuchet MS",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 12% 5%,rgba(15,111,198,.16),transparent 34rem),
+        linear-gradient(180deg,#f4f9fd 0%,#fff 48%,#f2f7fb 100%);
+      line-height:1.55;
+    }
+    a{color:inherit}
+    .shell{width:min(1180px,calc(100% - 42px));margin:0 auto}
+    .topbar{
+      position:sticky;top:0;z-index:20;
+      background:rgba(0,43,85,.92);
+      backdrop-filter:blur(18px);
+      box-shadow:0 12px 30px rgba(0,18,44,.18);
+    }
+    .nav{
+      min-height:76px;
+      display:flex;align-items:center;gap:22px;
+      color:#fff;
+    }
+    .brand{display:flex;align-items:center;gap:14px;text-decoration:none;min-width:0}
+    .brand img{width:185px;max-width:44vw;height:auto;filter:drop-shadow(0 2px 9px rgba(0,0,0,.34))}
+    .brand-line{width:1px;height:34px;background:rgba(255,255,255,.22)}
+    .brand small{display:block;color:rgba(255,255,255,.76);font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:11px}
+    .navlinks{margin-left:auto;display:flex;align-items:center;gap:6px}
+    .navlinks a{
+      text-decoration:none;color:rgba(255,255,255,.82);
+      font-weight:800;font-size:13px;letter-spacing:.02em;
+      padding:10px 12px;border-radius:999px;
+    }
+    .navlinks a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .nav-cta{
+      text-decoration:none;background:#fff;color:var(--navy);
+      padding:11px 16px;border-radius:999px;font-weight:900;
+      box-shadow:0 8px 22px rgba(0,0,0,.18);
+    }
+    .hero{
+      position:relative;overflow:hidden;
+      min-height:650px;
+      display:flex;align-items:center;
+      color:#fff;
+      background:
+        linear-gradient(110deg,rgba(0,43,85,.96) 0%,rgba(0,84,166,.85) 48%,rgba(0,43,85,.4) 100%),
+        url("scania-showroom-bg.jpg") center/cover;
+    }
+    .hero:after{
+      content:"";position:absolute;inset:auto -10% -28% -10%;height:260px;
+      background:linear-gradient(180deg,transparent,rgba(244,249,253,1));
+      pointer-events:none;
+    }
+    .hero-grid{
+      position:relative;z-index:1;
+      display:grid;grid-template-columns:minmax(0,1.03fr) minmax(360px,.97fr);
+      gap:44px;align-items:center;
+      padding:82px 0 110px;
+    }
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:10px;
+      padding:8px 13px;border:1px solid rgba(255,255,255,.28);
+      border-radius:999px;background:rgba(255,255,255,.09);
+      color:#d8ebff;font-weight:900;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    }
+    .pulse{width:9px;height:9px;border-radius:99px;background:var(--gold);box-shadow:0 0 0 7px rgba(242,169,0,.18)}
+    h1{margin:22px 0 16px;font-size:clamp(38px,5.4vw,70px);line-height:.98;letter-spacing:-.05em}
+    .lead{font-size:clamp(18px,2vw,22px);max-width:700px;color:#dcecff;margin:0 0 30px}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:30px}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      min-height:48px;padding:13px 19px;border-radius:14px;
+      text-decoration:none;font-weight:900;border:1px solid transparent;
+      transition:transform .16s,box-shadow .16s,background .16s;
+    }
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary{background:var(--gold);color:#06172d;box-shadow:0 14px 30px rgba(242,169,0,.28)}
+    .btn-secondary{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff}
+    .hero-proof{display:flex;flex-wrap:wrap;gap:10px}
+    .proof{
+      padding:10px 12px;border-radius:14px;
+      background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);
+      color:#eaf6ff;font-size:13px;font-weight:800;
+    }
+    .app-card{
+      background:rgba(255,255,255,.95);
+      color:var(--ink);
+      border:1px solid rgba(255,255,255,.55);
+      border-radius:28px;
+      box-shadow:0 30px 85px rgba(0,21,54,.34);
+      overflow:hidden;
+    }
+    .app-head{
+      background:linear-gradient(135deg,var(--navy),var(--blue));
+      color:#fff;padding:18px 20px;
+      display:flex;align-items:center;justify-content:space-between;gap:14px;
+    }
+    .app-head strong{font-size:15px;letter-spacing:.03em}
+    .head-dots{display:flex;gap:6px}
+    .head-dots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.42)}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+    .metric{background:#fff;padding:16px}
+    .metric b{display:block;color:var(--blue);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+    .metric span{display:block;font-size:22px;font-weight:900;margin-top:4px}
+    .table-mock{padding:18px 18px 20px;background:#f7fbff}
+    .mock-row{display:grid;grid-template-columns:1.05fr .9fr 1.2fr 1fr;gap:1px;margin-bottom:1px}
+    .mock-cell{
+      min-height:42px;background:#fff;border:1px solid #dbe8f3;
+      display:flex;align-items:center;padding:8px 10px;
+      font-family:"Cascadia Mono","Consolas",monospace;font-size:12px;color:#14243d;
+    }
+    .mock-head .mock-cell{background:var(--navy);color:#fff;font-family:inherit;font-weight:900}
+    .mock-row.mark .mock-cell{background:#ffe4e6;border-color:#ffc9cf}
+    .mock-cell.pin{background:#fff7db;border-color:#f2d37a}
+    .section{padding:88px 0}
+    .section.compact{padding-top:42px}
+    .section-head{max-width:780px;margin-bottom:34px}
+    .kicker{color:var(--blue);font-weight:950;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+    h2{font-size:clamp(30px,4vw,48px);line-height:1.06;letter-spacing:-.035em;margin:9px 0 14px}
+    .section-head p{font-size:18px;color:var(--muted);margin:0}
+    .split{display:grid;grid-template-columns:.9fr 1.1fr;gap:28px;align-items:stretch}
+    .panel{
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:30px;
+      box-shadow:var(--shadow);
+    }
+    .problem{
+      background:
+        linear-gradient(135deg,rgba(0,43,85,.94),rgba(0,84,166,.88)),
+        url("scania-showroom-bg.jpg") center/cover;
+      color:#fff;
+    }
+    .problem p{color:#d7e9fb}
+    .signal-list{display:grid;gap:12px;margin-top:22px}
+    .signal{
+      display:flex;gap:12px;align-items:flex-start;
+      padding:14px;border-radius:16px;background:#f6fbff;border:1px solid #dbe8f3;
+    }
+    .signal i{
+      width:34px;height:34px;border-radius:12px;background:var(--blue);color:#fff;
+      display:grid;place-items:center;font-style:normal;font-weight:950;flex:0 0 auto;
+    }
+    .signal strong{display:block}
+    .signal span{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+    .features{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .feature{
+      background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;
+      box-shadow:0 12px 28px rgba(0,35,75,.08);
+      min-height:205px;
+    }
+    .feature-icon{
+      width:44px;height:44px;border-radius:14px;
+      background:linear-gradient(135deg,var(--blue),var(--navy));
+      color:#fff;display:grid;place-items:center;font-weight:950;margin-bottom:16px;
+    }
+    .feature h3{font-size:18px;line-height:1.16;margin:0 0 8px}
+    .feature p{color:var(--muted);font-size:14px;margin:0}
+    .workflow{
+      display:grid;grid-template-columns:repeat(5,1fr);gap:14px;
+      counter-reset:step;
+    }
+    .step{
+      position:relative;background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;
+      box-shadow:0 12px 28px rgba(0,35,75,.08);
+    }
+    .step:before{
+      counter-increment:step;content:counter(step);
+      width:34px;height:34px;border-radius:50%;
+      display:grid;place-items:center;background:var(--gold);color:#06172d;font-weight:950;margin-bottom:18px;
+    }
+    .step h3{margin:0 0 8px;font-size:17px;line-height:1.16}
+    .step p{margin:0;color:var(--muted);font-size:14px}
+    .exports{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .export-card{
+      border-radius:26px;padding:30px;background:#fff;border:1px solid var(--line);
+      box-shadow:var(--shadow);overflow:hidden;position:relative;
+    }
+    .export-card:before{
+      content:"";position:absolute;inset:0 auto 0 0;width:7px;background:var(--blue);
+    }
+    .export-card.pdf:before{background:var(--red)}
+    .export-card h3{font-size:28px;margin:0 0 10px}
+    .export-card p{color:var(--muted);margin:0 0 18px}
+    .checks{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+    .checks li{display:flex;gap:10px;align-items:flex-start;color:#24415f;font-weight:750}
+    .checks li:before{content:"";width:9px;height:9px;border-radius:50%;background:var(--green);margin-top:8px;flex:0 0 auto}
+    .support-band{
+      background:linear-gradient(135deg,#001e3d,#0054a6);
+      color:#fff;border-radius:32px;padding:42px;
+      display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:center;
+      box-shadow:0 24px 70px rgba(0,35,75,.25);
+    }
+    .support-band p{color:#d9ebff;font-size:17px}
+    .support-list{display:grid;gap:12px}
+    .support-item{
+      background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);
+      border-radius:16px;padding:14px 16px;font-weight:850;
+    }
+    .audience{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .audience .panel{padding:24px}
+    .audience h3{margin:0 0 8px}
+    .audience p{margin:0;color:var(--muted)}
+    .faq{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    details{
+      background:#fff;border:1px solid var(--line);border-radius:18px;
+      padding:18px 20px;box-shadow:0 10px 24px rgba(0,35,75,.06);
+    }
+    summary{cursor:pointer;font-weight:950;color:var(--navy)}
+    details p{margin:12px 0 0;color:var(--muted)}
+    .systems{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+    }
+    .system-link{
+      text-decoration:none;background:#fff;border:1px solid var(--line);
+      border-radius:20px;padding:20px;text-align:center;
+      box-shadow:0 10px 24px rgba(0,35,75,.06);
+      transition:transform .16s,box-shadow .16s;
+    }
+    .system-link:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+    .system-link strong{display:block;font-size:25px;line-height:1}
+    .system-link span{display:block;margin-top:9px;color:#27415f;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+    .wio strong{color:#2d77d0}.spii strong{color:#ef4444}.oa strong{color:#7c4aa4}.conversion strong{color:#48a565}
+    .cta{
+      text-align:center;background:#fff;border:1px solid var(--line);
+      border-radius:32px;padding:44px;box-shadow:var(--shadow);
+    }
+    .cta h2{margin-top:0}
+    .cta p{color:var(--muted);font-size:18px;margin:0 auto 24px;max-width:760px}
+    footer{
+      background:#06172d;color:#cfe2f3;padding:30px 0;
+      font-size:13px;
+    }
+    footer .shell{display:flex;justify-content:space-between;gap:18px;align-items:center;flex-wrap:wrap}
+    footer a{color:#fff;font-weight:900;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.35)}
+    @media (max-width:980px){
+      .nav{flex-wrap:wrap;padding:12px 0}.navlinks{order:3;width:100%;justify-content:flex-start;overflow:auto}
+      .hero-grid,.split,.support-band{grid-template-columns:1fr}
+      .features{grid-template-columns:repeat(2,1fr)}
+      .workflow{grid-template-columns:repeat(2,1fr)}
+      .audience,.systems{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width:640px){
+      .shell{width:min(100% - 28px,1180px)}
+      .brand-line,.brand small{display:none}
+      .hero{min-height:auto}.hero-grid{padding:56px 0 86px}
+      .metrics,.mock-row,.features,.workflow,.exports,.audience,.faq,.systems{grid-template-columns:1fr}
+      .panel,.support-band,.cta{padding:24px;border-radius:22px}
+      .nav-cta{display:none}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="shell nav" aria-label="Hauptnavigation">
+      <a class="brand" href="#top" aria-label="Startseite">
+        <img src="signalerfassung_logo_transparent.png" alt="Scania Signalerfassung">
+        <span class="brand-line"></span>
+        <small>Analyse-Tool</small>
+      </a>
+      <div class="navlinks">
+        <a href="#funktionen">Funktionen</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#export">Export</a>
+        <a href="#support">Support</a>
+      </div>
+      <a class="nav-cta" href="Scania_Signalanalyse_Final1.html">App &ouml;ffnen</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="shell hero-grid">
+        <div>
+          <span class="eyebrow"><span class="pulse"></span>SWS / SDP3 Signalerfassung</span>
+          <h1>Messdaten schneller verstehen. Auff&auml;lligkeiten sauber weitergeben.</h1>
+          <p class="lead">Das Analyse-Tool bereitet .txt-Dateien aus der Signalerfassung strukturiert auf, macht relevante Signale sichtbar und erzeugt professionelle Exporte f&uuml;r Diagnose, Werkstatt und Support.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="Scania_Signalanalyse_Final1.html">App &ouml;ffnen</a>
+            <a class="btn btn-secondary" href="#funktionen">Funktionen ansehen</a>
+            <a class="btn btn-secondary" href="#export">Export verstehen</a>
+          </div>
+          <div class="hero-proof">
+            <span class="proof">Drag &amp; Drop f&uuml;r .txt-Dateien</span>
+            <span class="proof">Spalten und Zeilen markieren</span>
+            <span class="proof">PDF &amp; Excel f&uuml;r Eskalationen</span>
+          </div>
+        </div>
+
+        <aside class="app-card" aria-label="Vorschau der Analyse-App">
+          <div class="app-head">
+            <strong>Analyse-Ansicht nach Upload</strong>
+            <div class="head-dots"><span></span><span></span><span></span></div>
+          </div>
+          <div class="metrics">
+            <div class="metric"><b>Samples</b><span>6.474</span></div>
+            <div class="metric"><b>Signale</b><span>19</span></div>
+            <div class="metric"><b>Dauer</b><span>00:11:48</span></div>
+          </div>
+          <div class="table-mock">
+            <div class="mock-row mock-head">
+              <div class="mock-cell">Zeitstempel</div>
+              <div class="mock-cell">Marker</div>
+              <div class="mock-cell">BMS Rad 1</div>
+              <div class="mock-cell">Drehzahl</div>
+            </div>
+            <div class="mock-row">
+              <div class="mock-cell">16:56:17:030</div>
+              <div class="mock-cell">0</div>
+              <div class="mock-cell">Nicht im Redundanzmodus</div>
+              <div class="mock-cell">4</div>
+            </div>
+            <div class="mock-row mark">
+              <div class="mock-cell">16:56:17:799</div>
+              <div class="mock-cell">0</div>
+              <div class="mock-cell pin">markiertes Signal</div>
+              <div class="mock-cell">4</div>
+            </div>
+            <div class="mock-row">
+              <div class="mock-cell">16:56:18:015</div>
+              <div class="mock-cell">0</div>
+              <div class="mock-cell">Nicht im Redundanzmodus</div>
+              <div class="mock-cell">4</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section compact">
+      <div class="shell split">
+        <article class="panel problem">
+          <span class="kicker">Ausgangslage</span>
+          <h2>Rohdaten sind stark. Aber nicht immer schnell lesbar.</h2>
+          <p>Signalerfassungen enthalten oft viele Spalten, lange Zeitverl&auml;ufe und technische Werte, die f&uuml;r eine schnelle Diagnose erst sortiert, gefiltert und markiert werden m&uuml;ssen.</p>
+          <p>Ohne saubere Aufbereitung entstehen unn&ouml;tige R&uuml;ckfragen, Screenshots werden un&uuml;bersichtlich und wichtige Zeitpunkte gehen in der Menge der Messdaten unter.</p>
+        </article>
+        <article class="panel">
+          <span class="kicker">L&ouml;sung</span>
+          <h2>Vom .txt-Export zum lesbaren Diagnosebericht.</h2>
+          <div class="signal-list">
+            <div class="signal"><i>1</i><div><strong>Automatisch erkennen</strong><span>Datei, Zeitraum, Samples, Abtastrate und Signale werden beim Laden strukturiert ausgewertet.</span></div></div>
+            <div class="signal"><i>2</i><div><strong>Gezielt verdichten</strong><span>Unwichtige Spalten k&ouml;nnen ausgeblendet, wichtige Signale und Zeitpunkte farblich markiert werden.</span></div></div>
+            <div class="signal"><i>3</i><div><strong>Professionell exportieren</strong><span>PDF und Excel liefern eine saubere Grundlage f&uuml;r Support, Eskalation und interne Dokumentation.</span></div></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="funktionen">
+      <div class="shell">
+        <div class="section-head">
+          <span class="kicker">Kernfunktionen</span>
+          <h2>Alles, was bei einer Signalerfassung sofort helfen soll.</h2>
+          <p>Die App bleibt bewusst schlank: Daten laden, schneller lesen, relevante Stellen markieren und sauber weitergeben.</p>
+        </div>
+        <div class="features">
+          <article class="feature"><div class="feature-icon">TXT</div><h3>.txt-Dateien laden</h3><p>Drag &amp; Drop oder Dateiauswahl f&uuml;r eine oder mehrere Signalerfassungen.</p></article>
+          <article class="feature"><div class="feature-icon">SIG</div><h3>Signale automatisch erkennen</h3><p>Steuerger&auml;t, Sensorbezeichnung, Einheit und Signal-ID werden aus der Datei &uuml;bernommen.</p></article>
+          <article class="feature"><div class="feature-icon">FIL</div><h3>Suchen und filtern</h3><p>Zeitbereiche und Suchbegriffe helfen, relevante Messpunkte schneller zu finden.</p></article>
+          <article class="feature"><div class="feature-icon">COL</div><h3>Spalten ausblenden</h3><p>Nicht ben&ouml;tigte Signale verschwinden aus der Ansicht, bleiben aber im Export nachvollziehbar.</p></article>
+          <article class="feature"><div class="feature-icon">PIN</div><h3>Spalten markieren</h3><p>Wichtige Signale werden farblich &uuml;ber die komplette Spalte hervorgehoben.</p></article>
+          <article class="feature"><div class="feature-icon">ROW</div><h3>Zeitpunkte markieren</h3><p>Einzelne Messzeilen lassen sich hellrot markieren, um Auff&auml;lligkeiten klar zu kennzeichnen.</p></article>
+          <article class="feature"><div class="feature-icon">XLS</div><h3>Excel-Arbeitsmappe</h3><p>Export mit &Uuml;bersicht, Signalen, Messdaten und Markierungen f&uuml;r technische Auswertung.</p></article>
+          <article class="feature"><div class="feature-icon">PDF</div><h3>PDF-Bericht</h3><p>Kompakter Bericht f&uuml;r schnelle Weitergabe an Supportstellen oder Eskalationsprozesse.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="workflow">
+      <div class="shell">
+        <div class="section-head">
+          <span class="kicker">Workflow</span>
+          <h2>F&uuml;nf Schritte von der Messung zur Eskalationsdatei.</h2>
+          <p>Der Ablauf ist so gedacht, dass er im Werkstattalltag ohne lange Einarbeitung funktioniert.</p>
+        </div>
+        <div class="workflow">
+          <article class="step"><h3>Signalerfassung exportieren</h3><p>.txt-Datei aus SWS / SDP3 bereitstellen.</p></article>
+          <article class="step"><h3>Datei laden</h3><p>Per Drag &amp; Drop oder Dateiauswahl in die App einf&uuml;gen.</p></article>
+          <article class="step"><h3>Daten pr&uuml;fen</h3><p>Zeitraum, Samples, Signale und Messwerte kontrollieren.</p></article>
+          <article class="step"><h3>Relevantes markieren</h3><p>Spalten ausblenden, Signale markieren und Zeitpunkte kennzeichnen.</p></article>
+          <article class="step"><h3>Export erzeugen</h3><p>PDF oder Excel f&uuml;r Support und Dokumentation speichern.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="export">
+      <div class="shell">
+        <div class="section-head">
+          <span class="kicker">Export</span>
+          <h2>Zwei Ausgaben f&uuml;r zwei typische Situationen.</h2>
+          <p>Der Export ist nicht nur ein Datenabzug, sondern soll eine saubere technische Kommunikation erm&ouml;glichen.</p>
+        </div>
+        <div class="exports">
+          <article class="export-card pdf">
+            <h3>PDF-Bericht</h3>
+            <p>Der PDF-Export ist als schnell lesbarer Bericht gedacht. Ideal, wenn ein Fall kurz zusammengefasst und mit markierten Auff&auml;lligkeiten weitergegeben werden soll.</p>
+            <ul class="checks">
+              <li>Kompakte &Uuml;bersicht f&uuml;r Eskalationen</li>
+              <li>Markierte Signale und Zeitpunkte sofort erkennbar</li>
+              <li>Geeignet f&uuml;r E-Mail, Ticket oder Supportanfrage</li>
+            </ul>
+          </article>
+          <article class="export-card">
+            <h3>Excel-Arbeitsmappe</h3>
+            <p>Die Excel-Datei enth&auml;lt die vollst&auml;ndige technische Struktur: &Uuml;bersicht, Signalliste, Messdaten und Markierungen f&uuml;r weitere Auswertungen.</p>
+            <ul class="checks">
+              <li>Vollst&auml;ndige Messdaten in Tabellenform</li>
+              <li>Echte Steuerger&auml;t- und Sensorbezeichnungen</li>
+              <li>Ausgeblendete Signale bleiben nachvollziehbar vorhanden</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="support">
+      <div class="shell">
+        <div class="support-band">
+          <div>
+            <span class="kicker">Support &amp; Eskalation</span>
+            <h2>Weniger R&uuml;ckfragen. Mehr technische Klarheit.</h2>
+            <p>Wenn Messdaten an Supportstellen gehen, z&auml;hlt Nachvollziehbarkeit. Die App hilft dabei, relevante Signale, Zeitpunkte und Rahmeninformationen in einer einheitlichen Struktur zu &uuml;bergeben.</p>
+            <a class="btn btn-primary" href="Scania_Signalanalyse_Final1.html">Analyse starten</a>
+          </div>
+          <div class="support-list">
+            <div class="support-item">Einheitliche Darstellung statt un&uuml;bersichtlicher Rohdaten</div>
+            <div class="support-item">Auff&auml;llige Spalten und Zeitpunkte klar markiert</div>
+            <div class="support-item">Export mit Datei, Zeitraum, Samples und Signalreferenz</div>
+            <div class="support-item">Bessere Grundlage f&uuml;r technische R&uuml;ckfragen</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell">
+        <div class="section-head">
+          <span class="kicker">Zielgruppe</span>
+          <h2>Gebaut f&uuml;r Menschen, die Messdaten wirklich nutzen m&uuml;ssen.</h2>
+        </div>
+        <div class="audience">
+          <article class="panel"><h3>Diagnosetechniker</h3><p>F&uuml;r schnelles Eingrenzen relevanter Signale und Zeitbereiche direkt aus der Signalerfassung.</p></article>
+          <article class="panel"><h3>Werkstatt &amp; Service</h3><p>F&uuml;r nachvollziehbare Dokumentation und saubere Kommunikation bei komplexen Fehlerbildern.</p></article>
+          <article class="panel"><h3>Supportstellen</h3><p>F&uuml;r strukturierte Exporte, die weniger Interpretation und mehr technische Klarheit liefern.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell">
+        <div class="section-head">
+          <span class="kicker">Scania-Systeme</span>
+          <h2>Relevante Systeme direkt erreichbar.</h2>
+          <p>Die App verlinkt wichtige Scania-Portale, damit Analyse und weiterf&uuml;hrende Recherche schneller zusammenfinden.</p>
+        </div>
+        <div class="systems">
+          <a class="system-link wio" href="https://wio.scania.com/sws/de-DE" target="_blank" rel="noopener noreferrer"><strong>WIO</strong><span>Workshop Information Online</span></a>
+          <a class="system-link spii" href="https://spii.scania.com/" target="_blank" rel="noopener noreferrer"><strong>SPII</strong><span>Product Individual Information</span></a>
+          <a class="system-link oa" href="https://operationalanalysis.scania.com/OdsWeb" target="_blank" rel="noopener noreferrer"><strong>OA</strong><span>Operational Analysis</span></a>
+          <a class="system-link conversion" href="https://conversion.scania.com/" target="_blank" rel="noopener noreferrer"><strong>CONVERSION</strong><span>Conversion Workshop</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell">
+        <div class="section-head">
+          <span class="kicker">FAQ</span>
+          <h2>H&auml;ufige Fragen.</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>Welche Dateien kann ich laden?</summary>
+            <p>Die App ist f&uuml;r .txt-Dateien aus der SWS / SDP3 Signalerfassung ausgelegt. Andere Formate werden nicht als Standard angenommen.</p>
+          </details>
+          <details>
+            <summary>Werden Daten online hochgeladen?</summary>
+            <p>Die HTML-App arbeitet lokal im Browser. Die geladenen Messdaten werden in der App verarbeitet und nicht automatisch an externe Systeme gesendet.</p>
+          </details>
+          <details>
+            <summary>Warum Spalten ausblenden?</summary>
+            <p>Bei vielen Signalen wird die Tabelle schnell sehr breit. Ausblenden reduziert die Ansicht auf das Wesentliche, ohne die technische Referenz zu verlieren.</p>
+          </details>
+          <details>
+            <summary>Wof&uuml;r ist der Excel-Export gedacht?</summary>
+            <p>Excel eignet sich f&uuml;r vollst&auml;ndige technische Auswertung, Filterung und Weiterbearbeitung. Der PDF-Export ist eher f&uuml;r schnelle Lesbarkeit und Weitergabe gedacht.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell cta">
+        <span class="kicker">Bereit f&uuml;r die Analyse</span>
+        <h2>Signalerfassung laden und sauber auswerten.</h2>
+        <p>Wenn eine .txt-Datei aus SWS / SDP3 vorliegt, kann die Analyse direkt lokal gestartet werden.</p>
+        <a class="btn btn-primary" href="Scania_Signalanalyse_Final1.html">App jetzt &ouml;ffnen</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell">
+      <span>SWS / SDP3 - Signalerfassung - Tool - Intern - By <a href="https://reflex.scania.com/profile/dbreue" target="_blank" rel="noopener noreferrer">David Breuer</a></span>
+      <a href="https://breuer-trucks.de/" target="_blank" rel="noopener noreferrer">Breuer Truck &amp; Trailer</a>
+    </div>
+  </footer>
+</body>
+</html>

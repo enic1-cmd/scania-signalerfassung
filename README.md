@@ -6,8 +6,10 @@ Lokale HTML-App zur strukturierten Auswertung von `.txt`-Dateien aus der SWS / S
 
 - `Scania_Signalanalyse_Final1.html` - Haupt-App fuer Upload, Analyse, Markierung und Export.
 - `Scania_Signalerfassung_Homepage.html` - Erklaer-Homepage zur App.
-- `signalerfassung_logo_transparent.png` - Logo fuer die Oberflaeche.
-- `scania-showroom-bg.jpg` - Hintergrundbild fuer App und Homepage.
+- `assets/signalerfassung_logo_transparent.png` - Logo fuer die Oberflaeche.
+- `assets/signalerfassung logo.png` - Original-Logo mit Hintergrund als Quell-/Referenzdatei.
+- `assets/scania-showroom-bg.jpg` - Hintergrundbild fuer App und Homepage.
+- `samples/Test_signalerfassung.txt` - lokale Beispielmessung, bewusst nicht versioniert.
 
 ## Funktionen
 

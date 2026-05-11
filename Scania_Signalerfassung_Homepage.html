@@ -8,18 +8,23 @@
   <style>
     :root{
       --navy:#002b55;
+      --navy-2:#001e3d;
       --blue:#0054a6;
       --blue-2:#0f6fc6;
+      --blue-3:#3b8fe0;
       --ice:#eaf4fb;
       --paper:#ffffff;
       --ink:#06172d;
       --muted:#64748b;
       --line:#d9e6f2;
       --gold:#f2a900;
+      --gold-2:#ffc547;
       --red:#e0262d;
       --green:#118447;
       --shadow:0 22px 60px rgba(0,35,75,.16);
+      --shadow-lg:0 32px 90px rgba(0,35,75,.22);
       --radius:24px;
+      --ease:cubic-bezier(.2,.7,.2,1);
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -29,16 +34,32 @@
       color:var(--ink);
       background:
         radial-gradient(circle at 12% 5%,rgba(15,111,198,.16),transparent 34rem),
+        radial-gradient(circle at 88% 65%,rgba(242,169,0,.07),transparent 30rem),
         linear-gradient(180deg,#f4f9fd 0%,#fff 48%,#f2f7fb 100%);
       line-height:1.55;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
     }
     a{color:inherit}
+
+    /* ---------- Scroll progress ---------- */
+    .scroll-progress{
+      position:fixed;top:0;left:0;height:3px;width:0%;
+      background:linear-gradient(90deg,var(--gold),var(--blue-2),var(--gold-2));
+      z-index:50;transition:width .08s linear;
+      box-shadow:0 0 14px rgba(242,169,0,.55);
+    }
+
     .shell{width:min(1180px,calc(100% - 42px));margin:0 auto}
+
+    /* ---------- Topbar ---------- */
     .topbar{
       position:sticky;top:0;z-index:20;
-      background:rgba(0,43,85,.92);
-      backdrop-filter:blur(18px);
+      background:rgba(0,43,85,.78);
+      backdrop-filter:blur(22px) saturate(140%);
+      -webkit-backdrop-filter:blur(22px) saturate(140%);
       box-shadow:0 12px 30px rgba(0,18,44,.18);
+      border-bottom:1px solid rgba(255,255,255,.08);
     }
     .nav{
       min-height:76px;
@@ -51,24 +72,56 @@
     .brand small{display:block;color:rgba(255,255,255,.76);font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:11px}
     .navlinks{margin-left:auto;display:flex;align-items:center;gap:6px}
     .navlinks a{
+      position:relative;
       text-decoration:none;color:rgba(255,255,255,.82);
-      font-weight:800;font-size:13px;letter-spacing:.02em;
-      padding:10px 12px;border-radius:999px;
+      font-weight:700;font-size:13px;letter-spacing:.02em;
+      padding:10px 14px;border-radius:999px;
+      transition:color .2s var(--ease),background .2s var(--ease);
     }
     .navlinks a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .navlinks a.active{color:#fff;background:rgba(255,255,255,.12)}
+    .navlinks a.active:after{
+      content:"";position:absolute;left:50%;bottom:3px;transform:translateX(-50%);
+      width:5px;height:5px;border-radius:50%;background:var(--gold);
+      box-shadow:0 0 10px var(--gold);
+    }
     .nav-cta{
       text-decoration:none;background:#fff;color:var(--navy);
-      padding:11px 16px;border-radius:999px;font-weight:900;
+      padding:11px 16px;border-radius:999px;font-weight:800;
       box-shadow:0 8px 22px rgba(0,0,0,.18);
+      display:inline-flex;align-items:center;gap:8px;
+      transition:transform .2s var(--ease),box-shadow .2s var(--ease);
     }
+    .nav-cta:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(0,0,0,.26)}
+    .nav-cta svg{width:16px;height:16px}
+
+    /* ---------- Hero ---------- */
     .hero{
       position:relative;overflow:hidden;
-      min-height:650px;
+      min-height:680px;
       display:flex;align-items:center;
       color:#fff;
       background:
         linear-gradient(110deg,rgba(0,43,85,.96) 0%,rgba(0,84,166,.85) 48%,rgba(0,43,85,.4) 100%),
         url("assets/scania-showroom-bg.jpg") center/cover;
+    }
+    .hero-grid-bg{
+      position:absolute;inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+      background-size:48px 48px;
+      mask-image:radial-gradient(ellipse 80% 60% at 30% 40%,black 30%,transparent 75%);
+      -webkit-mask-image:radial-gradient(ellipse 80% 60% at 30% 40%,black 30%,transparent 75%);
+      opacity:.7;pointer-events:none;
+    }
+    .hero-spotlight{
+      position:absolute;inset:auto;
+      width:600px;height:600px;border-radius:50%;
+      background:radial-gradient(circle,rgba(242,169,0,.22),transparent 65%);
+      filter:blur(40px);pointer-events:none;
+      transition:transform .6s var(--ease);
+      top:-120px;right:-160px;
     }
     .hero:after{
       content:"";position:absolute;inset:auto -10% -28% -10%;height:260px;
@@ -79,69 +132,158 @@
       position:relative;z-index:1;
       display:grid;grid-template-columns:minmax(0,1.03fr) minmax(360px,.97fr);
       gap:44px;align-items:center;
-      padding:82px 0 110px;
+      padding:90px 0 120px;
     }
     .eyebrow{
       display:inline-flex;align-items:center;gap:10px;
-      padding:8px 13px;border:1px solid rgba(255,255,255,.28);
+      padding:8px 14px;border:1px solid rgba(255,255,255,.28);
       border-radius:999px;background:rgba(255,255,255,.09);
-      color:#d8ebff;font-weight:900;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+      color:#d8ebff;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+      backdrop-filter:blur(8px);
     }
-    .pulse{width:9px;height:9px;border-radius:99px;background:var(--gold);box-shadow:0 0 0 7px rgba(242,169,0,.18)}
-    h1{margin:22px 0 16px;font-size:clamp(38px,5.4vw,70px);line-height:.98;letter-spacing:-.05em}
+    .pulse{width:9px;height:9px;border-radius:99px;background:var(--gold);position:relative}
+    .pulse:before{
+      content:"";position:absolute;inset:-4px;border-radius:99px;
+      background:var(--gold);opacity:.55;
+      animation:pulseRing 2s var(--ease) infinite;
+    }
+    @keyframes pulseRing{
+      0%{transform:scale(.6);opacity:.7}
+      100%{transform:scale(2.4);opacity:0}
+    }
+
+    h1{
+      margin:22px 0 16px;font-size:clamp(38px,5.4vw,72px);line-height:.98;letter-spacing:-.05em;
+      font-weight:800;
+    }
+    h1 .grad{
+      background:linear-gradient(90deg,#fff 20%,#ffd989 50%,#fff 80%);
+      background-size:200% 100%;
+      -webkit-background-clip:text;background-clip:text;
+      -webkit-text-fill-color:transparent;color:transparent;
+      animation:shimmer 6s linear infinite;
+    }
+    @keyframes shimmer{
+      0%{background-position:0% 0%}
+      100%{background-position:200% 0%}
+    }
     .lead{font-size:clamp(18px,2vw,22px);max-width:700px;color:#dcecff;margin:0 0 30px}
     .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:30px}
     .btn{
       display:inline-flex;align-items:center;justify-content:center;gap:10px;
       min-height:48px;padding:13px 19px;border-radius:14px;
-      text-decoration:none;font-weight:900;border:1px solid transparent;
-      transition:transform .16s,box-shadow .16s,background .16s;
+      text-decoration:none;font-weight:800;border:1px solid transparent;
+      transition:transform .18s var(--ease),box-shadow .18s var(--ease),background .18s var(--ease);
+      cursor:pointer;
     }
+    .btn svg{width:18px;height:18px}
     .btn:hover{transform:translateY(-2px)}
-    .btn-primary{background:var(--gold);color:#06172d;box-shadow:0 14px 30px rgba(242,169,0,.28)}
-    .btn-secondary{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff}
+    .btn-primary{
+      background:linear-gradient(135deg,var(--gold),var(--gold-2));
+      color:#06172d;box-shadow:0 14px 30px rgba(242,169,0,.32);
+    }
+    .btn-primary:hover{box-shadow:0 18px 40px rgba(242,169,0,.45)}
+    .btn-secondary{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff;backdrop-filter:blur(8px)}
+    .btn-secondary:hover{background:rgba(255,255,255,.2)}
     .hero-proof{display:flex;flex-wrap:wrap;gap:10px}
     .proof{
-      padding:10px 12px;border-radius:14px;
+      display:inline-flex;align-items:center;gap:8px;
+      padding:10px 13px;border-radius:14px;
       background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);
-      color:#eaf6ff;font-size:13px;font-weight:800;
+      color:#eaf6ff;font-size:13px;font-weight:700;
+      backdrop-filter:blur(8px);
     }
+    .proof svg{width:15px;height:15px;color:var(--gold-2)}
+
+    /* ---------- App preview card ---------- */
     .app-card{
+      position:relative;
       background:rgba(255,255,255,.95);
       color:var(--ink);
       border:1px solid rgba(255,255,255,.55);
       border-radius:28px;
       box-shadow:0 30px 85px rgba(0,21,54,.34);
       overflow:hidden;
+      animation:floatY 7s ease-in-out infinite;
+    }
+    @keyframes floatY{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-8px)}
+    }
+    .app-card:before{
+      content:"";position:absolute;inset:-1px;border-radius:29px;
+      background:linear-gradient(135deg,rgba(255,255,255,.6),transparent 40%,rgba(242,169,0,.4));
+      z-index:-1;
     }
     .app-head{
       background:linear-gradient(135deg,var(--navy),var(--blue));
       color:#fff;padding:18px 20px;
       display:flex;align-items:center;justify-content:space-between;gap:14px;
     }
-    .app-head strong{font-size:15px;letter-spacing:.03em}
+    .app-head .app-title{display:flex;align-items:center;gap:10px;font-size:15px;letter-spacing:.03em;font-weight:700}
+    .app-head .live-dot{
+      width:8px;height:8px;border-radius:50%;background:#5ce39c;
+      box-shadow:0 0 0 0 rgba(92,227,156,.7);
+      animation:liveDot 1.6s ease-in-out infinite;
+    }
+    @keyframes liveDot{
+      0%{box-shadow:0 0 0 0 rgba(92,227,156,.7)}
+      80%,100%{box-shadow:0 0 0 8px rgba(92,227,156,0)}
+    }
     .head-dots{display:flex;gap:6px}
     .head-dots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.42)}
     .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
-    .metric{background:#fff;padding:16px}
-    .metric b{display:block;color:var(--blue);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-    .metric span{display:block;font-size:22px;font-weight:900;margin-top:4px}
+    .metric{background:#fff;padding:16px;position:relative;overflow:hidden}
+    .metric b{display:block;color:var(--blue);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:800}
+    .metric .val{display:block;font-size:24px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
     .table-mock{padding:18px 18px 20px;background:#f7fbff}
-    .mock-row{display:grid;grid-template-columns:1.05fr .9fr 1.2fr 1fr;gap:1px;margin-bottom:1px}
+    .mock-row{display:grid;grid-template-columns:1.05fr .9fr 1.2fr 1fr;gap:1px;margin-bottom:1px;opacity:0;transform:translateY(6px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+    .mock-row.show{opacity:1;transform:translateY(0)}
     .mock-cell{
       min-height:42px;background:#fff;border:1px solid #dbe8f3;
       display:flex;align-items:center;padding:8px 10px;
-      font-family:"Cascadia Mono","Consolas",monospace;font-size:12px;color:#14243d;
+      font-family:"JetBrains Mono","Cascadia Mono","Consolas",monospace;font-size:12px;color:#14243d;
     }
-    .mock-head .mock-cell{background:var(--navy);color:#fff;font-family:inherit;font-weight:900}
-    .mock-row.mark .mock-cell{background:#ffe4e6;border-color:#ffc9cf}
-    .mock-cell.pin{background:#fff7db;border-color:#f2d37a}
-    .section{padding:88px 0}
-    .section.compact{padding-top:42px}
-    .section-head{max-width:780px;margin-bottom:34px}
-    .kicker{color:var(--blue);font-weight:950;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
-    h2{font-size:clamp(30px,4vw,48px);line-height:1.06;letter-spacing:-.035em;margin:9px 0 14px}
+    .mock-head .mock-cell{background:var(--navy);color:#fff;font-family:inherit;font-weight:800}
+    .mock-row.mark .mock-cell{background:#ffe4e6;border-color:#ffc9cf;animation:markPulse 3s ease-in-out infinite}
+    @keyframes markPulse{
+      0%,100%{background:#ffe4e6}
+      50%{background:#ffd0d4}
+    }
+    .mock-cell.pin{background:#fff7db;border-color:#f2d37a;font-weight:700}
+
+    /* ---------- Sections ---------- */
+    .section{padding:96px 0;position:relative}
+    .section.compact{padding-top:52px}
+    .section-head{max-width:780px;margin-bottom:38px}
+    .kicker{
+      display:inline-flex;align-items:center;gap:8px;
+      color:var(--blue);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:12px;
+    }
+    .kicker:before{
+      content:"";width:18px;height:2px;background:var(--blue);border-radius:2px;
+    }
+    h2{font-size:clamp(30px,4vw,48px);line-height:1.06;letter-spacing:-.035em;margin:9px 0 14px;font-weight:800}
     .section-head p{font-size:18px;color:var(--muted);margin:0}
+
+    /* ---------- Reveal animation ---------- */
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+    .reveal.in{opacity:1;transform:translateY(0)}
+    .reveal-stagger > *{opacity:0;transform:translateY(22px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+    .reveal-stagger.in > *{opacity:1;transform:translateY(0)}
+    .reveal-stagger.in > *:nth-child(1){transition-delay:.05s}
+    .reveal-stagger.in > *:nth-child(2){transition-delay:.12s}
+    .reveal-stagger.in > *:nth-child(3){transition-delay:.19s}
+    .reveal-stagger.in > *:nth-child(4){transition-delay:.26s}
+    .reveal-stagger.in > *:nth-child(5){transition-delay:.33s}
+    .reveal-stagger.in > *:nth-child(6){transition-delay:.40s}
+    .reveal-stagger.in > *:nth-child(7){transition-delay:.47s}
+    .reveal-stagger.in > *:nth-child(8){transition-delay:.54s}
+    @media (prefers-reduced-motion:reduce){
+      .reveal,.reveal-stagger > *,.app-card,.pulse:before,h1 .grad,.mock-row.mark .mock-cell{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}
+    }
+
+    /* ---------- Split panels ---------- */
     .split{display:grid;grid-template-columns:.9fr 1.1fr;gap:28px;align-items:stretch}
     .panel{
       background:rgba(255,255,255,.9);
@@ -149,115 +291,239 @@
       border-radius:var(--radius);
       padding:30px;
       box-shadow:var(--shadow);
+      backdrop-filter:blur(8px);
+      transition:transform .25s var(--ease),box-shadow .25s var(--ease);
     }
+    .panel:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
     .problem{
       background:
         linear-gradient(135deg,rgba(0,43,85,.94),rgba(0,84,166,.88)),
         url("assets/scania-showroom-bg.jpg") center/cover;
-      color:#fff;
+      color:#fff;position:relative;overflow:hidden;
     }
+    .problem:before{
+      content:"";position:absolute;inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+      background-size:32px 32px;pointer-events:none;
+    }
+    .problem > *{position:relative}
     .problem p{color:#d7e9fb}
     .signal-list{display:grid;gap:12px;margin-top:22px}
     .signal{
       display:flex;gap:12px;align-items:flex-start;
       padding:14px;border-radius:16px;background:#f6fbff;border:1px solid #dbe8f3;
+      transition:transform .2s var(--ease),background .2s var(--ease);
     }
+    .signal:hover{transform:translateX(4px);background:#eef6ff}
     .signal i{
-      width:34px;height:34px;border-radius:12px;background:var(--blue);color:#fff;
-      display:grid;place-items:center;font-style:normal;font-weight:950;flex:0 0 auto;
+      width:34px;height:34px;border-radius:12px;
+      background:linear-gradient(135deg,var(--blue-2),var(--navy));
+      color:#fff;
+      display:grid;place-items:center;font-style:normal;font-weight:800;flex:0 0 auto;
+      box-shadow:0 6px 14px rgba(0,84,166,.3);
     }
-    .signal strong{display:block}
+    .signal strong{display:block;font-weight:700}
     .signal span{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+
+    /* ---------- Features ---------- */
     .features{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
     .feature{
-      background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;
+      position:relative;
+      background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px;
       box-shadow:0 12px 28px rgba(0,35,75,.08);
-      min-height:205px;
+      min-height:215px;
+      transition:transform .25s var(--ease),box-shadow .25s var(--ease),border-color .25s var(--ease);
+      overflow:hidden;
     }
+    .feature:before{
+      content:"";position:absolute;inset:0;
+      background:radial-gradient(circle at var(--mx,50%) var(--my,0%),rgba(15,111,198,.08),transparent 60%);
+      opacity:0;transition:opacity .3s var(--ease);pointer-events:none;
+    }
+    .feature:hover{transform:translateY(-6px);box-shadow:0 24px 50px rgba(0,35,75,.16);border-color:#bfd6ec}
+    .feature:hover:before{opacity:1}
     .feature-icon{
-      width:44px;height:44px;border-radius:14px;
-      background:linear-gradient(135deg,var(--blue),var(--navy));
-      color:#fff;display:grid;place-items:center;font-weight:950;margin-bottom:16px;
+      width:48px;height:48px;border-radius:14px;
+      background:linear-gradient(135deg,var(--blue-2),var(--navy));
+      color:#fff;display:grid;place-items:center;margin-bottom:16px;
+      box-shadow:0 8px 18px rgba(0,84,166,.28);
+      transition:transform .3s var(--ease);
     }
-    .feature h3{font-size:18px;line-height:1.16;margin:0 0 8px}
+    .feature:hover .feature-icon{transform:rotate(-6deg) scale(1.06)}
+    .feature-icon svg{width:24px;height:24px}
+    .feature h3{font-size:18px;line-height:1.2;margin:0 0 8px;font-weight:700}
     .feature p{color:var(--muted);font-size:14px;margin:0}
+
+    /* ---------- Workflow ---------- */
     .workflow{
       display:grid;grid-template-columns:repeat(5,1fr);gap:14px;
-      counter-reset:step;
+      counter-reset:step;position:relative;
     }
     .step{
       position:relative;background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;
       box-shadow:0 12px 28px rgba(0,35,75,.08);
+      transition:transform .25s var(--ease),box-shadow .25s var(--ease);
     }
+    .step:hover{transform:translateY(-4px);box-shadow:0 22px 44px rgba(0,35,75,.14)}
     .step:before{
       counter-increment:step;content:counter(step);
-      width:34px;height:34px;border-radius:50%;
-      display:grid;place-items:center;background:var(--gold);color:#06172d;font-weight:950;margin-bottom:18px;
+      width:38px;height:38px;border-radius:50%;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--gold),var(--gold-2));
+      color:#06172d;font-weight:800;margin-bottom:18px;
+      box-shadow:0 8px 18px rgba(242,169,0,.35);
     }
-    .step h3{margin:0 0 8px;font-size:17px;line-height:1.16}
+    .step h3{margin:0 0 8px;font-size:17px;line-height:1.18;font-weight:700}
     .step p{margin:0;color:var(--muted);font-size:14px}
+
+    /* ---------- Exports ---------- */
     .exports{display:grid;grid-template-columns:1fr 1fr;gap:18px}
     .export-card{
-      border-radius:26px;padding:30px;background:#fff;border:1px solid var(--line);
+      border-radius:26px;padding:32px;background:#fff;border:1px solid var(--line);
       box-shadow:var(--shadow);overflow:hidden;position:relative;
+      transition:transform .25s var(--ease),box-shadow .25s var(--ease);
     }
+    .export-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
     .export-card:before{
       content:"";position:absolute;inset:0 auto 0 0;width:7px;background:var(--blue);
     }
     .export-card.pdf:before{background:var(--red)}
-    .export-card h3{font-size:28px;margin:0 0 10px}
+    .export-card .export-head{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+    .export-icon{
+      width:54px;height:54px;border-radius:16px;display:grid;place-items:center;flex:0 0 auto;
+      background:linear-gradient(135deg,var(--blue-2),var(--navy));color:#fff;
+      box-shadow:0 10px 22px rgba(0,84,166,.3);
+    }
+    .export-card.pdf .export-icon{
+      background:linear-gradient(135deg,#ef4350,var(--red));
+      box-shadow:0 10px 22px rgba(224,38,45,.3);
+    }
+    .export-icon svg{width:26px;height:26px}
+    .export-card h3{font-size:26px;margin:0;font-weight:800}
     .export-card p{color:var(--muted);margin:0 0 18px}
     .checks{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-    .checks li{display:flex;gap:10px;align-items:flex-start;color:#24415f;font-weight:750}
-    .checks li:before{content:"";width:9px;height:9px;border-radius:50%;background:var(--green);margin-top:8px;flex:0 0 auto}
+    .checks li{display:flex;gap:10px;align-items:flex-start;color:#24415f;font-weight:600}
+    .checks li svg{width:18px;height:18px;color:var(--green);flex:0 0 auto;margin-top:1px}
+
+    /* ---------- Support band ---------- */
     .support-band{
+      position:relative;overflow:hidden;
       background:linear-gradient(135deg,#001e3d,#0054a6);
-      color:#fff;border-radius:32px;padding:42px;
+      color:#fff;border-radius:32px;padding:46px;
       display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:center;
       box-shadow:0 24px 70px rgba(0,35,75,.25);
     }
+    .support-band:before{
+      content:"";position:absolute;inset:0;
+      background:
+        radial-gradient(circle at 80% 0%,rgba(242,169,0,.18),transparent 50%),
+        radial-gradient(circle at 0% 100%,rgba(15,111,198,.3),transparent 60%);
+      pointer-events:none;
+    }
+    .support-band > *{position:relative}
     .support-band p{color:#d9ebff;font-size:17px}
     .support-list{display:grid;gap:12px}
     .support-item{
+      display:flex;align-items:center;gap:12px;
       background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);
-      border-radius:16px;padding:14px 16px;font-weight:850;
+      border-radius:16px;padding:14px 16px;font-weight:700;
+      backdrop-filter:blur(6px);
+      transition:transform .2s var(--ease),background .2s var(--ease);
     }
+    .support-item:hover{transform:translateX(4px);background:rgba(255,255,255,.16)}
+    .support-item svg{width:18px;height:18px;color:var(--gold-2);flex:0 0 auto}
+
+    /* ---------- Audience ---------- */
     .audience{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-    .audience .panel{padding:24px}
-    .audience h3{margin:0 0 8px}
+    .audience .panel{padding:26px}
+    .audience .aud-icon{
+      width:46px;height:46px;border-radius:14px;display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--ice),#cfe3f5);color:var(--blue);
+      margin-bottom:14px;
+    }
+    .audience .aud-icon svg{width:24px;height:24px}
+    .audience h3{margin:0 0 8px;font-weight:700}
     .audience p{margin:0;color:var(--muted)}
+
+    /* ---------- FAQ ---------- */
     .faq{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     details{
       background:#fff;border:1px solid var(--line);border-radius:18px;
-      padding:18px 20px;box-shadow:0 10px 24px rgba(0,35,75,.06);
+      padding:18px 22px;box-shadow:0 10px 24px rgba(0,35,75,.06);
+      transition:box-shadow .25s var(--ease),border-color .25s var(--ease);
     }
-    summary{cursor:pointer;font-weight:950;color:var(--navy)}
-    details p{margin:12px 0 0;color:var(--muted)}
-    .systems{
-      display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+    details[open]{box-shadow:0 18px 40px rgba(0,35,75,.12);border-color:#bfd6ec}
+    summary{
+      cursor:pointer;font-weight:700;color:var(--navy);
+      list-style:none;display:flex;align-items:center;gap:12px;
     }
+    summary::-webkit-details-marker{display:none}
+    summary:before{
+      content:"";width:22px;height:22px;border-radius:50%;
+      background:var(--ice);
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230054a6' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+      background-repeat:no-repeat;background-position:center;
+      transition:transform .25s var(--ease);flex:0 0 auto;
+    }
+    details[open] summary:before{transform:rotate(180deg)}
+    details p{margin:12px 0 0 34px;color:var(--muted)}
+
+    /* ---------- Systems ---------- */
+    .systems{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
     .system-link{
+      position:relative;
       text-decoration:none;background:#fff;border:1px solid var(--line);
-      border-radius:20px;padding:20px;text-align:center;
+      border-radius:20px;padding:22px;text-align:center;
       box-shadow:0 10px 24px rgba(0,35,75,.06);
-      transition:transform .16s,box-shadow .16s;
+      transition:transform .2s var(--ease),box-shadow .2s var(--ease);
+      overflow:hidden;
     }
-    .system-link:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
-    .system-link strong{display:block;font-size:25px;line-height:1}
-    .system-link span{display:block;margin-top:9px;color:#27415f;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
-    .wio strong{color:#2d77d0}.spii strong{color:#ef4444}.oa strong{color:#7c4aa4}.conversion strong{color:#48a565}
+    .system-link:after{
+      content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
+      background:currentColor;opacity:0;transition:opacity .25s var(--ease);
+    }
+    .system-link:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+    .system-link:hover:after{opacity:.4}
+    .system-link strong{display:block;font-size:26px;line-height:1;font-weight:800;letter-spacing:-.01em}
+    .system-link span{display:block;margin-top:9px;color:#27415f;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+    .wio{color:#2d77d0}.wio strong{color:#2d77d0}
+    .spii{color:#ef4444}.spii strong{color:#ef4444}
+    .oa{color:#7c4aa4}.oa strong{color:#7c4aa4}
+    .conversion{color:#48a565}.conversion strong{color:#48a565}
+
+    /* ---------- CTA ---------- */
     .cta{
+      position:relative;overflow:hidden;
       text-align:center;background:#fff;border:1px solid var(--line);
-      border-radius:32px;padding:44px;box-shadow:var(--shadow);
+      border-radius:32px;padding:52px 44px;box-shadow:var(--shadow);
     }
+    .cta:before{
+      content:"";position:absolute;inset:-2px;
+      background:conic-gradient(from 180deg at 50% 50%,transparent 0deg,rgba(15,111,198,.18) 90deg,transparent 180deg,rgba(242,169,0,.18) 270deg,transparent 360deg);
+      animation:spin 18s linear infinite;
+      z-index:-1;border-radius:34px;
+    }
+    @keyframes spin{to{transform:rotate(1turn)}}
     .cta h2{margin-top:0}
     .cta p{color:var(--muted);font-size:18px;margin:0 auto 24px;max-width:760px}
+
+    /* ---------- Footer ---------- */
     footer{
-      background:#06172d;color:#cfe2f3;padding:30px 0;
+      background:#06172d;color:#cfe2f3;padding:34px 0;
       font-size:13px;
+      position:relative;overflow:hidden;
+    }
+    footer:before{
+      content:"";position:absolute;top:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent,var(--gold),transparent);
     }
     footer .shell{display:flex;justify-content:space-between;gap:18px;align-items:center;flex-wrap:wrap}
-    footer a{color:#fff;font-weight:900;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.35)}
+    footer a{color:#fff;font-weight:700;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.35);transition:border-color .2s var(--ease)}
+    footer a:hover{border-color:var(--gold)}
+
+    /* ---------- Responsive ---------- */
     @media (max-width:980px){
       .nav{flex-wrap:wrap;padding:12px 0}.navlinks{order:3;width:100%;justify-content:flex-start;overflow:auto}
       .hero-grid,.split,.support-band{grid-template-columns:1fr}
@@ -268,14 +534,42 @@
     @media (max-width:640px){
       .shell{width:min(100% - 28px,1180px)}
       .brand-line,.brand small{display:none}
-      .hero{min-height:auto}.hero-grid{padding:56px 0 86px}
+      .hero{min-height:auto}.hero-grid{padding:60px 0 90px}
       .metrics,.mock-row,.features,.workflow,.exports,.audience,.faq,.systems{grid-template-columns:1fr}
-      .panel,.support-band,.cta{padding:24px;border-radius:22px}
+      .panel,.support-band,.cta{padding:26px;border-radius:22px}
       .nav-cta{display:none}
     }
   </style>
 </head>
 <body>
+
+  <!-- SVG icon sprite -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+      <symbol id="i-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
+      <symbol id="i-output" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2M8 17h6"/></symbol>
+      <symbol id="i-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="8" y1="9" x2="11" y2="9"/></symbol>
+      <symbol id="i-activity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+      <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></symbol>
+      <symbol id="i-highlighter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="M22 12.5 15.5 6l-5 5L17 17.5z"/></symbol>
+      <symbol id="i-row" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="4" rx="1"/><rect x="3" y="11" width="18" height="4" rx="1" fill="currentColor" fill-opacity=".3"/><rect x="3" y="17" width="18" height="4" rx="1"/></symbol>
+      <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></symbol>
+      <symbol id="i-pdf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><text x="7.5" y="18" font-size="6" font-weight="900" fill="currentColor" stroke="none">PDF</text></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+      <symbol id="i-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></symbol>
+      <symbol id="i-wrench" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+      <symbol id="i-headset" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+      <symbol id="i-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></symbol>
+    </defs>
+  </svg>
+
+  <div class="scroll-progress" id="scrollProgress"></div>
+
   <header class="topbar">
     <nav class="shell nav" aria-label="Hauptnavigation">
       <a class="brand" href="#top" aria-label="Startseite">
@@ -283,65 +577,67 @@
         <span class="brand-line"></span>
         <small>Analyse-Tool</small>
       </a>
-      <div class="navlinks">
+      <div class="navlinks" id="navlinks">
         <a href="#funktionen">Funktionen</a>
         <a href="#workflow">Workflow</a>
         <a href="#export">Export</a>
         <a href="#support">Support</a>
       </div>
-      <a class="nav-cta" href="Scania_Signalanalyse_Final1.html">App &ouml;ffnen</a>
+      <a class="nav-cta" href="Scania_Signalanalyse_Final1.html">App &ouml;ffnen <svg><use href="#i-arrow"/></svg></a>
     </nav>
   </header>
 
   <main id="top">
     <section class="hero">
+      <div class="hero-grid-bg"></div>
+      <div class="hero-spotlight" id="spotlight"></div>
       <div class="shell hero-grid">
-        <div>
+        <div class="reveal">
           <span class="eyebrow"><span class="pulse"></span>SWS / SDP3 Signalerfassung</span>
-          <h1>Messdaten schneller verstehen. Auff&auml;lligkeiten sauber weitergeben.</h1>
+          <h1>Messdaten <span class="grad">schneller verstehen</span>. Auff&auml;lligkeiten sauber weitergeben.</h1>
           <p class="lead">Das Analyse-Tool bereitet .txt-Dateien aus der Signalerfassung strukturiert auf, macht relevante Signale sichtbar und erzeugt professionelle Exporte f&uuml;r Diagnose, Werkstatt und Support.</p>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="Scania_Signalanalyse_Final1.html">App &ouml;ffnen</a>
+            <a class="btn btn-primary" href="Scania_Signalanalyse_Final1.html"><svg><use href="#i-play"/></svg> App &ouml;ffnen</a>
             <a class="btn btn-secondary" href="#funktionen">Funktionen ansehen</a>
             <a class="btn btn-secondary" href="#export">Export verstehen</a>
           </div>
           <div class="hero-proof">
-            <span class="proof">Drag &amp; Drop f&uuml;r .txt-Dateien</span>
-            <span class="proof">Spalten und Zeilen markieren</span>
-            <span class="proof">PDF &amp; Excel f&uuml;r Eskalationen</span>
+            <span class="proof"><svg><use href="#i-upload"/></svg> Drag &amp; Drop f&uuml;r .txt-Dateien</span>
+            <span class="proof"><svg><use href="#i-bookmark"/></svg> Spalten und Zeilen markieren</span>
+            <span class="proof"><svg><use href="#i-output"/></svg> PDF &amp; Excel f&uuml;r Eskalationen</span>
           </div>
         </div>
 
-        <aside class="app-card" aria-label="Vorschau der Analyse-App">
+        <aside class="app-card reveal" aria-label="Vorschau der Analyse-App">
           <div class="app-head">
-            <strong>Analyse-Ansicht nach Upload</strong>
+            <div class="app-title"><span class="live-dot"></span>Analyse-Ansicht nach Upload</div>
             <div class="head-dots"><span></span><span></span><span></span></div>
           </div>
           <div class="metrics">
-            <div class="metric"><b>Samples</b><span>6.474</span></div>
-            <div class="metric"><b>Signale</b><span>19</span></div>
-            <div class="metric"><b>Dauer</b><span>00:11:48</span></div>
+            <div class="metric"><b>Samples</b><span class="val" data-count="6474">0</span></div>
+            <div class="metric"><b>Signale</b><span class="val" data-count="19">0</span></div>
+            <div class="metric"><b>Dauer</b><span class="val">00:11:48</span></div>
           </div>
-          <div class="table-mock">
-            <div class="mock-row mock-head">
+          <div class="table-mock" id="tableMock">
+            <div class="mock-row mock-head show">
               <div class="mock-cell">Zeitstempel</div>
               <div class="mock-cell">Marker</div>
               <div class="mock-cell">BMS Rad 1</div>
               <div class="mock-cell">Drehzahl</div>
             </div>
-            <div class="mock-row">
+            <div class="mock-row" data-delay="200">
               <div class="mock-cell">16:56:17:030</div>
               <div class="mock-cell">0</div>
               <div class="mock-cell">Nicht im Redundanzmodus</div>
               <div class="mock-cell">4</div>
             </div>
-            <div class="mock-row mark">
+            <div class="mock-row mark" data-delay="500">
               <div class="mock-cell">16:56:17:799</div>
               <div class="mock-cell">0</div>
               <div class="mock-cell pin">markiertes Signal</div>
               <div class="mock-cell">4</div>
             </div>
-            <div class="mock-row">
+            <div class="mock-row" data-delay="800">
               <div class="mock-cell">16:56:18:015</div>
               <div class="mock-cell">0</div>
               <div class="mock-cell">Nicht im Redundanzmodus</div>
@@ -354,13 +650,13 @@
 
     <section class="section compact">
       <div class="shell split">
-        <article class="panel problem">
-          <span class="kicker">Ausgangslage</span>
+        <article class="panel problem reveal">
+          <span class="kicker" style="color:#ffd989">Ausgangslage</span>
           <h2>Rohdaten sind stark. Aber nicht immer schnell lesbar.</h2>
           <p>Signalerfassungen enthalten oft viele Spalten, lange Zeitverl&auml;ufe und technische Werte, die f&uuml;r eine schnelle Diagnose erst sortiert, gefiltert und markiert werden m&uuml;ssen.</p>
           <p>Ohne saubere Aufbereitung entstehen unn&ouml;tige R&uuml;ckfragen, Screenshots werden un&uuml;bersichtlich und wichtige Zeitpunkte gehen in der Menge der Messdaten unter.</p>
         </article>
-        <article class="panel">
+        <article class="panel reveal">
           <span class="kicker">L&ouml;sung</span>
           <h2>Vom .txt-Export zum lesbaren Diagnosebericht.</h2>
           <div class="signal-list">
@@ -374,32 +670,32 @@
 
     <section class="section" id="funktionen">
       <div class="shell">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="kicker">Kernfunktionen</span>
           <h2>Alles, was bei einer Signalerfassung sofort helfen soll.</h2>
           <p>Die App bleibt bewusst schlank: Daten laden, schneller lesen, relevante Stellen markieren und sauber weitergeben.</p>
         </div>
-        <div class="features">
-          <article class="feature"><div class="feature-icon">TXT</div><h3>.txt-Dateien laden</h3><p>Drag &amp; Drop oder Dateiauswahl f&uuml;r eine oder mehrere Signalerfassungen.</p></article>
-          <article class="feature"><div class="feature-icon">SIG</div><h3>Signale automatisch erkennen</h3><p>Steuerger&auml;t, Sensorbezeichnung, Einheit und Signal-ID werden aus der Datei &uuml;bernommen.</p></article>
-          <article class="feature"><div class="feature-icon">FIL</div><h3>Suchen und filtern</h3><p>Zeitbereiche und Suchbegriffe helfen, relevante Messpunkte schneller zu finden.</p></article>
-          <article class="feature"><div class="feature-icon">COL</div><h3>Spalten ausblenden</h3><p>Nicht ben&ouml;tigte Signale verschwinden aus der Ansicht, bleiben aber im Export nachvollziehbar.</p></article>
-          <article class="feature"><div class="feature-icon">PIN</div><h3>Spalten markieren</h3><p>Wichtige Signale werden farblich &uuml;ber die komplette Spalte hervorgehoben.</p></article>
-          <article class="feature"><div class="feature-icon">ROW</div><h3>Zeitpunkte markieren</h3><p>Einzelne Messzeilen lassen sich hellrot markieren, um Auff&auml;lligkeiten klar zu kennzeichnen.</p></article>
-          <article class="feature"><div class="feature-icon">XLS</div><h3>Excel-Arbeitsmappe</h3><p>Export mit &Uuml;bersicht, Signalen, Messdaten und Markierungen f&uuml;r technische Auswertung.</p></article>
-          <article class="feature"><div class="feature-icon">PDF</div><h3>PDF-Bericht</h3><p>Kompakter Bericht f&uuml;r schnelle Weitergabe an Supportstellen oder Eskalationsprozesse.</p></article>
+        <div class="features reveal-stagger">
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-file-text"/></svg></div><h3>.txt-Dateien laden</h3><p>Drag &amp; Drop oder Dateiauswahl f&uuml;r eine oder mehrere Signalerfassungen.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-activity"/></svg></div><h3>Signale automatisch erkennen</h3><p>Steuerger&auml;t, Sensorbezeichnung, Einheit und Signal-ID werden aus der Datei &uuml;bernommen.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-search"/></svg></div><h3>Suchen und filtern</h3><p>Zeitbereiche und Suchbegriffe helfen, relevante Messpunkte schneller zu finden.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-eye-off"/></svg></div><h3>Spalten ausblenden</h3><p>Nicht ben&ouml;tigte Signale verschwinden aus der Ansicht, bleiben aber im Export nachvollziehbar.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-highlighter"/></svg></div><h3>Spalten markieren</h3><p>Wichtige Signale werden farblich &uuml;ber die komplette Spalte hervorgehoben.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-row"/></svg></div><h3>Zeitpunkte markieren</h3><p>Einzelne Messzeilen lassen sich hellrot markieren, um Auff&auml;lligkeiten klar zu kennzeichnen.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-table"/></svg></div><h3>Excel-Arbeitsmappe</h3><p>Export mit &Uuml;bersicht, Signalen, Messdaten und Markierungen f&uuml;r technische Auswertung.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-pdf"/></svg></div><h3>PDF-Bericht</h3><p>Kompakter Bericht f&uuml;r schnelle Weitergabe an Supportstellen oder Eskalationsprozesse.</p></article>
         </div>
       </div>
     </section>
 
     <section class="section" id="workflow">
       <div class="shell">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="kicker">Workflow</span>
           <h2>F&uuml;nf Schritte von der Messung zur Eskalationsdatei.</h2>
           <p>Der Ablauf ist so gedacht, dass er im Werkstattalltag ohne lange Einarbeitung funktioniert.</p>
         </div>
-        <div class="workflow">
+        <div class="workflow reveal-stagger">
           <article class="step"><h3>Signalerfassung exportieren</h3><p>.txt-Datei aus SWS / SDP3 bereitstellen.</p></article>
           <article class="step"><h3>Datei laden</h3><p>Per Drag &amp; Drop oder Dateiauswahl in die App einf&uuml;gen.</p></article>
           <article class="step"><h3>Daten pr&uuml;fen</h3><p>Zeitraum, Samples, Signale und Messwerte kontrollieren.</p></article>
@@ -411,28 +707,34 @@
 
     <section class="section" id="export">
       <div class="shell">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="kicker">Export</span>
           <h2>Zwei Ausgaben f&uuml;r zwei typische Situationen.</h2>
           <p>Der Export ist nicht nur ein Datenabzug, sondern soll eine saubere technische Kommunikation erm&ouml;glichen.</p>
         </div>
-        <div class="exports">
+        <div class="exports reveal-stagger">
           <article class="export-card pdf">
-            <h3>PDF-Bericht</h3>
+            <div class="export-head">
+              <div class="export-icon"><svg><use href="#i-pdf"/></svg></div>
+              <h3>PDF-Bericht</h3>
+            </div>
             <p>Der PDF-Export ist als schnell lesbarer Bericht gedacht. Ideal, wenn ein Fall kurz zusammengefasst und mit markierten Auff&auml;lligkeiten weitergegeben werden soll.</p>
             <ul class="checks">
-              <li>Kompakte &Uuml;bersicht f&uuml;r Eskalationen</li>
-              <li>Markierte Signale und Zeitpunkte sofort erkennbar</li>
-              <li>Geeignet f&uuml;r E-Mail, Ticket oder Supportanfrage</li>
+              <li><svg><use href="#i-check"/></svg> Kompakte &Uuml;bersicht f&uuml;r Eskalationen</li>
+              <li><svg><use href="#i-check"/></svg> Markierte Signale und Zeitpunkte sofort erkennbar</li>
+              <li><svg><use href="#i-check"/></svg> Geeignet f&uuml;r E-Mail, Ticket oder Supportanfrage</li>
             </ul>
           </article>
           <article class="export-card">
-            <h3>Excel-Arbeitsmappe</h3>
+            <div class="export-head">
+              <div class="export-icon"><svg><use href="#i-table"/></svg></div>
+              <h3>Excel-Arbeitsmappe</h3>
+            </div>
             <p>Die Excel-Datei enth&auml;lt die vollst&auml;ndige technische Struktur: &Uuml;bersicht, Signalliste, Messdaten und Markierungen f&uuml;r weitere Auswertungen.</p>
             <ul class="checks">
-              <li>Vollst&auml;ndige Messdaten in Tabellenform</li>
-              <li>Echte Steuerger&auml;t- und Sensorbezeichnungen</li>
-              <li>Ausgeblendete Signale bleiben nachvollziehbar vorhanden</li>
+              <li><svg><use href="#i-check"/></svg> Vollst&auml;ndige Messdaten in Tabellenform</li>
+              <li><svg><use href="#i-check"/></svg> Echte Steuerger&auml;t- und Sensorbezeichnungen</li>
+              <li><svg><use href="#i-check"/></svg> Ausgeblendete Signale bleiben nachvollziehbar vorhanden</li>
             </ul>
           </article>
         </div>
@@ -441,18 +743,18 @@
 
     <section class="section" id="support">
       <div class="shell">
-        <div class="support-band">
+        <div class="support-band reveal">
           <div>
-            <span class="kicker">Support &amp; Eskalation</span>
+            <span class="kicker" style="color:#ffd989">Support &amp; Eskalation</span>
             <h2>Weniger R&uuml;ckfragen. Mehr technische Klarheit.</h2>
             <p>Wenn Messdaten an Supportstellen gehen, z&auml;hlt Nachvollziehbarkeit. Die App hilft dabei, relevante Signale, Zeitpunkte und Rahmeninformationen in einer einheitlichen Struktur zu &uuml;bergeben.</p>
-            <a class="btn btn-primary" href="Scania_Signalanalyse_Final1.html">Analyse starten</a>
+            <a class="btn btn-primary" href="Scania_Signalanalyse_Final1.html"><svg><use href="#i-play"/></svg> Analyse starten</a>
           </div>
           <div class="support-list">
-            <div class="support-item">Einheitliche Darstellung statt un&uuml;bersichtlicher Rohdaten</div>
-            <div class="support-item">Auff&auml;llige Spalten und Zeitpunkte klar markiert</div>
-            <div class="support-item">Export mit Datei, Zeitraum, Samples und Signalreferenz</div>
-            <div class="support-item">Bessere Grundlage f&uuml;r technische R&uuml;ckfragen</div>
+            <div class="support-item"><svg><use href="#i-check"/></svg> Einheitliche Darstellung statt un&uuml;bersichtlicher Rohdaten</div>
+            <div class="support-item"><svg><use href="#i-check"/></svg> Auff&auml;llige Spalten und Zeitpunkte klar markiert</div>
+            <div class="support-item"><svg><use href="#i-check"/></svg> Export mit Datei, Zeitraum, Samples und Signalreferenz</div>
+            <div class="support-item"><svg><use href="#i-check"/></svg> Bessere Grundlage f&uuml;r technische R&uuml;ckfragen</div>
           </div>
         </div>
       </div>
@@ -460,26 +762,26 @@
 
     <section class="section">
       <div class="shell">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="kicker">Zielgruppe</span>
           <h2>Gebaut f&uuml;r Menschen, die Messdaten wirklich nutzen m&uuml;ssen.</h2>
         </div>
-        <div class="audience">
-          <article class="panel"><h3>Diagnosetechniker</h3><p>F&uuml;r schnelles Eingrenzen relevanter Signale und Zeitbereiche direkt aus der Signalerfassung.</p></article>
-          <article class="panel"><h3>Werkstatt &amp; Service</h3><p>F&uuml;r nachvollziehbare Dokumentation und saubere Kommunikation bei komplexen Fehlerbildern.</p></article>
-          <article class="panel"><h3>Supportstellen</h3><p>F&uuml;r strukturierte Exporte, die weniger Interpretation und mehr technische Klarheit liefern.</p></article>
+        <div class="audience reveal-stagger">
+          <article class="panel"><div class="aud-icon"><svg><use href="#i-spark"/></svg></div><h3>Diagnosetechniker</h3><p>F&uuml;r schnelles Eingrenzen relevanter Signale und Zeitbereiche direkt aus der Signalerfassung.</p></article>
+          <article class="panel"><div class="aud-icon"><svg><use href="#i-wrench"/></svg></div><h3>Werkstatt &amp; Service</h3><p>F&uuml;r nachvollziehbare Dokumentation und saubere Kommunikation bei komplexen Fehlerbildern.</p></article>
+          <article class="panel"><div class="aud-icon"><svg><use href="#i-headset"/></svg></div><h3>Supportstellen</h3><p>F&uuml;r strukturierte Exporte, die weniger Interpretation und mehr technische Klarheit liefern.</p></article>
         </div>
       </div>
     </section>
 
     <section class="section">
       <div class="shell">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="kicker">Scania-Systeme</span>
           <h2>Relevante Systeme direkt erreichbar.</h2>
           <p>Die App verlinkt wichtige Scania-Portale, damit Analyse und weiterf&uuml;hrende Recherche schneller zusammenfinden.</p>
         </div>
-        <div class="systems">
+        <div class="systems reveal-stagger">
           <a class="system-link wio" href="https://wio.scania.com/sws/de-DE" target="_blank" rel="noopener noreferrer"><strong>WIO</strong><span>Workshop Information Online</span></a>
           <a class="system-link spii" href="https://spii.scania.com/" target="_blank" rel="noopener noreferrer"><strong>SPII</strong><span>Product Individual Information</span></a>
           <a class="system-link oa" href="https://operationalanalysis.scania.com/OdsWeb" target="_blank" rel="noopener noreferrer"><strong>OA</strong><span>Operational Analysis</span></a>
@@ -490,11 +792,11 @@
 
     <section class="section">
       <div class="shell">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="kicker">FAQ</span>
           <h2>H&auml;ufige Fragen.</h2>
         </div>
-        <div class="faq">
+        <div class="faq reveal-stagger">
           <details>
             <summary>Welche Dateien kann ich laden?</summary>
             <p>Die App ist f&uuml;r .txt-Dateien aus der SWS / SDP3 Signalerfassung ausgelegt. Andere Formate werden nicht als Standard angenommen.</p>
@@ -516,11 +818,11 @@
     </section>
 
     <section class="section">
-      <div class="shell cta">
+      <div class="shell cta reveal">
         <span class="kicker">Bereit f&uuml;r die Analyse</span>
         <h2>Signalerfassung laden und sauber auswerten.</h2>
         <p>Wenn eine .txt-Datei aus SWS / SDP3 vorliegt, kann die Analyse direkt lokal gestartet werden.</p>
-        <a class="btn btn-primary" href="Scania_Signalanalyse_Final1.html">App jetzt &ouml;ffnen</a>
+        <a class="btn btn-primary" href="Scania_Signalanalyse_Final1.html"><svg><use href="#i-play"/></svg> App jetzt &ouml;ffnen</a>
       </div>
     </section>
   </main>
@@ -528,8 +830,118 @@
   <footer>
     <div class="shell">
       <span>SWS / SDP3 - Signalerfassung - Tool - Intern - By <a href="https://reflex.scania.com/profile/dbreue" target="_blank" rel="noopener noreferrer">David Breuer</a></span>
-      <a href="https://breuer-trucks.de/" target="_blank" rel="noopener noreferrer">Breuer Truck &amp; Trailer</a>
+      <a href="https://breuer-trucks.de/" target="_blank" rel="noopener noreferrer">Breuer Truck &amp; Trailer <svg style="width:13px;height:13px;vertical-align:-2px"><use href="#i-external"/></svg></a>
     </div>
   </footer>
+
+  <script>
+    // ---- Scroll progress ----
+    const progress = document.getElementById('scrollProgress');
+    const onScroll = () => {
+      const h = document.documentElement;
+      const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight);
+      progress.style.width = (scrolled * 100) + '%';
+    };
+    document.addEventListener('scroll', onScroll, {passive:true});
+    onScroll();
+
+    // ---- IntersectionObserver: reveal on scroll ----
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, {threshold:.14, rootMargin:'0px 0px -40px 0px'});
+    document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => io.observe(el));
+
+    // ---- Counter animation for hero metrics ----
+    const animateCounter = (el) => {
+      const target = parseInt(el.dataset.count, 10);
+      const duration = 1400;
+      const start = performance.now();
+      const fmt = (n) => n.toLocaleString('de-DE');
+      const tick = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = fmt(Math.floor(target * eased));
+        if (t < 1) requestAnimationFrame(tick);
+        else el.textContent = fmt(target);
+      };
+      requestAnimationFrame(tick);
+    };
+    const cIo = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          animateCounter(e.target);
+          cIo.unobserve(e.target);
+        }
+      });
+    }, {threshold:.5});
+    document.querySelectorAll('.val[data-count]').forEach(el => cIo.observe(el));
+
+    // ---- Mock-table: rows fade in on cycle ----
+    const mock = document.getElementById('tableMock');
+    if (mock) {
+      const rows = mock.querySelectorAll('.mock-row:not(.mock-head)');
+      const playCycle = () => {
+        rows.forEach(r => r.classList.remove('show'));
+        rows.forEach(r => {
+          const d = parseInt(r.dataset.delay || '0', 10);
+          setTimeout(() => r.classList.add('show'), d);
+        });
+      };
+      const mIo = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            playCycle();
+            // restart loop while visible
+            mock._timer = setInterval(playCycle, 4500);
+          } else {
+            if (mock._timer) { clearInterval(mock._timer); mock._timer = null; }
+          }
+        });
+      }, {threshold:.3});
+      mIo.observe(mock);
+    }
+
+    // ---- Scrollspy for nav ----
+    const navLinks = Array.from(document.querySelectorAll('#navlinks a'));
+    const sections = navLinks.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+    const sIo = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = '#' + e.target.id;
+          navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === id));
+        }
+      });
+    }, {rootMargin:'-45% 0px -50% 0px'});
+    sections.forEach(s => sIo.observe(s));
+
+    // ---- Hero spotlight follows pointer ----
+    const spotlight = document.getElementById('spotlight');
+    const hero = document.querySelector('.hero');
+    if (spotlight && hero && window.matchMedia('(hover:hover)').matches) {
+      hero.addEventListener('pointermove', (ev) => {
+        const r = hero.getBoundingClientRect();
+        const x = ev.clientX - r.left;
+        const y = ev.clientY - r.top;
+        spotlight.style.transform = `translate(${x - 300}px, ${y - 300}px)`;
+        spotlight.style.top = '0';
+        spotlight.style.right = 'auto';
+        spotlight.style.left = '0';
+      });
+    }
+
+    // ---- Feature cards: cursor-aware glow ----
+    document.querySelectorAll('.feature').forEach(card => {
+      card.addEventListener('pointermove', (ev) => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', ((ev.clientX - r.left) / r.width * 100) + '%');
+        card.style.setProperty('--my', ((ev.clientY - r.top) / r.height * 100) + '%');
+      });
+    });
+  </script>
 </body>
 </html>

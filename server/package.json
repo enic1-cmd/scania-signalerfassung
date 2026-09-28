@@ -1,0 +1,17 @@
+{
+  "name": "signalerfassung-admin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lokale Benutzerverwaltung und datensparsame Nutzungsstatistik",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "nodemailer": "^10.0.10"
+  }
+}

@@ -1,0 +1,1489 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Signalerfassung Analyse-Tool fuer SWS und SDP3</title>
+  <meta name="description" content="Signalerfassung Analyse-Tool fuer SWS- und SDP3-TXT-Dateien: Messdaten lokal auswerten, relevante Signale markieren und professionelle Excel- und PDF-Exporte fuer Diagnose, Werkstatt und Support erstellen.">
+  <link rel="canonical" href="https://signalerfassung.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Signalerfassung Analyse-Tool fuer SWS und SDP3">
+  <meta property="og:description" content="Lokale Auswertung von SWS- und SDP3-Signalerfassungen mit uebersichtlichen Exporten fuer Diagnose, Werkstatt und Support.">
+  <meta property="og:url" content="https://signalerfassung.com/">
+  <meta property="og:site_name" content="Signalerfassung Analyse-Tool">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:image" content="https://signalerfassung.com/assets/signalerfassung-share-preview.png">
+  <meta property="og:image:secure_url" content="https://signalerfassung.com/assets/signalerfassung-share-preview.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Signalerfassung Analyse-Tool fuer SWS- und SDP3-Messdaten">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Signalerfassung Analyse-Tool fuer SWS und SDP3">
+  <meta name="twitter:description" content="Messdaten lokal analysieren, Auffaelligkeiten markieren und als Excel oder PDF exportieren.">
+  <meta name="twitter:image" content="https://signalerfassung.com/assets/signalerfassung-share-preview.png">
+  <meta name="twitter:image:alt" content="Signalerfassung Analyse-Tool fuer SWS- und SDP3-Messdaten">
+  <meta name="theme-color" content="#002b55">
+  <link rel="icon" type="image/png" sizes="1024x1024" href="assets/signalerfassung-app-icon.png">
+  <link rel="apple-touch-icon" href="assets/signalerfassung-app-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <style>
+    :root{
+      --navy:#002b55;
+      --navy-2:#001e3d;
+      --blue:#0054a6;
+      --blue-2:#0f6fc6;
+      --blue-3:#3b8fe0;
+      --ice:#eaf4fb;
+      --paper:#ffffff;
+      --ink:#06172d;
+      --muted:#64748b;
+      --line:#d9e6f2;
+      --gold:#f2a900;
+      --gold-2:#ffc547;
+      --red:#e0262d;
+      --green:#118447;
+      --shadow:0 22px 60px rgba(0,35,75,.16);
+      --shadow-lg:0 32px 90px rgba(0,35,75,.22);
+      --radius:24px;
+      --ease:cubic-bezier(.2,.7,.2,1);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:"Bahnschrift","Aptos","Trebuchet MS",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 12% 5%,rgba(15,111,198,.16),transparent 34rem),
+        radial-gradient(circle at 88% 65%,rgba(242,169,0,.07),transparent 30rem),
+        linear-gradient(180deg,#f4f9fd 0%,#fff 48%,#f2f7fb 100%);
+      line-height:1.55;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+    a{color:inherit}
+
+    .shell{width:min(1180px,calc(100% - 42px));margin:0 auto}
+
+    /* ---------- Topbar ---------- */
+    .topbar{
+      position:sticky;top:0;z-index:20;
+      background:linear-gradient(135deg,rgba(0,43,85,.98),rgba(0,84,166,.96));
+      box-shadow:0 12px 30px rgba(0,18,44,.18);
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .nav{
+      min-height:64px;
+      display:flex;align-items:center;gap:14px;
+      color:#fff;
+    }
+    .shell.nav{width:min(1320px,calc(100% - 42px))}
+    .brand{display:flex;align-items:center;gap:11px;text-decoration:none;min-width:0}
+    .brand-symbol{height:44px;width:auto;display:block;flex-shrink:0;filter:drop-shadow(0 2px 9px rgba(0,0,0,.34))}
+    .brand-wordmark{width:178px;max-width:27vw;height:auto;display:block;flex-shrink:1;filter:drop-shadow(0 2px 9px rgba(0,0,0,.34))}
+    .brand-line{width:1px;height:28px;background:rgba(255,255,255,.22)}
+    .brand small{display:block;color:rgba(255,255,255,.78);font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:10px;white-space:nowrap}
+    .navlinks{margin-left:auto;display:flex;align-items:center;gap:6px}
+    .navlinks a{
+      position:relative;
+      text-decoration:none;color:rgba(255,255,255,.82);
+      font-weight:700;font-size:13px;letter-spacing:.02em;
+      padding:8px 11px;border-radius:8px;
+      transition:color .2s var(--ease),background .2s var(--ease);
+    }
+    .navlinks a:hover{background:rgba(255,255,255,.1);color:#fff}
+    .navlinks a.active{color:#fff;background:rgba(255,255,255,.12)}
+    .navlinks a.active:after{
+      content:"";position:absolute;left:50%;bottom:3px;transform:translateX(-50%);
+      width:5px;height:5px;border-radius:50%;background:var(--gold);
+      box-shadow:0 0 10px var(--gold);
+    }
+.tool-launcher{position:relative;z-index:90}
+.tool-launcher summary{
+  width:36px;height:36px;display:grid;place-items:center;
+  border-radius:9px;cursor:pointer;list-style:none;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+  transition:background .15s,border-color .15s,transform .15s;
+}
+.tool-launcher summary::-webkit-details-marker{display:none}
+.tool-launcher summary:hover,.tool-launcher[open] summary{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.32);transform:translateY(-1px)}
+.tool-grid-icon{display:grid;grid-template-columns:repeat(3,4px);gap:3px}
+.tool-grid-icon span{width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 5px rgba(255,255,255,.45)}
+.tool-panel{
+  position:absolute;top:calc(100% + 12px);right:-8px;width:204px;
+  background:#fff;color:#16365f;border:1px solid rgba(0,61,117,.12);
+  box-shadow:0 16px 38px rgba(0,30,70,.22);padding:8px 0;border-radius:4px;
+}
+.tool-panel:before{content:'';position:absolute;top:-7px;right:20px;width:14px;height:14px;background:rgba(255,255,255,.98);transform:rotate(45deg);border-left:1px solid rgba(0,61,117,.12);border-top:1px solid rgba(0,61,117,.12)}
+.tool-link{display:block;text-decoration:none;text-align:center;padding:12px 12px;color:#17355a;transition:background .15s,transform .15s}
+.tool-link:hover{background:#f1f6fb;transform:translateX(-2px)}
+.tool-link strong{display:block;font-size:18px;line-height:1.05;font-weight:900;letter-spacing:.02em}
+.tool-link span{display:block;margin-top:6px;font-size:10px;font-weight:800;line-height:1.35;letter-spacing:.1em;text-transform:uppercase;color:#1f3f6f}
+.tool-link.sws strong{color:#0055a0}.tool-link.wio strong{color:#2d77d0}.tool-link.spii strong{color:#ef4444}.tool-link.oa strong{color:#7c4aa4}.tool-link.conversion strong{color:#48a565}.tool-link.fras strong{color:#e5ac00}
+    .nav-cta{
+      height:40px;text-decoration:none;background:var(--gold);color:var(--navy);
+      padding:0 16px;border:1px solid var(--gold-2);border-radius:8px;font-size:13px;font-weight:900;
+      box-shadow:0 7px 18px rgba(0,25,60,.22);
+      display:inline-flex;align-items:center;gap:10px;white-space:nowrap;flex-shrink:0;
+      transition:transform .2s var(--ease),box-shadow .2s var(--ease),background .2s var(--ease);
+    }
+    .nav-cta:after{content:"\2192";font-size:18px;line-height:1;transition:transform .2s var(--ease)}
+    .nav-cta:hover{transform:translateY(-1px);background:var(--gold-2);box-shadow:0 11px 24px rgba(0,20,55,.28)}
+    .nav-cta:hover:after{transform:translateX(3px)}
+    .nav-request{height:40px;padding:0 14px;border:1px solid rgba(255,255,255,.3);border-radius:10px;color:#fff;text-decoration:none;font-size:12px;font-weight:850;white-space:nowrap;display:inline-flex;align-items:center;flex-shrink:0}
+    .nav-request:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.5)}
+    .language-switch{
+      position:relative;flex-shrink:0;
+    }
+    .language-switch summary{
+      height:36px;min-width:66px;padding:0 9px;display:flex;align-items:center;justify-content:center;gap:6px;
+      border:1px solid rgba(255,255,255,.24);border-radius:9px;background:rgba(255,255,255,.08);
+      color:#fff;cursor:pointer;list-style:none;font-size:11px;font-weight:850;letter-spacing:.04em;
+      transition:background .15s,border-color .15s,transform .15s;
+    }
+    .language-switch summary::-webkit-details-marker{display:none}
+    .language-switch summary:hover,.language-switch[open] summary{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4);transform:translateY(-1px)}
+    .language-switch summary svg{width:16px;height:16px}
+    .language-switch .language-chevron{width:12px;height:12px;transition:transform .18s var(--ease)}
+    .language-switch[open] .language-chevron{transform:rotate(180deg)}
+    .language-panel{
+      position:absolute;top:calc(100% + 10px);right:0;width:150px;padding:6px;
+      background:#fff;color:var(--navy);border:1px solid rgba(0,61,117,.12);border-radius:8px;
+      box-shadow:0 16px 38px rgba(0,30,70,.22);
+    }
+    .language-panel button{
+      width:100%;height:38px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:inherit;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;
+      font:inherit;font-size:12px;font-weight:750;text-align:left;
+    }
+    .language-panel button:hover{background:#edf5fb}
+    .language-panel button[aria-pressed="true"]{background:#e4f1fb;color:var(--blue);font-weight:900}
+    .language-panel button span{font-size:10px;letter-spacing:.06em;color:#64748b}
+
+    /* ---------- Hero ---------- */
+    .hero{
+      position:relative;overflow:hidden;
+      min-height:680px;
+      display:flex;align-items:center;
+      color:#fff;
+      background:
+        linear-gradient(110deg,rgba(0,43,85,.96) 0%,rgba(0,84,166,.85) 48%,rgba(0,43,85,.4) 100%),
+        url("assets/scania-showroom-bg.jpg") center/cover;
+    }
+    .hero-grid-bg{
+      position:absolute;inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+      background-size:48px 48px;
+      mask-image:radial-gradient(ellipse 80% 60% at 30% 40%,black 30%,transparent 75%);
+      -webkit-mask-image:radial-gradient(ellipse 80% 60% at 30% 40%,black 30%,transparent 75%);
+      opacity:.7;pointer-events:none;
+    }
+    .hero-spotlight{
+      position:absolute;inset:auto;
+      width:600px;height:600px;border-radius:50%;
+      background:radial-gradient(circle,rgba(242,169,0,.22),transparent 65%);
+      pointer-events:none;
+      transition:transform .35s var(--ease);
+      top:-120px;right:-160px;
+    }
+    .hero:after{
+      content:"";position:absolute;inset:auto -10% -28% -10%;height:260px;
+      background:linear-gradient(180deg,transparent,rgba(244,249,253,1));
+      pointer-events:none;
+    }
+    .hero-grid{
+      position:relative;z-index:1;
+      display:grid;grid-template-columns:minmax(0,1.03fr) minmax(360px,.97fr);
+      gap:44px;align-items:center;
+      padding:90px 0 120px;
+    }
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:10px;
+      padding:8px 14px;border:1px solid rgba(255,255,255,.28);
+      border-radius:999px;background:rgba(255,255,255,.09);
+      color:#d8ebff;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    }
+    .pulse{width:9px;height:9px;border-radius:99px;background:var(--gold);position:relative}
+    .pulse:before{
+      content:"";position:absolute;inset:-4px;border-radius:99px;
+      background:var(--gold);opacity:.55;
+      animation:pulseRing 2s var(--ease) infinite;
+    }
+    @keyframes pulseRing{
+      0%{transform:scale(.6);opacity:.7}
+      100%{transform:scale(2.4);opacity:0}
+    }
+
+    h1{
+      margin:22px 0 16px;font-size:clamp(38px,5.4vw,72px);line-height:.98;letter-spacing:-.05em;
+      font-weight:800;
+    }
+    h1 .grad{
+      background:linear-gradient(90deg,#fff 20%,#ffd989 50%,#fff 80%);
+      background-size:200% 100%;
+      -webkit-background-clip:text;background-clip:text;
+      -webkit-text-fill-color:transparent;color:transparent;
+      animation:shimmer 6s linear infinite;
+    }
+    @keyframes shimmer{
+      0%{background-position:0% 0%}
+      100%{background-position:200% 0%}
+    }
+    .lead{font-size:clamp(18px,2vw,22px);max-width:700px;color:#dcecff;margin:0 0 30px}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:30px}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      min-height:48px;padding:13px 19px;border-radius:14px;
+      text-decoration:none;font-weight:800;border:1px solid transparent;
+      transition:transform .18s var(--ease),box-shadow .18s var(--ease),background .18s var(--ease);
+      cursor:pointer;
+    }
+    .btn svg{width:18px;height:18px}
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary{
+      background:linear-gradient(135deg,var(--gold),var(--gold-2));
+      color:#06172d;box-shadow:0 14px 30px rgba(242,169,0,.32);
+    }
+    .btn-primary:hover{box-shadow:0 18px 40px rgba(242,169,0,.45)}
+    .btn-secondary{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.28);color:#fff}
+    .btn-secondary:hover{background:rgba(255,255,255,.2)}
+    .hero-proof{display:flex;flex-wrap:wrap;gap:10px}
+    .proof{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:10px 13px;border-radius:14px;
+      background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);
+      color:#eaf6ff;font-size:13px;font-weight:700;
+    }
+    .proof svg{width:15px;height:15px;color:var(--gold-2)}
+
+    /* ---------- App preview card ---------- */
+    .app-card{
+      position:relative;
+      background:rgba(255,255,255,.95);
+      color:var(--ink);
+      border:1px solid rgba(255,255,255,.55);
+      border-radius:28px;
+      box-shadow:0 30px 85px rgba(0,21,54,.34);
+      overflow:hidden;
+      animation:floatY 7s ease-in-out infinite;
+    }
+    @keyframes floatY{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-8px)}
+    }
+    .app-card:before{
+      content:"";position:absolute;inset:-1px;border-radius:29px;
+      background:linear-gradient(135deg,rgba(255,255,255,.6),transparent 40%,rgba(242,169,0,.4));
+      z-index:-1;
+    }
+    .app-head{
+      background:linear-gradient(135deg,var(--navy),var(--blue));
+      color:#fff;padding:18px 20px;
+      display:flex;align-items:center;justify-content:space-between;gap:14px;
+    }
+    .app-head .app-title{display:flex;align-items:center;gap:10px;font-size:15px;letter-spacing:.03em;font-weight:700}
+    .app-head .live-dot{
+      width:8px;height:8px;border-radius:50%;background:#5ce39c;
+      box-shadow:0 0 0 0 rgba(92,227,156,.7);
+      animation:liveDot 1.6s ease-in-out infinite;
+    }
+    @keyframes liveDot{
+      0%{box-shadow:0 0 0 0 rgba(92,227,156,.7)}
+      80%,100%{box-shadow:0 0 0 8px rgba(92,227,156,0)}
+    }
+    .head-dots{display:flex;gap:6px}
+    .head-dots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.42)}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+    .metric{background:#fff;padding:16px;position:relative;overflow:hidden}
+    .metric b{display:block;color:var(--blue);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:800}
+    .metric .val{display:block;font-size:24px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+    .table-mock{padding:18px 18px 20px;background:#f7fbff}
+    .mock-row{display:grid;grid-template-columns:1.05fr .9fr 1.2fr 1fr;gap:1px;margin-bottom:1px;opacity:0;transform:translateY(6px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+    .mock-row.show{opacity:1;transform:translateY(0)}
+    .mock-cell{
+      min-height:42px;background:#fff;border:1px solid #dbe8f3;
+      display:flex;align-items:center;padding:8px 10px;
+      font-family:"JetBrains Mono","Cascadia Mono","Consolas",monospace;font-size:12px;color:#14243d;
+    }
+    .mock-head .mock-cell{background:var(--navy);color:#fff;font-family:inherit;font-weight:800}
+    .mock-row.mark .mock-cell{background:#ffe4e6;border-color:#ffc9cf;animation:markPulse 3s ease-in-out infinite}
+    @keyframes markPulse{
+      0%,100%{background:#ffe4e6}
+      50%{background:#ffd0d4}
+    }
+    .mock-cell.pin{background:#fff7db;border-color:#f2d37a;font-weight:700}
+    .mock-unit{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#9fc7ee}
+
+    /* ---------- Sections ---------- */
+    .section{padding:96px 0;position:relative;content-visibility:auto;contain-intrinsic-size:auto 720px}
+    .section.compact{padding-top:52px}
+    .section-head{max-width:780px;margin-bottom:38px}
+    .kicker{
+      display:inline-flex;align-items:center;gap:8px;
+      color:var(--blue);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:12px;
+    }
+    .kicker:before{
+      content:"";width:18px;height:2px;background:var(--blue);border-radius:2px;
+    }
+    .cta .kicker:before{display:none}
+    h2{font-size:clamp(30px,4vw,48px);line-height:1.06;letter-spacing:-.035em;margin:9px 0 14px;font-weight:800}
+    .section-head p{font-size:18px;color:var(--muted);margin:0}
+
+    /* ---------- Reveal animation ---------- */
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+    .reveal.in{opacity:1;transform:translateY(0)}
+    .reveal-stagger > *{opacity:0;transform:translateY(22px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+    .reveal-stagger.in > *{opacity:1;transform:translateY(0)}
+    .reveal-stagger.in > *:nth-child(1){transition-delay:.05s}
+    .reveal-stagger.in > *:nth-child(2){transition-delay:.12s}
+    .reveal-stagger.in > *:nth-child(3){transition-delay:.19s}
+    .reveal-stagger.in > *:nth-child(4){transition-delay:.26s}
+    .reveal-stagger.in > *:nth-child(5){transition-delay:.33s}
+    .reveal-stagger.in > *:nth-child(6){transition-delay:.40s}
+    .reveal-stagger.in > *:nth-child(7){transition-delay:.47s}
+    .reveal-stagger.in > *:nth-child(8){transition-delay:.54s}
+    @media (prefers-reduced-motion:reduce){
+      .reveal,.reveal-stagger > *,.app-card,.pulse:before,h1 .grad,.mock-row.mark .mock-cell{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}
+    }
+
+    /* ---------- Split panels ---------- */
+    .split{display:grid;grid-template-columns:.9fr 1.1fr;gap:28px;align-items:stretch}
+    .panel{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:30px;
+      box-shadow:var(--shadow);
+      transition:transform .25s var(--ease),box-shadow .25s var(--ease);
+    }
+    .panel:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+    .problem{
+      background:
+        linear-gradient(125deg,rgba(0,32,66,.94),rgba(0,84,166,.76)),
+        url("assets/diagnosetechniker-lkw.webp") 47% center/cover no-repeat;
+      color:#fff;position:relative;overflow:hidden;
+    }
+    .problem:before{
+      content:"";position:absolute;inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+      background-size:32px 32px;pointer-events:none;
+    }
+    .problem > *{position:relative}
+    .problem p{color:#d7e9fb}
+    .signal-list{display:grid;gap:12px;margin-top:22px}
+    .signal{
+      display:flex;gap:12px;align-items:flex-start;
+      padding:14px;border-radius:16px;background:#f6fbff;border:1px solid #dbe8f3;
+      transition:transform .2s var(--ease),background .2s var(--ease);
+    }
+    .signal:hover{transform:translateX(4px);background:#eef6ff}
+    .signal i{
+      width:34px;height:34px;border-radius:12px;
+      background:linear-gradient(135deg,var(--blue-2),var(--navy));
+      color:#fff;
+      display:grid;place-items:center;font-style:normal;font-weight:800;flex:0 0 auto;
+      box-shadow:0 6px 14px rgba(0,84,166,.3);
+    }
+    .signal strong{display:block;font-weight:700}
+    .signal span{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+
+    /* ---------- Features ---------- */
+    .features{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .feature{
+      position:relative;
+      background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px;
+      box-shadow:0 12px 28px rgba(0,35,75,.08);
+      min-height:215px;
+      transition:transform .25s var(--ease),box-shadow .25s var(--ease),border-color .25s var(--ease);
+      overflow:hidden;
+    }
+    .feature:before{
+      content:"";position:absolute;inset:0;
+      background:radial-gradient(circle at var(--mx,50%) var(--my,0%),rgba(15,111,198,.08),transparent 60%);
+      opacity:0;transition:opacity .3s var(--ease);pointer-events:none;
+    }
+    .feature:hover{transform:translateY(-6px);box-shadow:0 24px 50px rgba(0,35,75,.16);border-color:#bfd6ec}
+    .feature:hover:before{opacity:1}
+    .feature-icon{
+      width:48px;height:48px;border-radius:14px;
+      background:linear-gradient(135deg,var(--blue-2),var(--navy));
+      color:#fff;display:grid;place-items:center;margin-bottom:16px;
+      box-shadow:0 8px 18px rgba(0,84,166,.28);
+      transition:transform .3s var(--ease);
+    }
+    .feature:hover .feature-icon{transform:rotate(-6deg) scale(1.06)}
+    .feature-icon svg{width:24px;height:24px}
+    .feature h3{font-size:18px;line-height:1.2;margin:0 0 8px;font-weight:700}
+    .feature p{color:var(--muted);font-size:14px;margin:0}
+
+    /* ---------- Workflow ---------- */
+    .workflow{
+      display:grid;grid-template-columns:repeat(5,1fr);gap:14px;
+      counter-reset:step;position:relative;
+    }
+    .step{
+      position:relative;background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;
+      box-shadow:0 12px 28px rgba(0,35,75,.08);
+      transition:transform .25s var(--ease),box-shadow .25s var(--ease);
+    }
+    .step:hover{transform:translateY(-4px);box-shadow:0 22px 44px rgba(0,35,75,.14)}
+    .step:before{
+      counter-increment:step;content:counter(step);
+      width:38px;height:38px;border-radius:50%;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--gold),var(--gold-2));
+      color:#06172d;font-weight:800;margin-bottom:18px;
+      box-shadow:0 8px 18px rgba(242,169,0,.35);
+    }
+    .step h3{margin:0 0 8px;font-size:17px;line-height:1.18;font-weight:700}
+    .step p{margin:0;color:var(--muted);font-size:14px}
+
+    /* ---------- Exports ---------- */
+    .exports{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .export-card{
+      border-radius:26px;padding:32px;background:#fff;border:1px solid var(--line);
+      box-shadow:var(--shadow);overflow:hidden;position:relative;
+      transition:transform .25s var(--ease),box-shadow .25s var(--ease);
+    }
+    .export-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+    .export-card:before{
+      content:"";position:absolute;inset:0 auto 0 0;width:7px;background:var(--blue);
+    }
+    .export-card.pdf:before{background:var(--red)}
+    .export-card .export-head{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+    .export-icon{
+      width:54px;height:54px;border-radius:16px;display:grid;place-items:center;flex:0 0 auto;
+      background:linear-gradient(135deg,var(--blue-2),var(--navy));color:#fff;
+      box-shadow:0 10px 22px rgba(0,84,166,.3);
+    }
+    .export-card.pdf .export-icon{
+      background:linear-gradient(135deg,#ef4350,var(--red));
+      box-shadow:0 10px 22px rgba(224,38,45,.3);
+    }
+    .export-icon svg{width:26px;height:26px}
+    .export-card h3{font-size:26px;margin:0;font-weight:800}
+    .export-card p{color:var(--muted);margin:0 0 18px}
+    .checks{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+    .checks li{display:flex;gap:10px;align-items:flex-start;color:#24415f;font-weight:600}
+    .checks li svg{width:18px;height:18px;color:var(--green);flex:0 0 auto;margin-top:1px}
+
+    /* ---------- Support band ---------- */
+    .support-band{
+      position:relative;overflow:hidden;
+      background:
+        linear-gradient(105deg,rgba(0,25,53,.96),rgba(0,69,136,.78)),
+        url("assets/werkstatt-team-diagnose.webp") center 46%/cover no-repeat;
+      color:#fff;border-radius:32px;padding:46px;
+      display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:center;
+      box-shadow:0 24px 70px rgba(0,35,75,.25);
+    }
+    .support-band:before{
+      content:"";position:absolute;inset:0;
+      background:
+        radial-gradient(circle at 80% 0%,rgba(242,169,0,.18),transparent 50%),
+        radial-gradient(circle at 0% 100%,rgba(15,111,198,.3),transparent 60%);
+      pointer-events:none;
+    }
+    .support-band > *{position:relative}
+    .support-band p{color:#d9ebff;font-size:17px}
+    .support-list{display:grid;gap:12px}
+    .support-item{
+      display:flex;align-items:center;gap:12px;
+      background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);
+      border-radius:16px;padding:14px 16px;font-weight:700;
+      transition:transform .2s var(--ease),background .2s var(--ease);
+    }
+    .support-item:hover{transform:translateX(4px);background:rgba(255,255,255,.16)}
+    .support-item svg{width:18px;height:18px;color:var(--gold-2);flex:0 0 auto}
+
+    /* ---------- Audience ---------- */
+    .audience{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .audience .panel{padding:26px}
+    .audience .aud-icon{
+      width:46px;height:46px;border-radius:14px;display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--ice),#cfe3f5);color:var(--blue);
+      margin-bottom:14px;
+    }
+    .audience .aud-icon svg{width:24px;height:24px}
+    .audience h3{margin:0 0 8px;font-weight:700}
+    .audience p{margin:0;color:var(--muted)}
+
+    /* ---------- FAQ ---------- */
+    .faq{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .faq details{
+      background:#fff;border:1px solid var(--line);border-radius:18px;
+      padding:18px 22px;box-shadow:0 10px 24px rgba(0,35,75,.06);
+      transition:box-shadow .25s var(--ease),border-color .25s var(--ease);
+    }
+    .faq details[open]{box-shadow:0 18px 40px rgba(0,35,75,.12);border-color:#bfd6ec}
+    .faq summary{
+      cursor:pointer;font-weight:700;color:var(--navy);
+      list-style:none;display:flex;align-items:center;gap:12px;
+    }
+    .faq summary::-webkit-details-marker{display:none}
+    .faq summary:before{
+      content:"";width:22px;height:22px;border-radius:50%;
+      background:var(--ice);
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230054a6' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+      background-repeat:no-repeat;background-position:center;
+      transition:transform .25s var(--ease);flex:0 0 auto;
+    }
+    .faq details[open] summary:before{transform:rotate(180deg)}
+    .faq details p{margin:12px 0 0 34px;color:var(--muted)}
+
+    /* ---------- Systems ---------- */
+    .systems{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .system-link{
+      position:relative;
+      text-decoration:none;background:#fff;border:1px solid var(--line);
+      border-radius:20px;padding:22px;text-align:center;
+      box-shadow:0 10px 24px rgba(0,35,75,.06);
+      transition:transform .2s var(--ease),box-shadow .2s var(--ease);
+      overflow:hidden;
+    }
+    .system-link:after{
+      content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
+      background:currentColor;opacity:0;transition:opacity .25s var(--ease);
+    }
+    .system-link:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+    .system-link:hover:after{opacity:.4}
+    .system-link strong{display:block;font-size:26px;line-height:1;font-weight:800;letter-spacing:-.01em}
+    .system-link span{display:block;margin-top:9px;color:#27415f;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+    .wio{color:#2d77d0}.wio strong{color:#2d77d0}
+    .spii{color:#ef4444}.spii strong{color:#ef4444}
+    .oa{color:#7c4aa4}.oa strong{color:#7c4aa4}
+    .conversion{color:#48a565}.conversion strong{color:#48a565}
+    .fras{color:#e5ac00}.fras strong{color:#e5ac00}
+
+    /* ---------- CTA ---------- */
+    .cta{
+      position:relative;overflow:hidden;
+      text-align:center;background:#fff;border:1px solid var(--line);
+      border-radius:32px;padding:52px 44px;box-shadow:var(--shadow);
+    }
+    .cta:before{
+      content:"";position:absolute;inset:-2px;
+      background:conic-gradient(from 180deg at 50% 50%,transparent 0deg,rgba(15,111,198,.18) 90deg,transparent 180deg,rgba(242,169,0,.18) 270deg,transparent 360deg);
+      animation:spin 18s linear infinite;
+      z-index:-1;border-radius:34px;
+    }
+    @keyframes spin{to{transform:rotate(1turn)}}
+    .cta h2{margin-top:0}
+    .cta p{color:var(--muted);font-size:18px;margin:0 auto 24px;max-width:760px}
+    .cta .btn-secondary{
+      background:#eaf4fb;color:var(--navy);border-color:#9fc2df;
+      box-shadow:0 9px 22px rgba(0,43,85,.12);
+    }
+    .cta .btn-secondary:hover{
+      background:#dcecf8;border-color:var(--blue);box-shadow:0 13px 28px rgba(0,43,85,.18);
+    }
+
+    /* ---------- Footer ---------- */
+    footer{
+      background:#06172d;color:#cfe2f3;padding:34px 0;
+      font-size:13px;
+      position:relative;overflow:hidden;
+    }
+    footer:before{
+      content:"";position:absolute;top:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent,var(--gold),transparent);
+    }
+    footer .shell{display:flex;justify-content:space-between;gap:18px;align-items:center;flex-wrap:wrap}
+    footer .footer-links{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+    footer .legal{flex-basis:100%;max-width:980px;color:#9fb8d0;line-height:1.6}
+    footer a{color:#fff;font-weight:700;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.35);transition:border-color .2s var(--ease)}
+    footer a:hover{border-color:var(--gold)}
+    .back-to-top{
+      position:fixed;right:22px;bottom:22px;z-index:60;
+      display:inline-flex;align-items:center;gap:9px;padding:12px 17px;
+      border:1px solid rgba(255,255,255,.24);border-radius:999px;
+      background:#003d75;color:#fff;font:800 13px/1 inherit;
+      box-shadow:0 12px 30px rgba(0,25,55,.28);cursor:pointer;
+      opacity:0;visibility:hidden;transform:translateY(14px);
+      transition:opacity .22s var(--ease),transform .22s var(--ease),visibility .22s;
+    }
+    body.is-scrolling .app-card,
+    body.is-scrolling .pulse:before,
+    body.is-scrolling h1 .grad,
+    body.is-scrolling .mock-row.mark .mock-cell,
+    body.is-scrolling .cta:before{animation-play-state:paused!important}
+    body.is-scrolling .mock-row{transition:none!important}
+    .hero.motion-paused .app-card,
+    .hero.motion-paused .pulse:before,
+    .hero.motion-paused h1 .grad,
+    .hero.motion-paused .mock-row.mark .mock-cell{animation-play-state:paused!important}
+    .back-to-top.visible{opacity:1;visibility:visible;transform:translateY(0)}
+    .back-to-top:hover{background:#004a8d;transform:translateY(-2px)}
+    .back-to-top:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+    .back-to-top svg{width:16px;height:16px;transform:rotate(-90deg)}
+
+    /* ---------- Responsive ---------- */
+    @media (max-width:1100px){
+      .nav{gap:10px}
+      .brand-line,.brand small{display:none}
+      .navlinks a{padding:8px 8px;font-size:12px}
+    }
+    @media (max-width:980px){
+      .nav{flex-wrap:wrap;padding:12px 0}.navlinks{order:3;width:100%;justify-content:flex-start;overflow:auto}
+      .hero-grid,.split,.support-band{grid-template-columns:1fr}
+      .features{grid-template-columns:repeat(2,1fr)}
+      .workflow{grid-template-columns:repeat(2,1fr)}
+      .audience,.systems{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width:640px){
+      .shell{width:min(100% - 28px,1180px)}
+      .shell.nav{width:min(100% - 28px,1320px)}
+      .brand-line,.brand small{display:none}
+      .nav{gap:6px;padding:8px 0}
+      .brand{gap:8px}.brand-symbol{height:34px}.brand-wordmark{width:126px;max-width:36vw}
+      .navlinks{gap:0}
+      .hero{min-height:auto}.hero-grid{padding:60px 0 90px}
+      .metrics,.mock-row,.features,.workflow,.exports,.audience,.faq,.systems{grid-template-columns:1fr}
+      .panel,.support-band,.cta{padding:26px;border-radius:22px}
+      .nav-cta,.nav-request{display:none}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SVG icon sprite -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+      <symbol id="i-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
+      <symbol id="i-output" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2M8 17h6"/></symbol>
+      <symbol id="i-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="8" y1="9" x2="11" y2="9"/></symbol>
+      <symbol id="i-activity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+      <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></symbol>
+      <symbol id="i-highlighter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="M22 12.5 15.5 6l-5 5L17 17.5z"/></symbol>
+      <symbol id="i-row" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="4" rx="1"/><rect x="3" y="11" width="18" height="4" rx="1" fill="currentColor" fill-opacity=".3"/><rect x="3" y="17" width="18" height="4" rx="1"/></symbol>
+      <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></symbol>
+      <symbol id="i-pdf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><text x="7.5" y="18" font-size="6" font-weight="900" fill="currentColor" stroke="none">PDF</text></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+      <symbol id="i-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></symbol>
+      <symbol id="i-wrench" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+      <symbol id="i-headset" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+      <symbol id="i-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></symbol>
+      <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20"/></symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="topbar">
+    <nav class="shell nav" aria-label="Hauptnavigation">
+      <a class="brand" href="#top" aria-label="Startseite">
+        <img class="brand-symbol" src="assets/signalerfassung-symbol.png" alt="">
+        <img class="brand-wordmark" src="assets/signalerfassung-wordmark.png" alt="Signalerfassung">
+        <span class="brand-line"></span>
+        <small>Analyse-Tool</small>
+      </a>
+      <div class="navlinks" id="navlinks">
+        <a href="#funktionen">Funktionen</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#export">Export</a>
+        <a href="#support">Support</a>
+      </div>
+      <details class="tool-launcher" id="tool-launcher">
+        <summary aria-label="Scania Tools &ouml;ffnen" title="Scania Tools">
+          <span class="tool-grid-icon" aria-hidden="true">
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+          </span>
+        </summary>
+        <div class="tool-panel">
+          <a class="tool-link sws" href="https://sws.scania.com/" target="_blank" rel="noopener noreferrer">
+            <strong>SWS</strong>
+            <span>Scania Workshop Suite</span>
+          </a>
+          <a class="tool-link wio" href="https://wio.scania.com/sws/de-DE" target="_blank" rel="noopener noreferrer">
+            <strong>WIO</strong>
+            <span>Scania Workshop Information Online</span>
+          </a>
+          <a class="tool-link spii" href="https://spii.scania.com/" target="_blank" rel="noopener noreferrer">
+            <strong>SPII</strong>
+            <span>Scania Product Individual Information</span>
+          </a>
+          <a class="tool-link oa" href="https://operationalanalysis.scania.com/OdsWeb" target="_blank" rel="noopener noreferrer">
+            <strong>OA</strong>
+            <span>Operational Analysis</span>
+          </a>
+          <a class="tool-link conversion" href="https://conversion.scania.com/" target="_blank" rel="noopener noreferrer">
+            <strong>CONVERSION</strong>
+            <span>Conversion Workshop</span>
+          </a>
+          <a class="tool-link fras" href="https://frasext.frasdistributor.prod.gf.aws.scania.com/arsys/forms/ars/FRAS%3ADLRF%3AMainMenu/Default+Administrator+View/?cacheid=5e1523cf" target="_blank" rel="noopener noreferrer">
+            <strong>FRAS</strong>
+            <span>Field Repair Assistance System</span>
+          </a>
+        </div>
+      </details>
+      <details class="language-switch">
+        <summary aria-label="Sprache: Deutsch" title="Sprache">
+          <svg aria-hidden="true"><use href="#i-globe"/></svg>
+          <span class="language-current">DE</span>
+          <svg class="language-chevron" aria-hidden="true"><use href="#i-chevron"/></svg>
+        </summary>
+        <div class="language-panel" role="menu">
+          <button type="button" role="menuitem" data-lang-set="de" aria-pressed="true">Deutsch <span>DE</span></button>
+          <button type="button" role="menuitem" data-lang-set="en" aria-pressed="false">English <span>EN</span></button>
+        </div>
+      </details>
+      <a class="nav-request" href="zugang-anfragen.html">Zugang anfragen</a>
+      <a class="nav-cta" href="signalerfassung-analyse-tool.html"><span>App &ouml;ffnen</span></a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-grid-bg"></div>
+      <div class="hero-spotlight" id="spotlight"></div>
+      <div class="shell hero-grid">
+        <div class="reveal">
+          <span class="eyebrow"><span class="pulse"></span>SWS / SDP3 Signalerfassung</span>
+          <h1>Messdaten <span class="grad">schneller verstehen</span>. Auff&auml;lligkeiten sauber weitergeben.</h1>
+          <p class="lead">Das Analyse-Tool bereitet .txt-Dateien aus der Signalerfassung strukturiert auf, macht relevante Signale sichtbar und erzeugt professionelle Exporte f&uuml;r Diagnose, Werkstatt und Support.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="signalerfassung-analyse-tool.html"><svg><use href="#i-play"/></svg> App &ouml;ffnen</a>
+            <a class="btn btn-secondary" href="zugang-anfragen.html"><svg><use href="#i-users"/></svg> Zugang anfragen</a>
+            <a class="btn btn-secondary" href="#funktionen">Funktionen ansehen</a>
+            <a class="btn btn-secondary" href="#export">Export verstehen</a>
+          </div>
+          <div class="hero-proof">
+            <span class="proof"><svg><use href="#i-upload"/></svg> Drag &amp; Drop f&uuml;r .txt-Dateien</span>
+            <span class="proof"><svg><use href="#i-bookmark"/></svg> Spalten und Zeilen markieren</span>
+            <span class="proof"><svg><use href="#i-output"/></svg> PDF &amp; Excel f&uuml;r Eskalationen</span>
+          </div>
+        </div>
+
+        <aside class="app-card reveal" aria-label="Vorschau der Analyse-App">
+          <div class="app-head">
+            <div class="app-title"><span class="live-dot"></span>Analyse-Ansicht nach Upload</div>
+            <div class="head-dots"><span></span><span></span><span></span></div>
+          </div>
+          <div class="metrics">
+            <div class="metric"><b>Samples</b><span class="val" data-count="6474">0</span></div>
+            <div class="metric"><b>Signale</b><span class="val" data-count="19">0</span></div>
+            <div class="metric"><b>Dauer</b><span class="val">00:11:48</span></div>
+          </div>
+          <div class="table-mock" id="tableMock">
+            <div class="mock-row mock-head show">
+              <div class="mock-cell">Zeitstempel</div>
+              <div class="mock-cell">Marker</div>
+              <div class="mock-cell">BMS Rad 1</div>
+              <div class="mock-cell">Drehzahl <span class="mock-unit">u/min</span></div>
+            </div>
+            <div class="mock-row" data-delay="200">
+              <div class="mock-cell">16:56:17:030</div>
+              <div class="mock-cell">0</div>
+              <div class="mock-cell">Nicht im Redundanzmodus</div>
+              <div class="mock-cell">1150</div>
+            </div>
+            <div class="mock-row mark" data-delay="500">
+              <div class="mock-cell">16:56:17:799</div>
+              <div class="mock-cell">1</div>
+              <div class="mock-cell">Nicht im Redundanzmodus</div>
+              <div class="mock-cell">52</div>
+            </div>
+            <div class="mock-row" data-delay="800">
+              <div class="mock-cell">16:56:18:015</div>
+              <div class="mock-cell">0</div>
+              <div class="mock-cell">Nicht im Redundanzmodus</div>
+              <div class="mock-cell">1150</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section compact">
+      <div class="shell split">
+        <article class="panel problem reveal">
+          <span class="kicker" style="color:#ffd989">Ausgangslage</span>
+          <h2>Rohdaten sind stark. Aber nicht immer schnell lesbar.</h2>
+          <p>Signalerfassungen enthalten oft viele Spalten, lange Zeitverl&auml;ufe und technische Werte, die f&uuml;r eine schnelle Diagnose erst sortiert, gefiltert und markiert werden m&uuml;ssen.</p>
+          <p>Ohne saubere Aufbereitung entstehen unn&ouml;tige R&uuml;ckfragen, Screenshots werden un&uuml;bersichtlich und wichtige Zeitpunkte gehen in der Menge der Messdaten unter.</p>
+        </article>
+        <article class="panel reveal">
+          <span class="kicker">L&ouml;sung</span>
+          <h2>Vom .txt-Export zum lesbaren Diagnosebericht.</h2>
+          <div class="signal-list">
+            <div class="signal"><i>1</i><div><strong>Automatisch erkennen</strong><span>Datei, Zeitraum, Samples, Abtastrate und Signale werden beim Laden strukturiert ausgewertet.</span></div></div>
+            <div class="signal"><i>2</i><div><strong>Gezielt verdichten</strong><span>Unwichtige Spalten k&ouml;nnen ausgeblendet, wichtige Signale und Zeitpunkte farblich markiert werden.</span></div></div>
+            <div class="signal"><i>3</i><div><strong>Professionell exportieren</strong><span>PDF und Excel liefern eine saubere Grundlage f&uuml;r Support, Eskalation und interne Dokumentation.</span></div></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="funktionen">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="kicker">Kernfunktionen</span>
+          <h2>Alles, was bei einer Signalerfassung sofort helfen soll.</h2>
+          <p>Die App bleibt bewusst schlank: Daten laden, schneller lesen, relevante Stellen markieren und sauber weitergeben.</p>
+        </div>
+        <div class="features reveal-stagger">
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-file-text"/></svg></div><h3>.txt-Dateien laden</h3><p>Drag &amp; Drop oder Dateiauswahl f&uuml;r eine oder mehrere Signalerfassungen.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-activity"/></svg></div><h3>Signale automatisch erkennen</h3><p>Steuerger&auml;t, Sensorbezeichnung, Einheit und Signal-ID werden aus der Datei &uuml;bernommen.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-search"/></svg></div><h3>Suchen und filtern</h3><p>Zeitbereiche und Suchbegriffe helfen, relevante Messpunkte schneller zu finden.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-eye-off"/></svg></div><h3>Spalten ausblenden</h3><p>Nicht ben&ouml;tigte Signale verschwinden aus der Ansicht, bleiben aber im Export nachvollziehbar.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-highlighter"/></svg></div><h3>Spalten markieren</h3><p>Wichtige Signale werden farblich &uuml;ber die komplette Spalte hervorgehoben.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-row"/></svg></div><h3>Zeitpunkte markieren</h3><p>Einzelne Messzeilen lassen sich hellrot markieren, um Auff&auml;lligkeiten klar zu kennzeichnen.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-table"/></svg></div><h3>Excel-Arbeitsmappe</h3><p>Export mit &Uuml;bersicht, Signalen, Messdaten und Markierungen f&uuml;r technische Auswertung.</p></article>
+          <article class="feature"><div class="feature-icon"><svg><use href="#i-pdf"/></svg></div><h3>PDF-Bericht</h3><p>Kompakter Bericht f&uuml;r schnelle Weitergabe an Supportstellen oder Eskalationsprozesse.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="workflow">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="kicker">Workflow</span>
+          <h2>F&uuml;nf Schritte von der Messung zur auswertungsf&auml;higen Datei.</h2>
+          <p>Der Ablauf ist so gedacht, dass er im Werkstattalltag ohne lange Einarbeitung funktioniert.</p>
+        </div>
+        <div class="workflow reveal-stagger">
+          <article class="step"><h3>Signalerfassung exportieren</h3><p>.txt-Datei aus SWS / SDP3 bereitstellen.</p></article>
+          <article class="step"><h3>Datei laden</h3><p>Per Drag &amp; Drop oder Dateiauswahl in die App einf&uuml;gen.</p></article>
+          <article class="step"><h3>Daten pr&uuml;fen</h3><p>Zeitraum, Samples, Signale und Messwerte kontrollieren.</p></article>
+          <article class="step"><h3>Relevantes markieren</h3><p>Spalten ausblenden, Signale markieren und Zeitpunkte kennzeichnen.</p></article>
+          <article class="step"><h3>Export erzeugen</h3><p>PDF oder Excel f&uuml;r Support und Dokumentation speichern.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="export">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="kicker">Export</span>
+          <h2>Zwei Ausgaben f&uuml;r zwei typische Situationen.</h2>
+          <p>Der Export ist nicht nur ein Datenabzug, sondern soll eine saubere technische Kommunikation erm&ouml;glichen.</p>
+        </div>
+        <div class="exports reveal-stagger">
+          <article class="export-card pdf">
+            <div class="export-head">
+              <div class="export-icon"><svg><use href="#i-pdf"/></svg></div>
+              <h3>PDF-Bericht</h3>
+            </div>
+            <p>Der PDF-Export ist als schnell lesbarer Bericht gedacht. Ideal, wenn ein Fall kurz zusammengefasst und mit markierten Auff&auml;lligkeiten weitergegeben werden soll.</p>
+            <ul class="checks">
+              <li><svg><use href="#i-check"/></svg> Kompakte &Uuml;bersicht f&uuml;r Eskalationen</li>
+              <li><svg><use href="#i-check"/></svg> Markierte Signale und Zeitpunkte sofort erkennbar</li>
+              <li><svg><use href="#i-check"/></svg> Geeignet f&uuml;r E-Mail, Ticket oder Supportanfrage</li>
+            </ul>
+          </article>
+          <article class="export-card">
+            <div class="export-head">
+              <div class="export-icon"><svg><use href="#i-table"/></svg></div>
+              <h3>Excel-Arbeitsmappe</h3>
+            </div>
+            <p>Die Excel-Datei enth&auml;lt die vollst&auml;ndige technische Struktur: &Uuml;bersicht, Signalliste, Messdaten und Markierungen f&uuml;r weitere Auswertungen.</p>
+            <ul class="checks">
+              <li><svg><use href="#i-check"/></svg> Vollst&auml;ndige Messdaten in Tabellenform</li>
+              <li><svg><use href="#i-check"/></svg> Echte Steuerger&auml;t- und Sensorbezeichnungen</li>
+              <li><svg><use href="#i-check"/></svg> Ausgeblendete Signale bleiben nachvollziehbar vorhanden</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="support">
+      <div class="shell">
+        <div class="support-band reveal">
+          <div>
+            <span class="kicker" style="color:#ffd989">Support &amp; Eskalation</span>
+            <h2>Weniger R&uuml;ckfragen. Mehr technische Klarheit.</h2>
+            <p>Wenn Messdaten an Supportstellen gehen, z&auml;hlt Nachvollziehbarkeit. Die App hilft dabei, relevante Signale, Zeitpunkte und Rahmeninformationen in einer einheitlichen Struktur zu &uuml;bergeben.</p>
+          <a class="btn btn-primary" href="signalerfassung-analyse-tool.html"><svg><use href="#i-play"/></svg> Analyse starten</a>
+          </div>
+          <div class="support-list">
+            <div class="support-item"><svg><use href="#i-check"/></svg> Einheitliche Darstellung statt un&uuml;bersichtlicher Rohdaten</div>
+            <div class="support-item"><svg><use href="#i-check"/></svg> Auff&auml;llige Spalten und Zeitpunkte klar markiert</div>
+            <div class="support-item"><svg><use href="#i-check"/></svg> Export mit Datei, Zeitraum, Samples und Signalreferenz</div>
+            <div class="support-item"><svg><use href="#i-check"/></svg> Bessere Grundlage f&uuml;r technische R&uuml;ckfragen</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="kicker">Zielgruppe</span>
+          <h2>Gebaut f&uuml;r Menschen, die Messdaten wirklich nutzen m&uuml;ssen.</h2>
+        </div>
+        <div class="audience reveal-stagger">
+          <article class="panel"><div class="aud-icon"><svg><use href="#i-spark"/></svg></div><h3>Diagnosetechniker</h3><p>F&uuml;r schnelles Eingrenzen relevanter Signale und Zeitbereiche direkt aus der Signalerfassung.</p></article>
+          <article class="panel"><div class="aud-icon"><svg><use href="#i-wrench"/></svg></div><h3>Werkstatt &amp; Service</h3><p>F&uuml;r nachvollziehbare Dokumentation und saubere Kommunikation bei komplexen Fehlerbildern.</p></article>
+          <article class="panel"><div class="aud-icon"><svg><use href="#i-headset"/></svg></div><h3>Supportstellen</h3><p>F&uuml;r strukturierte Exporte, die weniger Interpretation und mehr technische Klarheit liefern.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="kicker">Portale</span>
+          <h2>Relevante Diagnose- und Werkstatt-Portale.</h2>
+          <p>Die App verlinkt relevante Scania-Portale wie SWS, WIO, SPII, Operational Analysis und Conversion Workshop, damit Analyse und weiterf&uuml;hrende Recherche schneller zusammenfinden.</p>
+        </div>
+        <div class="systems reveal-stagger">
+          <a class="system-link sws" href="https://sws.scania.com/" target="_blank" rel="noopener noreferrer"><strong>SWS</strong><span>Workshop Suite</span></a>
+          <a class="system-link wio" href="https://wio.scania.com/sws/de-DE" target="_blank" rel="noopener noreferrer"><strong>WIO</strong><span>Workshop Information Online</span></a>
+          <a class="system-link spii" href="https://spii.scania.com/" target="_blank" rel="noopener noreferrer"><strong>SPII</strong><span>Product Individual Information</span></a>
+          <a class="system-link oa" href="https://operationalanalysis.scania.com/OdsWeb" target="_blank" rel="noopener noreferrer"><strong>OA</strong><span>Operational Analysis</span></a>
+          <a class="system-link conversion" href="https://conversion.scania.com/" target="_blank" rel="noopener noreferrer"><strong>CONVERSION</strong><span>Conversion Workshop</span></a>
+          <a class="system-link fras" href="https://frasext.frasdistributor.prod.gf.aws.scania.com/arsys/forms/ars/FRAS%3ADLRF%3AMainMenu/Default+Administrator+View/?cacheid=5e1523cf" target="_blank" rel="noopener noreferrer"><strong>FRAS</strong><span>Field Repair Assistance System</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="kicker">FAQ</span>
+          <h2>H&auml;ufige Fragen.</h2>
+        </div>
+        <div class="faq reveal-stagger">
+          <details>
+            <summary>Welche Dateien kann ich laden?</summary>
+            <p>Die App ist f&uuml;r .txt-Dateien aus der SWS / SDP3 Signalerfassung ausgelegt. Andere Formate werden nicht als Standard angenommen.</p>
+          </details>
+          <details>
+            <summary>Werden Daten online hochgeladen?</summary>
+            <p>Die HTML-App arbeitet lokal im Browser. Die geladenen Messdaten werden in der App verarbeitet und nicht automatisch an externe Systeme gesendet.</p>
+          </details>
+          <details>
+            <summary>Warum Spalten ausblenden?</summary>
+            <p>Bei vielen Signalen wird die Tabelle schnell sehr breit. Ausblenden reduziert die Ansicht auf das Wesentliche, ohne die technische Referenz zu verlieren.</p>
+          </details>
+          <details>
+            <summary>Wof&uuml;r ist der Excel-Export gedacht?</summary>
+            <p>Excel eignet sich f&uuml;r vollst&auml;ndige technische Auswertung, Filterung und Weiterbearbeitung. Der PDF-Export ist eher f&uuml;r schnelle Lesbarkeit und Weitergabe gedacht.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell cta reveal">
+        <span class="kicker">Bereit f&uuml;r die Analyse?</span>
+        <h2>Signalerfassung laden und sauber auswerten.</h2>
+        <p>Wenn eine .txt-Datei aus SWS / SDP3 vorliegt, kann die Analyse direkt lokal gestartet werden.</p>
+        <div class="hero-actions" style="justify-content:center;margin-bottom:0">
+          <a class="btn btn-primary" href="signalerfassung-analyse-tool.html"><svg><use href="#i-play"/></svg> App jetzt &ouml;ffnen</a>
+          <a class="btn btn-secondary" href="zugang-anfragen.html"><svg><use href="#i-users"/></svg> Zugang anfragen</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell">
+      <span>SWS / SDP3 - Signalerfassung - Tool - By <a href="https://reflex.scania.com/profile/dbreue" target="_blank" rel="noopener noreferrer">David Breuer</a></span>
+      <span class="footer-links">
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="https://breuer-trucks.de/" target="_blank" rel="noopener noreferrer">Breuer Truck &amp; Trailer <svg style="width:13px;height:13px;vertical-align:-2px"><use href="#i-external"/></svg></a>
+      </span>
+      <span class="legal">Dieses Tool ist ein internes/inoffizielles Analysewerkzeug und steht nicht in Verbindung mit Scania CV AB. Scania, WIO, SPII und weitere Bezeichnungen sind Marken bzw. Systeme der jeweiligen Rechteinhaber.</span>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="back-to-top" type="button" aria-label="Zum Seitenanfang">
+    <svg aria-hidden="true"><use href="#i-arrow"/></svg>
+    <span>Zum Seitenanfang</span>
+  </button>
+
+  <script>
+    const I18N_STORAGE_KEY = 'signalerfassung.lang';
+    const pageCopy = {
+      de: {
+        title: 'Signalerfassung Analyse-Tool fuer SWS und SDP3',
+        description: 'Signalerfassung Analyse-Tool fuer SWS- und SDP3-TXT-Dateien: Messdaten lokal auswerten, relevante Signale markieren und professionelle Excel- und PDF-Exporte fuer Diagnose, Werkstatt und Support erstellen.',
+        navAria: 'Hauptnavigation',
+        langAria: 'Sprache',
+        brandAria: 'Startseite',
+        toolsAria: 'Scania Tools &ouml;ffnen',
+        previewAria: 'Vorschau der Analyse-App',
+        app: 'App &ouml;ffnen',
+        access: 'Zugang anfragen',
+        top: 'Zum Seitenanfang',
+        disclaimer: 'Dieses Tool ist ein internes/inoffizielles Analysewerkzeug und steht nicht in Verbindung mit Scania CV AB. Scania, WIO, SPII und weitere Bezeichnungen sind Marken bzw. Systeme der jeweiligen Rechteinhaber.',
+        selectors: {
+          '.brand small': 'Analyse-Tool',
+          '.navlinks a[href="#funktionen"]': 'Funktionen',
+          '.navlinks a[href="#workflow"]': 'Workflow',
+          '.navlinks a[href="#export"]': 'Export',
+          '.navlinks a[href="#support"]': 'Support',
+          '.nav-request': 'Zugang anfragen',
+          '.nav-cta': '<span>App &ouml;ffnen</span>',
+          '.eyebrow': '<span class="pulse"></span>SWS / SDP3 Signalerfassung',
+          'h1': 'Messdaten <span class="grad">schneller verstehen</span>. Auff&auml;lligkeiten sauber weitergeben.',
+          '.lead': 'Das Analyse-Tool bereitet .txt-Dateien aus der Signalerfassung strukturiert auf, macht relevante Signale sichtbar und erzeugt professionelle Exporte f&uuml;r Diagnose, Werkstatt und Support.',
+          '.hero-actions a:nth-child(1)': '<svg><use href="#i-play"/></svg> App &ouml;ffnen',
+          '.hero-actions a:nth-child(2)': '<svg><use href="#i-users"/></svg> Zugang anfragen',
+          '.hero-actions a:nth-child(3)': 'Funktionen ansehen',
+          '.hero-actions a:nth-child(4)': 'Export verstehen',
+          '.hero-proof .proof:nth-child(1)': '<svg><use href="#i-upload"/></svg> Drag &amp; Drop f&uuml;r .txt-Dateien',
+          '.hero-proof .proof:nth-child(2)': '<svg><use href="#i-bookmark"/></svg> Spalten und Zeilen markieren',
+          '.hero-proof .proof:nth-child(3)': '<svg><use href="#i-output"/></svg> PDF &amp; Excel f&uuml;r Eskalationen',
+          '.app-title': '<span class="live-dot"></span>Analyse-Ansicht nach Upload',
+          '.metric:nth-child(1) b': 'Samples',
+          '.metric:nth-child(2) b': 'Signale',
+          '.metric:nth-child(3) b': 'Dauer',
+          '.mock-head .mock-cell:nth-child(1)': 'Zeitstempel',
+          '.mock-head .mock-cell:nth-child(2)': 'Marker',
+          '.mock-head .mock-cell:nth-child(3)': 'BMS Rad 1',
+          '.mock-head .mock-cell:nth-child(4)': 'Drehzahl <span class="mock-unit">u/min</span>',
+          '.mock-row:not(.mock-head) .mock-cell:nth-child(3)': 'Nicht im Redundanzmodus',
+          '.problem .kicker': 'Ausgangslage',
+          '.problem h2': 'Rohdaten sind stark. Aber nicht immer schnell lesbar.',
+          '.problem p:nth-of-type(1)': 'Signalerfassungen enthalten oft viele Spalten, lange Zeitverl&auml;ufe und technische Werte, die f&uuml;r eine schnelle Diagnose erst sortiert, gefiltert und markiert werden m&uuml;ssen.',
+          '.problem p:nth-of-type(2)': 'Ohne saubere Aufbereitung entstehen unn&ouml;tige R&uuml;ckfragen, Screenshots werden un&uuml;bersichtlich und wichtige Zeitpunkte gehen in der Menge der Messdaten unter.',
+          '.split .panel:nth-child(2) .kicker': 'L&ouml;sung',
+          '.split .panel:nth-child(2) h2': 'Vom .txt-Export zum lesbaren Diagnosebericht.',
+          '.split .panel:nth-child(2) .signal:nth-child(1) strong': 'Automatisch erkennen',
+          '.split .panel:nth-child(2) .signal:nth-child(1) span': 'Datei, Zeitraum, Samples, Abtastrate und Signale werden beim Laden strukturiert ausgewertet.',
+          '.split .panel:nth-child(2) .signal:nth-child(2) strong': 'Gezielt verdichten',
+          '.split .panel:nth-child(2) .signal:nth-child(2) span': 'Unwichtige Spalten k&ouml;nnen ausgeblendet, wichtige Signale und Zeitpunkte farblich markiert werden.',
+          '.split .panel:nth-child(2) .signal:nth-child(3) strong': 'Professionell exportieren',
+          '.split .panel:nth-child(2) .signal:nth-child(3) span': 'PDF und Excel liefern eine saubere Grundlage f&uuml;r Support, Eskalation und interne Dokumentation.',
+          '#funktionen .kicker': 'Kernfunktionen',
+          '#funktionen h2': 'Alles, was bei einer Signalerfassung sofort helfen soll.',
+          '#funktionen .section-head p': 'Die App bleibt bewusst schlank: Daten laden, schneller lesen, relevante Stellen markieren und sauber weitergeben.',
+          '#funktionen .feature:nth-child(1) h3': '.txt-Dateien laden',
+          '#funktionen .feature:nth-child(1) p': 'Drag &amp; Drop oder Dateiauswahl f&uuml;r eine oder mehrere Signalerfassungen.',
+          '#funktionen .feature:nth-child(2) h3': 'Signale automatisch erkennen',
+          '#funktionen .feature:nth-child(2) p': 'Steuerger&auml;t, Sensorbezeichnung, Einheit und Signal-ID werden aus der Datei &uuml;bernommen.',
+          '#funktionen .feature:nth-child(3) h3': 'Suchen und filtern',
+          '#funktionen .feature:nth-child(3) p': 'Zeitbereiche und Suchbegriffe helfen, relevante Messpunkte schneller zu finden.',
+          '#funktionen .feature:nth-child(4) h3': 'Spalten ausblenden',
+          '#funktionen .feature:nth-child(4) p': 'Nicht ben&ouml;tigte Signale verschwinden aus der Ansicht, bleiben aber im Export nachvollziehbar.',
+          '#funktionen .feature:nth-child(5) h3': 'Spalten markieren',
+          '#funktionen .feature:nth-child(5) p': 'Wichtige Signale werden farblich &uuml;ber die komplette Spalte hervorgehoben.',
+          '#funktionen .feature:nth-child(6) h3': 'Zeitpunkte markieren',
+          '#funktionen .feature:nth-child(6) p': 'Einzelne Messzeilen lassen sich hellrot markieren, um Auff&auml;lligkeiten klar zu kennzeichnen.',
+          '#funktionen .feature:nth-child(7) h3': 'Excel-Arbeitsmappe',
+          '#funktionen .feature:nth-child(7) p': 'Export mit &Uuml;bersicht, Signalen, Messdaten und Markierungen f&uuml;r technische Auswertung.',
+          '#funktionen .feature:nth-child(8) h3': 'PDF-Bericht',
+          '#funktionen .feature:nth-child(8) p': 'Kompakter Bericht f&uuml;r schnelle Weitergabe an Supportstellen oder Eskalationsprozesse.',
+          '#workflow .kicker': 'Workflow',
+          '#workflow h2': 'F&uuml;nf Schritte von der Messung zur auswertungsf&auml;higen Datei.',
+          '#workflow .section-head p': 'Der Ablauf ist so gedacht, dass er im Werkstattalltag ohne lange Einarbeitung funktioniert.',
+          '#workflow .step:nth-child(1) h3': 'Signalerfassung exportieren',
+          '#workflow .step:nth-child(1) p': '.txt-Datei aus SWS / SDP3 bereitstellen.',
+          '#workflow .step:nth-child(2) h3': 'Datei laden',
+          '#workflow .step:nth-child(2) p': 'Per Drag &amp; Drop oder Dateiauswahl in die App einf&uuml;gen.',
+          '#workflow .step:nth-child(3) h3': 'Daten pr&uuml;fen',
+          '#workflow .step:nth-child(3) p': 'Zeitraum, Samples, Signale und Messwerte kontrollieren.',
+          '#workflow .step:nth-child(4) h3': 'Relevantes markieren',
+          '#workflow .step:nth-child(4) p': 'Spalten ausblenden, Signale markieren und Zeitpunkte kennzeichnen.',
+          '#workflow .step:nth-child(5) h3': 'Export erzeugen',
+          '#workflow .step:nth-child(5) p': 'PDF oder Excel f&uuml;r Support und Dokumentation speichern.',
+          '#export .kicker': 'Export',
+          '#export h2': 'Zwei Ausgaben f&uuml;r zwei typische Situationen.',
+          '#export .section-head p': 'Der Export ist nicht nur ein Datenabzug, sondern soll eine saubere technische Kommunikation erm&ouml;glichen.',
+          '#export .export-card:nth-child(1) h3': 'PDF-Bericht',
+          '#export .export-card:nth-child(1) p': 'Der PDF-Export ist als schnell lesbarer Bericht gedacht. Ideal, wenn ein Fall kurz zusammengefasst und mit markierten Auff&auml;lligkeiten weitergegeben werden soll.',
+          '#export .export-card:nth-child(1) li:nth-child(1)': '<svg><use href="#i-check"/></svg> Kompakte &Uuml;bersicht f&uuml;r Eskalationen',
+          '#export .export-card:nth-child(1) li:nth-child(2)': '<svg><use href="#i-check"/></svg> Markierte Signale und Zeitpunkte sofort erkennbar',
+          '#export .export-card:nth-child(1) li:nth-child(3)': '<svg><use href="#i-check"/></svg> Geeignet f&uuml;r E-Mail, Ticket oder Supportanfrage',
+          '#export .export-card:nth-child(2) h3': 'Excel-Arbeitsmappe',
+          '#export .export-card:nth-child(2) p': 'Die Excel-Datei enth&auml;lt die vollst&auml;ndige technische Struktur: &Uuml;bersicht, Signalliste, Messdaten und Markierungen f&uuml;r weitere Auswertungen.',
+          '#export .export-card:nth-child(2) li:nth-child(1)': '<svg><use href="#i-check"/></svg> Vollst&auml;ndige Messdaten in Tabellenform',
+          '#export .export-card:nth-child(2) li:nth-child(2)': '<svg><use href="#i-check"/></svg> Echte Steuerger&auml;t- und Sensorbezeichnungen',
+          '#export .export-card:nth-child(2) li:nth-child(3)': '<svg><use href="#i-check"/></svg> Ausgeblendete Signale bleiben nachvollziehbar vorhanden',
+          '#support .kicker': 'Support &amp; Eskalation',
+          '#support h2': 'Weniger R&uuml;ckfragen. Mehr technische Klarheit.',
+          '#support p': 'Wenn Messdaten an Supportstellen gehen, z&auml;hlt Nachvollziehbarkeit. Die App hilft dabei, relevante Signale, Zeitpunkte und Rahmeninformationen in einer einheitlichen Struktur zu &uuml;bergeben.',
+          '#support .btn-primary': '<svg><use href="#i-play"/></svg> Analyse starten',
+          '#support .support-item:nth-child(1)': '<svg><use href="#i-check"/></svg> Einheitliche Darstellung statt un&uuml;bersichtlicher Rohdaten',
+          '#support .support-item:nth-child(2)': '<svg><use href="#i-check"/></svg> Auff&auml;llige Spalten und Zeitpunkte klar markiert',
+          '#support .support-item:nth-child(3)': '<svg><use href="#i-check"/></svg> Export mit Datei, Zeitraum, Samples und Signalreferenz',
+          '#support .support-item:nth-child(4)': '<svg><use href="#i-check"/></svg> Bessere Grundlage f&uuml;r technische R&uuml;ckfragen',
+          'section:nth-of-type(7) .kicker': 'Zielgruppe',
+          'section:nth-of-type(7) h2': 'Gebaut f&uuml;r Menschen, die Messdaten wirklich nutzen m&uuml;ssen.',
+          'section:nth-of-type(7) .panel:nth-child(1) h3': 'Diagnosetechniker',
+          'section:nth-of-type(7) .panel:nth-child(1) p': 'F&uuml;r schnelles Eingrenzen relevanter Signale und Zeitbereiche direkt aus der Signalerfassung.',
+          'section:nth-of-type(7) .panel:nth-child(2) h3': 'Werkstatt &amp; Service',
+          'section:nth-of-type(7) .panel:nth-child(2) p': 'F&uuml;r nachvollziehbare Dokumentation und saubere Kommunikation bei komplexen Fehlerbildern.',
+          'section:nth-of-type(7) .panel:nth-child(3) h3': 'Supportstellen',
+          'section:nth-of-type(7) .panel:nth-child(3) p': 'F&uuml;r strukturierte Exporte, die weniger Interpretation und mehr technische Klarheit liefern.',
+          'section:nth-of-type(8) .kicker': 'Portale',
+          'section:nth-of-type(8) h2': 'Relevante Diagnose- und Werkstatt-Portale.',
+          'section:nth-of-type(8) .section-head p': 'Die App verlinkt relevante Scania-Portale wie SWS, WIO, SPII, Operational Analysis und Conversion Workshop, damit Analyse und weiterf&uuml;hrende Recherche schneller zusammenfinden.',
+          'section:nth-of-type(9) .kicker': 'FAQ',
+          'section:nth-of-type(9) h2': 'H&auml;ufige Fragen.',
+          'section:nth-of-type(9) details:nth-child(1) summary': 'Welche Dateien kann ich laden?',
+          'section:nth-of-type(9) details:nth-child(1) p': 'Die App ist f&uuml;r .txt-Dateien aus der SWS / SDP3 Signalerfassung ausgelegt. Andere Formate werden nicht als Standard angenommen.',
+          'section:nth-of-type(9) details:nth-child(2) summary': 'Werden Daten online hochgeladen?',
+          'section:nth-of-type(9) details:nth-child(2) p': 'Die HTML-App arbeitet lokal im Browser. Die geladenen Messdaten werden in der App verarbeitet und nicht automatisch an externe Systeme gesendet.',
+          'section:nth-of-type(9) details:nth-child(3) summary': 'Warum Spalten ausblenden?',
+          'section:nth-of-type(9) details:nth-child(3) p': 'Bei vielen Signalen wird die Tabelle schnell sehr breit. Ausblenden reduziert die Ansicht auf das Wesentliche, ohne die technische Referenz zu verlieren.',
+          'section:nth-of-type(9) details:nth-child(4) summary': 'Wof&uuml;r ist der Excel-Export gedacht?',
+          'section:nth-of-type(9) details:nth-child(4) p': 'Excel eignet sich f&uuml;r vollst&auml;ndige technische Auswertung, Filterung und Weiterbearbeitung. Der PDF-Export ist eher f&uuml;r schnelle Lesbarkeit und Weitergabe gedacht.',
+          '.cta .kicker': 'Bereit f&uuml;r die Analyse?',
+          '.cta h2': 'Signalerfassung laden und sauber auswerten.',
+          '.cta p': 'Wenn eine .txt-Datei aus SWS / SDP3 vorliegt, kann die Analyse direkt lokal gestartet werden.',
+          '.cta .btn-primary': '<svg><use href="#i-play"/></svg> App jetzt &ouml;ffnen',
+          '.cta .btn-secondary': '<svg><use href="#i-users"/></svg> Zugang anfragen',
+          '.footer-links a:nth-child(1)': 'Impressum',
+          '.footer-links a:nth-child(2)': 'Datenschutz',
+          'footer .shell > span:first-child': 'SWS / SDP3 - Signalerfassung - Tool - By <a href="https://reflex.scania.com/profile/dbreue" target="_blank" rel="noopener noreferrer">David Breuer</a>',
+          '.legal': 'Dieses Tool ist ein internes/inoffizielles Analysewerkzeug und steht nicht in Verbindung mit Scania CV AB. Scania, WIO, SPII und weitere Bezeichnungen sind Marken bzw. Systeme der jeweiligen Rechteinhaber.',
+          '#back-to-top span': 'Zum Seitenanfang'
+        }
+      },
+      en: {
+        title: 'Signal Capture Analysis Tool for SWS and SDP3',
+        description: 'Signal Capture Analysis Tool for SWS and SDP3 TXT files: evaluate measurement data locally, mark relevant signals and create professional Excel and PDF exports for diagnostics, workshop and support.',
+        navAria: 'Main navigation',
+        langAria: 'Language',
+        brandAria: 'Home',
+        toolsAria: 'Open Scania tools',
+        previewAria: 'Analysis app preview',
+        app: 'Open app',
+        access: 'Request access',
+        top: 'Back to top',
+        disclaimer: 'This tool is an internal/unofficial analysis utility and is not affiliated with Scania CV AB. Scania, WIO, SPII and other names are trademarks or systems of their respective rights holders.',
+        selectors: {
+          '.brand small': 'Analysis Tool',
+          '.navlinks a[href="#funktionen"]': 'Features',
+          '.navlinks a[href="#workflow"]': 'Workflow',
+          '.navlinks a[href="#export"]': 'Export',
+          '.navlinks a[href="#support"]': 'Support',
+          '.nav-request': 'Request access',
+          '.nav-cta': '<span>Open app</span>',
+          '.eyebrow': '<span class="pulse"></span>SWS / SDP3 Signal Capture',
+          'h1': 'Understand measurement data <span class="grad">faster</span>. Share findings clearly.',
+          '.lead': 'The analysis tool structures .txt files from signal captures, makes relevant signals visible and creates professional exports for diagnostics, workshop teams and support.',
+          '.hero-actions a:nth-child(1)': '<svg><use href="#i-play"/></svg> Open app',
+          '.hero-actions a:nth-child(2)': '<svg><use href="#i-users"/></svg> Request access',
+          '.hero-actions a:nth-child(3)': 'View features',
+          '.hero-actions a:nth-child(4)': 'Understand export',
+          '.hero-proof .proof:nth-child(1)': '<svg><use href="#i-upload"/></svg> Drag &amp; drop for .txt files',
+          '.hero-proof .proof:nth-child(2)': '<svg><use href="#i-bookmark"/></svg> Mark columns and rows',
+          '.hero-proof .proof:nth-child(3)': '<svg><use href="#i-output"/></svg> PDF &amp; Excel for escalations',
+          '.app-title': '<span class="live-dot"></span>Analysis view after upload',
+          '.metric:nth-child(1) b': 'Samples',
+          '.metric:nth-child(2) b': 'Signals',
+          '.metric:nth-child(3) b': 'Duration',
+          '.mock-head .mock-cell:nth-child(1)': 'Timestamp',
+          '.mock-head .mock-cell:nth-child(2)': 'Marker',
+          '.mock-head .mock-cell:nth-child(3)': 'BMS Wheel 1',
+          '.mock-head .mock-cell:nth-child(4)': 'Engine speed <span class="mock-unit">rpm</span>',
+          '.mock-row:not(.mock-head) .mock-cell:nth-child(3)': 'Not in redundancy mode',
+          '.problem .kicker': 'Starting point',
+          '.problem h2': 'Raw data is powerful. But not always quick to read.',
+          '.problem p:nth-of-type(1)': 'Signal captures often contain many columns, long timelines and technical values that need sorting, filtering and marking before a fast diagnosis is possible.',
+          '.problem p:nth-of-type(2)': 'Without clear preparation, avoidable questions arise, screenshots become hard to read and important moments disappear inside the amount of measurement data.',
+          '.split .panel:nth-child(2) .kicker': 'Solution',
+          '.split .panel:nth-child(2) h2': 'From .txt export to readable diagnostic report.',
+          '.split .panel:nth-child(2) .signal:nth-child(1) strong': 'Detect automatically',
+          '.split .panel:nth-child(2) .signal:nth-child(1) span': 'File, time range, samples, sampling rate and signals are evaluated in a structured way during loading.',
+          '.split .panel:nth-child(2) .signal:nth-child(2) strong': 'Focus the data',
+          '.split .panel:nth-child(2) .signal:nth-child(2) span': 'Unimportant columns can be hidden, while important signals and timestamps can be highlighted in color.',
+          '.split .panel:nth-child(2) .signal:nth-child(3) strong': 'Export professionally',
+          '.split .panel:nth-child(2) .signal:nth-child(3) span': 'PDF and Excel provide a clear basis for support, escalation and internal documentation.',
+          '#funktionen .kicker': 'Core Features',
+          '#funktionen h2': 'Everything that should help immediately with a signal capture.',
+          '#funktionen .section-head p': 'The app stays intentionally lean: load data, read it faster, mark relevant points and share clean results.',
+          '#funktionen .feature:nth-child(1) h3': 'Load .txt files',
+          '#funktionen .feature:nth-child(1) p': 'Drag &amp; drop or file picker for one or more signal captures.',
+          '#funktionen .feature:nth-child(2) h3': 'Detect signals automatically',
+          '#funktionen .feature:nth-child(2) p': 'ECU, sensor description, unit and signal ID are read from the file.',
+          '#funktionen .feature:nth-child(3) h3': 'Search and filter',
+          '#funktionen .feature:nth-child(3) p': 'Time ranges and search terms help find relevant measurement points faster.',
+          '#funktionen .feature:nth-child(4) h3': 'Hide columns',
+          '#funktionen .feature:nth-child(4) p': 'Unneeded signals disappear from the view but remain traceable in the export.',
+          '#funktionen .feature:nth-child(5) h3': 'Mark columns',
+          '#funktionen .feature:nth-child(5) p': 'Important signals are highlighted across the full column.',
+          '#funktionen .feature:nth-child(6) h3': 'Mark timestamps',
+          '#funktionen .feature:nth-child(6) p': 'Individual measurement rows can be highlighted to clearly mark findings.',
+          '#funktionen .feature:nth-child(7) h3': 'Excel workbook',
+          '#funktionen .feature:nth-child(7) p': 'Export with overview, signals, measurement data and markers for technical evaluation.',
+          '#funktionen .feature:nth-child(8) h3': 'PDF report',
+          '#funktionen .feature:nth-child(8) p': 'Compact report for quick forwarding to support teams or escalation processes.',
+          '#workflow .kicker': 'Workflow',
+          '#workflow h2': 'Five steps from measurement to an evaluation-ready file.',
+          '#workflow .section-head p': 'The flow is designed to work in the workshop without long onboarding.',
+          '#workflow .step:nth-child(1) h3': 'Export signal capture',
+          '#workflow .step:nth-child(1) p': 'Provide the .txt file from SWS / SDP3.',
+          '#workflow .step:nth-child(2) h3': 'Load file',
+          '#workflow .step:nth-child(2) p': 'Add it to the app by drag &amp; drop or file picker.',
+          '#workflow .step:nth-child(3) h3': 'Check data',
+          '#workflow .step:nth-child(3) p': 'Review time range, samples, signals and measurement values.',
+          '#workflow .step:nth-child(4) h3': 'Mark relevant points',
+          '#workflow .step:nth-child(4) p': 'Hide columns, mark signals and highlight timestamps.',
+          '#workflow .step:nth-child(5) h3': 'Create export',
+          '#workflow .step:nth-child(5) p': 'Save PDF or Excel for support and documentation.',
+          '#export .kicker': 'Export',
+          '#export h2': 'Two outputs for two typical situations.',
+          '#export .section-head p': 'Export is more than a data dump; it is meant to enable clear technical communication.',
+          '#export .export-card:nth-child(1) h3': 'PDF report',
+          '#export .export-card:nth-child(1) p': 'The PDF export is designed as a fast-readable report. Ideal when a case needs a short summary with marked findings.',
+          '#export .export-card:nth-child(1) li:nth-child(1)': '<svg><use href="#i-check"/></svg> Compact overview for escalations',
+          '#export .export-card:nth-child(1) li:nth-child(2)': '<svg><use href="#i-check"/></svg> Marked signals and timestamps visible immediately',
+          '#export .export-card:nth-child(1) li:nth-child(3)': '<svg><use href="#i-check"/></svg> Suitable for email, ticket or support request',
+          '#export .export-card:nth-child(2) h3': 'Excel workbook',
+          '#export .export-card:nth-child(2) p': 'The Excel file contains the full technical structure: overview, signal list, measurement data and markers for further evaluation.',
+          '#export .export-card:nth-child(2) li:nth-child(1)': '<svg><use href="#i-check"/></svg> Complete measurement data in table form',
+          '#export .export-card:nth-child(2) li:nth-child(2)': '<svg><use href="#i-check"/></svg> Real ECU and sensor names',
+          '#export .export-card:nth-child(2) li:nth-child(3)': '<svg><use href="#i-check"/></svg> Hidden signals remain traceable',
+          '#support .kicker': 'Support &amp; Escalation',
+          '#support h2': 'Fewer follow-up questions. More technical clarity.',
+          '#support p': 'When measurement data goes to support teams, traceability matters. The app helps hand over relevant signals, timestamps and context in one consistent structure.',
+          '#support .btn-primary': '<svg><use href="#i-play"/></svg> Start analysis',
+          '#support .support-item:nth-child(1)': '<svg><use href="#i-check"/></svg> Consistent presentation instead of hard-to-read raw data',
+          '#support .support-item:nth-child(2)': '<svg><use href="#i-check"/></svg> Suspicious columns and timestamps clearly marked',
+          '#support .support-item:nth-child(3)': '<svg><use href="#i-check"/></svg> Export with file, period, samples and signal reference',
+          '#support .support-item:nth-child(4)': '<svg><use href="#i-check"/></svg> Better basis for technical follow-up questions',
+          'section:nth-of-type(7) .kicker': 'Audience',
+          'section:nth-of-type(7) h2': 'Built for people who really need to use measurement data.',
+          'section:nth-of-type(7) .panel:nth-child(1) h3': 'Diagnostic technicians',
+          'section:nth-of-type(7) .panel:nth-child(1) p': 'For quickly narrowing down relevant signals and time ranges directly from the signal capture.',
+          'section:nth-of-type(7) .panel:nth-child(2) h3': 'Workshop &amp; service',
+          'section:nth-of-type(7) .panel:nth-child(2) p': 'For traceable documentation and clean communication around complex fault patterns.',
+          'section:nth-of-type(7) .panel:nth-child(3) h3': 'Support teams',
+          'section:nth-of-type(7) .panel:nth-child(3) p': 'For structured exports that need less interpretation and provide more technical clarity.',
+          'section:nth-of-type(8) .kicker': 'Portals',
+          'section:nth-of-type(8) h2': 'Relevant diagnostic and workshop portals.',
+          'section:nth-of-type(8) .section-head p': 'The app links relevant Scania portals such as SWS, WIO, SPII, Operational Analysis and Conversion Workshop so analysis and further research stay close together.',
+          'section:nth-of-type(9) .kicker': 'FAQ',
+          'section:nth-of-type(9) h2': 'Frequently asked questions.',
+          'section:nth-of-type(9) details:nth-child(1) summary': 'Which files can I load?',
+          'section:nth-of-type(9) details:nth-child(1) p': 'The app is designed for .txt files from SWS / SDP3 signal capture. Other formats are not accepted as the default.',
+          'section:nth-of-type(9) details:nth-child(2) summary': 'Are data files uploaded online?',
+          'section:nth-of-type(9) details:nth-child(2) p': 'The HTML app works locally in the browser. Loaded measurement data is processed in the app and is not automatically sent to external systems.',
+          'section:nth-of-type(9) details:nth-child(3) summary': 'Why hide columns?',
+          'section:nth-of-type(9) details:nth-child(3) p': 'With many signals, the table becomes very wide. Hiding reduces the view to what matters without losing the technical reference.',
+          'section:nth-of-type(9) details:nth-child(4) summary': 'What is the Excel export for?',
+          'section:nth-of-type(9) details:nth-child(4) p': 'Excel is suited for complete technical evaluation, filtering and further processing. The PDF export is intended for quick readability and sharing.',
+          '.cta .kicker': 'Ready for analysis?',
+          '.cta h2': 'Load a signal capture and evaluate it cleanly.',
+          '.cta p': 'If a .txt file from SWS / SDP3 is available, the analysis can start locally right away.',
+          '.cta .btn-primary': '<svg><use href="#i-play"/></svg> Open app now',
+          '.cta .btn-secondary': '<svg><use href="#i-users"/></svg> Request access',
+          '.footer-links a:nth-child(1)': 'Legal notice',
+          '.footer-links a:nth-child(2)': 'Privacy',
+          'footer .shell > span:first-child': 'SWS / SDP3 - Signal Capture Tool - By <a href="https://reflex.scania.com/profile/dbreue" target="_blank" rel="noopener noreferrer">David Breuer</a>',
+          '.legal': 'This tool is an internal/unofficial analysis utility and is not affiliated with Scania CV AB. Scania, WIO, SPII and other names are trademarks or systems of their respective rights holders.',
+          '#back-to-top span': 'Back to top'
+        }
+      }
+    };
+    function applyPageLanguage(lang){
+      lang = lang === 'en' ? 'en' : 'de';
+      const copy = pageCopy[lang];
+      document.documentElement.lang = lang;
+      document.title = copy.title;
+      const desc = document.querySelector('meta[name="description"]');
+      if(desc) desc.content = copy.description;
+      document.querySelectorAll('.language-switch').forEach(group => {
+        const currentName = lang === 'de' ? 'Deutsch' : 'English';
+        const summary = group.querySelector('summary');
+        const current = group.querySelector('.language-current');
+        if(summary){
+          summary.setAttribute('aria-label', `${copy.langAria}: ${currentName}`);
+          summary.setAttribute('title', copy.langAria);
+        }
+        if(current) current.textContent = lang.toUpperCase();
+        group.querySelectorAll('[data-lang-set]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.langSet === lang)));
+      });
+      const nav = document.querySelector('.nav');
+      if(nav) nav.setAttribute('aria-label', copy.navAria);
+      const brand = document.querySelector('.brand');
+      if(brand) brand.setAttribute('aria-label', copy.brandAria);
+      const toolsButton = document.querySelector('.tool-launcher summary');
+      if(toolsButton) toolsButton.setAttribute('aria-label', copy.toolsAria);
+      const preview = document.querySelector('.app-card');
+      if(preview) preview.setAttribute('aria-label', copy.previewAria);
+      const topButton = document.getElementById('back-to-top');
+      if(topButton) topButton.setAttribute('aria-label', copy.top);
+      Object.entries(copy.selectors).forEach(([selector, html]) => {
+        document.querySelectorAll(selector).forEach(node => { node.innerHTML = html; });
+      });
+      localStorage.setItem(I18N_STORAGE_KEY, lang);
+    }
+    document.querySelectorAll('[data-lang-set]').forEach(button => {
+      button.addEventListener('click', () => {
+        applyPageLanguage(button.dataset.langSet);
+        const menu = button.closest('details');
+        if(menu) menu.open = false;
+      });
+    });
+    applyPageLanguage(localStorage.getItem(I18N_STORAGE_KEY) || 'de');
+
+    const launcher = document.getElementById('tool-launcher');
+    const languageMenus = [...document.querySelectorAll('.language-switch')];
+    document.addEventListener('click', (e) => {
+      if (launcher && launcher.open && !launcher.contains(e.target)) launcher.open = false;
+      languageMenus.forEach(menu => {
+        if (menu.open && !menu.contains(e.target)) menu.open = false;
+      });
+    });
+    if(launcher) launcher.addEventListener('toggle', () => {
+      if(launcher.open) languageMenus.forEach(menu => { menu.open = false; });
+    });
+    languageMenus.forEach(menu => menu.addEventListener('toggle', () => {
+      if(menu.open && launcher) launcher.open = false;
+    }));
+
+    const backToTop = document.getElementById('back-to-top');
+    let scrollFrame = 0;
+    let scrollStopTimer = 0;
+    let backToTopVisible = false;
+    const updateBackToTop = () => {
+      scrollFrame = 0;
+      const shouldShow = window.scrollY > 520;
+      if (shouldShow !== backToTopVisible) {
+        backToTopVisible = shouldShow;
+        backToTop.classList.toggle('visible', shouldShow);
+      }
+    };
+    window.addEventListener('scroll', () => {
+      document.body.classList.add('is-scrolling');
+      clearTimeout(scrollStopTimer);
+      scrollStopTimer = setTimeout(() => document.body.classList.remove('is-scrolling'), 140);
+      if (!scrollFrame) scrollFrame = requestAnimationFrame(updateBackToTop);
+    }, {passive:true});
+    backToTop.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+    updateBackToTop();
+
+    // ---- IntersectionObserver: reveal on scroll ----
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, {threshold:.14, rootMargin:'0px 0px -40px 0px'});
+    document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => io.observe(el));
+
+    // ---- Counter animation for hero metrics ----
+    const animateCounter = (el) => {
+      const target = parseInt(el.dataset.count, 10);
+      const duration = 1400;
+      const start = performance.now();
+      const fmt = (n) => n.toLocaleString('de-DE');
+      const tick = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = fmt(Math.floor(target * eased));
+        if (t < 1) requestAnimationFrame(tick);
+        else el.textContent = fmt(target);
+      };
+      requestAnimationFrame(tick);
+    };
+    const cIo = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          animateCounter(e.target);
+          cIo.unobserve(e.target);
+        }
+      });
+    }, {threshold:.5});
+    document.querySelectorAll('.val[data-count]').forEach(el => cIo.observe(el));
+
+    // ---- Mock-table: rows fade in on cycle ----
+    const mock = document.getElementById('tableMock');
+    if (mock) {
+      const rows = mock.querySelectorAll('.mock-row:not(.mock-head)');
+      const playCycle = () => {
+        rows.forEach(r => r.classList.remove('show'));
+        rows.forEach(r => {
+          const d = parseInt(r.dataset.delay || '0', 10);
+          setTimeout(() => r.classList.add('show'), d);
+        });
+      };
+      const mIo = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            playCycle();
+            // restart loop while visible
+            mock._timer = setInterval(playCycle, 4500);
+          } else {
+            if (mock._timer) { clearInterval(mock._timer); mock._timer = null; }
+          }
+        });
+      }, {threshold:.3});
+      mIo.observe(mock);
+    }
+
+    // ---- Scrollspy for nav ----
+    const navLinks = Array.from(document.querySelectorAll('#navlinks a'));
+    const sections = navLinks.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+    const sIo = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = '#' + e.target.id;
+          navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === id));
+        }
+      });
+    }, {rootMargin:'-45% 0px -50% 0px'});
+    sections.forEach(s => sIo.observe(s));
+
+    // ---- Hero spotlight follows pointer ----
+    const spotlight = document.getElementById('spotlight');
+    const hero = document.querySelector('.hero');
+    const allowPointerEffects = window.matchMedia('(hover:hover) and (prefers-reduced-motion:no-preference)').matches;
+    if (hero) {
+      const heroMotionObserver = new IntersectionObserver(([entry]) => {
+        hero.classList.toggle('motion-paused', !entry.isIntersecting);
+      }, {threshold:0});
+      heroMotionObserver.observe(hero);
+    }
+    if (spotlight && hero && allowPointerEffects) {
+      let spotlightFrame = 0;
+      let pointerX = 0;
+      let pointerY = 0;
+      hero.addEventListener('pointermove', (ev) => {
+        pointerX = ev.clientX;
+        pointerY = ev.clientY;
+        if (!spotlightFrame) spotlightFrame = requestAnimationFrame(() => {
+          spotlightFrame = 0;
+          const r = hero.getBoundingClientRect();
+          const spotlightX = pointerX - r.left;
+          const spotlightY = pointerY - r.top;
+          spotlight.style.transform = `translate3d(${spotlightX - 300}px, ${spotlightY - 300}px, 0)`;
+          spotlight.style.top = '0';
+          spotlight.style.right = 'auto';
+          spotlight.style.left = '0';
+        });
+      });
+    }
+
+    // ---- Feature cards: cursor-aware glow ----
+    if (allowPointerEffects) document.querySelectorAll('.feature').forEach(card => {
+      let cardFrame = 0;
+      let pointerX = 0;
+      let pointerY = 0;
+      card.addEventListener('pointermove', (ev) => {
+        pointerX = ev.clientX;
+        pointerY = ev.clientY;
+        if (!cardFrame) cardFrame = requestAnimationFrame(() => {
+          cardFrame = 0;
+          const r = card.getBoundingClientRect();
+          const mouseX = (pointerX - r.left) / r.width * 100;
+          const mouseY = (pointerY - r.top) / r.height * 100;
+          card.style.setProperty('--mx', mouseX + '%');
+          card.style.setProperty('--my', mouseY + '%');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

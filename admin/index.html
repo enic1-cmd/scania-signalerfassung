@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Admin Hub | Signalerfassung Analyse-Tool</title>
+<link rel="icon" type="image/png" href="../assets/signalerfassung-app-icon.png">
+<link rel="stylesheet" href="../assets/admin.css?v=20260916-1">
+</head>
+<body>
+<svg class="icon-sprite" aria-hidden="true">
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l2.5-7 5 14 2.5-7h4"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0 2 5M20 4v7h-7"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M15 8l3 3M18 5l3 3"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+</svg>
+<header class="topbar">
+  <nav class="shell nav" aria-label="Admin-Navigation">
+    <a class="brand" href="/" aria-label="Zur Landingpage"><img class="brand-symbol" src="../assets/signalerfassung-symbol.png" alt=""><img class="brand-wordmark" src="../assets/signalerfassung-wordmark.png" alt="Signalerfassung"><span class="brand-line"></span><small>Admin Hub</small></a>
+    <div class="navlinks"><a href="/">Landingpage</a><a href="/signalerfassung-analyse-tool.html">Analyse-Tool</a></div>
+    <div class="identity"><span class="identity-dot"></span><strong id="current-user">Admin</strong></div>
+  </nav>
+</header>
+<main class="shell">
+  <section class="hero">
+    <div class="hero-copy"><div class="eyebrow"><span></span>Zugriff, Nutzung und Systemstatus</div><h1>Admin Hub</h1><p>Benutzerzugänge sicher verwalten, Nutzung einordnen und den Zustand des Analyse-Tools im Blick behalten.</p></div>
+    <div class="hero-actions">
+      <label class="range">Zeitraum<select id="range"><option value="7">7 Tage</option><option value="30" selected>30 Tage</option><option value="90">90 Tage</option><option value="180">180 Tage</option></select></label>
+      <button class="btn btn-soft" id="refresh" type="button"><svg><use href="#i-refresh"/></svg>Aktualisieren</button>
+      <button class="btn btn-soft" id="export-csv" type="button"><svg><use href="#i-download"/></svg>CSV</button>
+      <button class="btn btn-primary" id="add-user" type="button"><svg><use href="#i-plus"/></svg>Benutzer anlegen</button>
+    </div>
+  </section>
+  <section class="metrics" aria-label="Kennzahlen">
+    <article class="metric metric-users"><div class="metric-icon"><svg><use href="#i-users"/></svg></div><div><span>Benutzer</span><strong id="metric-users">–</strong><small>eingerichtete Zugänge</small></div></article>
+    <article class="metric metric-active"><div class="metric-icon"><svg><use href="#i-activity"/></svg></div><div><span>Aktive Nutzer</span><strong id="metric-active">–</strong><small id="trend-active">im Zeitraum</small></div></article>
+    <article class="metric"><div class="metric-icon"><svg><use href="#i-eye"/></svg></div><div><span>Seitenaufrufe</span><strong id="metric-views">–</strong><small id="trend-views">gegenüber vorher</small></div></article>
+    <article class="metric"><div class="metric-icon"><svg><use href="#i-file"/></svg></div><div><span>Datei-Auswertungen</span><strong id="metric-uploads">–</strong><small id="trend-uploads">gegenüber vorher</small></div></article>
+    <article class="metric"><div class="metric-icon"><svg><use href="#i-export"/></svg></div><div><span>Exporte</span><strong id="metric-exports">–</strong><small id="trend-exports">gegenüber vorher</small></div></article>
+    <article class="metric metric-requests"><div class="metric-icon"><svg><use href="#i-mail"/></svg></div><div><span>Zugangsanfragen</span><strong id="metric-requests">–</strong><small>offen zur Prüfung</small></div></article>
+  </section>
+  <section class="panel requests-panel" id="access-requests-panel">
+    <div class="panel-head"><div><span class="panel-kicker">Freigabe-Postfach</span><h2>Zugangsanfragen</h2><p>Anfragen prüfen, Zugangsdaten festlegen und die Freigabemail automatisch versenden.</p></div><div class="request-head-actions"><span class="mail-pill" id="mail-status">E-Mail wird geprüft</span><a class="btn btn-soft btn-small" href="/zugang-anfragen.html" target="_blank">Formular öffnen</a></div></div>
+    <div class="request-filters" role="group" aria-label="Zugangsanfragen filtern"><button class="active" type="button" data-request-filter="pending">Offen <span id="pending-count">0</span></button><button type="button" data-request-filter="approved">Freigegeben</button><button type="button" data-request-filter="rejected">Abgelehnt</button><button type="button" data-request-filter="all">Alle</button></div>
+    <div class="request-list" id="request-list"><div class="empty-state"><span class="loader"></span>Anfragen werden geladen…</div></div>
+  </section>
+  <div class="dashboard-grid">
+    <section class="panel users-panel">
+      <div class="panel-head"><div><span class="panel-kicker">Zugriffsverwaltung</span><h2>Benutzerkonten</h2><p>Konten berechtigen zur geschützten Analyse-App. Die Landingpage bleibt öffentlich.</p></div><span class="result-count" id="result-count">– Konten</span></div>
+      <div class="user-toolbar"><label class="search-field"><svg><use href="#i-search"/></svg><input id="user-search" type="search" placeholder="Benutzer suchen" aria-label="Benutzer suchen"></label><label class="compact-select">Sortierung<select id="user-sort"><option value="name">Name</option><option value="recent">Zuletzt aktiv</option><option value="activity">Meiste Aktivität</option></select></label></div>
+      <div class="user-table-head"><span>Benutzer</span><span>Status</span><span>Aufrufe</span><span>Dateien</span><span>Exporte</span><span>Zuletzt aktiv</span><span></span></div>
+      <div class="user-list" id="user-list"><div class="empty-state"><span class="loader"></span>Daten werden geladen…</div></div>
+    </section>
+    <aside class="side-stack">
+      <section class="panel activity-panel">
+        <div class="panel-head compact"><div><span class="panel-kicker">Nutzungsverlauf</span><h2>Aktivität</h2></div><label class="series-select">Anzeige<select id="chart-series"><option value="total">Alle Aktionen</option><option value="pageViews">Seitenaufrufe</option><option value="uploads">Dateien</option><option value="exports">Exporte</option></select></label></div>
+        <div class="activity-chart-wrap"><div class="chart" id="chart" aria-label="Aktivitätsdiagramm"></div><div class="chart-axis"><span id="chart-start">–</span><span>heute</span></div></div>
+        <div class="breakdown" id="breakdown"></div>
+      </section>
+      <section class="panel system-panel">
+        <div class="panel-head compact"><div><span class="panel-kicker">Betriebszustand</span><h2>System</h2></div><span class="status-pill"><span></span>Online</span></div>
+        <dl class="system-list"><div><dt>Admin-API</dt><dd><svg><use href="#i-check"/></svg>Erreichbar</dd></div><div><dt>E-Mail-Versand</dt><dd id="system-mail">–</dd></div><div><dt>Datenspeicherung</dt><dd id="system-storage">–</dd></div><div><dt>Aufbewahrung</dt><dd id="system-retention">–</dd></div><div><dt>Aktualisiert</dt><dd id="system-updated">–</dd></div></dl>
+        <p class="privacy-note"><svg><use href="#i-lock"/></svg><span>Keine Messwerte, Dateinamen oder IP-Adressen in dieser Statistik.</span></p>
+      </section>
+    </aside>
+  </div>
+  <section class="panel recent-panel">
+    <div class="panel-head"><div><span class="panel-kicker">Protokoll</span><h2>Letzte Aktivitäten</h2><p>Die jüngsten Nutzungsereignisse im gewählten Zeitraum.</p></div><span class="privacy-tag">automatische Löschung nach 180 Tagen</span></div>
+    <div class="recent-list" id="recent-list"><div class="empty-state">Daten werden geladen…</div></div>
+  </section>
+</main>
+<footer>Signalerfassung Analyse-Tool · Geschützter Administrationsbereich</footer>
+<dialog id="user-dialog">
+  <form id="user-form">
+    <div class="modal-head"><div><span class="modal-icon"><svg><use href="#i-key"/></svg></span><div><h2 id="dialog-title">Benutzer anlegen</h2><p id="dialog-subtitle">Neuen Zugang zur Analyse-App einrichten.</p></div></div><button class="icon-button" type="button" data-close-user aria-label="Dialog schließen">×</button></div>
+    <div class="modal-body">
+      <label class="field" id="username-field">Benutzername<input id="username" name="username" autocomplete="off" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]+" required><small>3–32 Zeichen: Buchstaben, Zahlen, Punkt, Unterstrich oder Bindestrich.</small></label>
+      <label class="field">Neues Passwort<div class="password-input"><input id="password" name="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required><button type="button" id="toggle-password">Anzeigen</button></div></label>
+      <div class="password-tools"><button class="btn btn-soft btn-small" id="generate-password" type="button">Sicheres Passwort erzeugen</button><button class="btn btn-soft btn-small" id="copy-password" type="button"><svg><use href="#i-copy"/></svg>Kopieren</button></div>
+      <label class="field">Passwort wiederholen<input id="password-confirm" type="password" autocomplete="new-password" minlength="10" maxlength="128" required></label>
+      <div class="password-strength"><span id="strength-bar"></span></div><p class="strength-label" id="strength-label">Mindestens 10 Zeichen verwenden.</p>
+      <div class="modal-actions"><button class="btn btn-soft" type="button" data-close-user>Abbrechen</button><button class="btn btn-primary" type="submit" id="save-user">Speichern</button></div>
+    </div>
+  </form>
+</dialog>
+<dialog id="approve-dialog">
+  <form id="approve-form">
+    <div class="modal-head"><div><span class="modal-icon"><svg><use href="#i-mail"/></svg></span><div><h2>Zugang freigeben</h2><p id="approve-recipient">Zugangsdaten festlegen und per E-Mail senden.</p></div></div><button class="icon-button" type="button" data-close-approve aria-label="Dialog schließen">×</button></div>
+    <div class="modal-body">
+      <div class="recipient-card"><span id="approve-name">–</span><strong id="approve-email">–</strong></div>
+      <label class="field">Benutzername<input id="approve-username" autocomplete="off" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]+" required><small>Der Vorschlag kann vor der Freigabe geändert werden.</small></label>
+      <label class="field">Startpasswort<div class="password-input"><input id="approve-password" type="text" autocomplete="new-password" minlength="10" maxlength="128" required><button type="button" id="copy-approve-password">Kopieren</button></div><small>Das Passwort wird einmalig in der Zugangsmail übermittelt.</small></label>
+      <div class="password-tools"><button class="btn btn-soft btn-small" id="generate-approve-password" type="button">Neues Passwort erzeugen</button></div>
+      <div class="modal-actions"><button class="btn btn-soft" type="button" data-close-approve>Abbrechen</button><button class="btn btn-primary" type="submit" id="approve-submit">Konto anlegen & E-Mail senden</button></div>
+    </div>
+  </form>
+</dialog>
+<dialog id="reject-dialog" class="confirm-dialog"><div class="confirm-content"><span class="danger-icon"><svg><use href="#i-mail"/></svg></span><h2>Anfrage ablehnen?</h2><p id="reject-copy">Die Anfrage wird als abgelehnt archiviert. Es wird kein Konto angelegt.</p><div class="modal-actions"><button class="btn btn-soft" type="button" id="cancel-reject">Abbrechen</button><button class="btn btn-danger" type="button" id="confirm-reject">Anfrage ablehnen</button></div></div></dialog>
+<dialog id="delete-dialog" class="confirm-dialog"><div class="confirm-content"><span class="danger-icon"><svg><use href="#i-trash"/></svg></span><h2>Benutzer löschen?</h2><p id="delete-copy"></p><div class="modal-actions"><button class="btn btn-soft" type="button" id="cancel-delete">Abbrechen</button><button class="btn btn-danger" type="button" id="confirm-delete">Zugang löschen</button></div></div></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="../assets/admin.js?v=20260916-2"></script>
+</body>
+</html>

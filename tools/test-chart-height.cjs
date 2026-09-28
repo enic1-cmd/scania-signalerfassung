@@ -1,0 +1,61 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const {pathToFileURL}=require('node:url');
+const {chromium}=require('playwright');
+const root=path.resolve(__dirname,'..');
+new Function(fs.readFileSync(path.join(root,'assets/chart-height.js'),'utf8'));
+for(const file of ['index.html','signalerfassung-analyse-tool.html','impressum.html','datenschutz.html']){
+  assert(fs.readFileSync(path.join(root,file),'utf8').includes('.tool-link.fras strong{color:#e5ac00}'),file+' FRAS yellow');
+}
+(async()=>{
+  const browser=await chromium.launch({headless:true,channel:'chrome'});
+  try{
+    const page=await browser.newPage({viewport:{width:1500,height:850}}),errors=[];
+    page.on('pageerror',e=>errors.push(e.message));
+    await page.goto(pathToFileURL(path.join(root,'signalerfassung-analyse-tool.html')).href);
+    await page.locator('#file-input').setInputFiles(path.join(root,'samples/Test_signalerfassung.txt'));
+    await page.locator('#view-chart-btn').click();
+    await page.waitForTimeout(200);
+    const slider=page.locator('#chart-height-slider');
+    const before=await page.locator('#chart-stage').evaluate(el=>el.clientHeight);
+    const viewport=await page.locator('.chart-viewport').boundingBox();
+    const thumb=await slider.boundingBox();
+    await page.mouse.move(thumb.x+thumb.width/2,thumb.y+thumb.height-11);
+    await page.mouse.down();
+    await page.mouse.move(thumb.x+thumb.width/2,thumb.y+11,{steps:12});
+    await page.mouse.up();
+    await page.waitForTimeout(100);
+    assert.equal(await slider.inputValue(),'3','Dragging up increases height');
+    assert.equal(await page.locator('#chart-stage').evaluate(el=>el.clientHeight),before*3);
+    assert.equal((await page.locator('.chart-viewport').boundingBox()).height,viewport.height,'Viewport stays fixed');
+    assert.deepEqual(await page.evaluate(()=>[chartState.start,chartState.end]),[0,1],'Height does not alter time zoom');
+    await page.locator('.chart-viewport').evaluate(el=>{el.scrollTop=el.clientHeight;});
+    await page.locator('[data-mode="marker"]').click();
+    const canvas=await page.locator('#signal-chart').boundingBox();
+    const x=canvas.x+245+(canvas.width-271)*.4,y=viewport.y+viewport.height-35;
+    await page.mouse.click(x,y);
+    assert.equal(await page.evaluate(()=>active().rawRows.filter(r=>r.marked).length),1,'Markers work after vertical scrolling');
+    await page.mouse.move(x+3,y);
+    const tip=await page.locator('#chart-tooltip').boundingBox();
+    assert(tip&&tip.y>=viewport.y&&tip.y+tip.height<=viewport.y+viewport.height,'Tooltip remains in visible viewport');
+    await page.mouse.wheel(0,-100);
+    await page.waitForTimeout(100);
+    assert(await page.evaluate(()=>chartState.end-chartState.start<1),'Mouse wheel still zooms time');
+    await slider.focus();await page.keyboard.press('ArrowDown');
+    assert.equal(await slider.inputValue(),'2.9','Keyboard can reduce height');
+    await page.locator('.chart-height-control button').click();
+    await page.waitForTimeout(100);
+    assert.equal(await page.locator('#chart-stage').evaluate(el=>el.clientHeight),before);
+    assert.equal(await page.locator('.chart-viewport').evaluate(el=>el.scrollTop),0);
+    await page.evaluate(()=>{window.heightPaints=0;const draw=renderChart;window.renderChart=function(){window.heightPaints++;return draw();};});
+    await page.waitForTimeout(400);
+    assert.equal(await page.evaluate(()=>window.heightPaints),0,'No idle redraw loop');
+    await page.setViewportSize({width:390,height:740});
+    await page.waitForTimeout(200);
+    const mobile=await slider.boundingBox();
+    assert(mobile.x>=0&&mobile.x+mobile.width<=390,'Slider stays reachable on mobile');
+    assert.deepEqual(errors,[]);
+    console.log(JSON.stringify({result:'PASS',baseHeight:before,maxHeight:before*3,drag:'up increases',tooltip:'visible after scroll',timeZoom:'unchanged',mobile:'PASS',pageErrors:errors},null,2));
+  }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});

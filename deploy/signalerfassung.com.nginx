@@ -1,0 +1,126 @@
+server {
+    listen 80;
+    listen [::]:80;
+    server_name signalerfassung.com www.signalerfassung.com;
+
+    root /var/www/signalerfassung.com/current;
+
+    location ^~ /.well-known/acme-challenge/ {
+        auth_basic off;
+        try_files $uri =404;
+    }
+
+    location / {
+        return 301 https://signalerfassung.com$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name signalerfassung.com www.signalerfassung.com;
+
+    ssl_certificate /etc/letsencrypt/live/signalerfassung.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/signalerfassung.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    root /var/www/signalerfassung.com/current;
+    index index.html;
+
+    auth_basic "Signalerfassung - geschützter Zugang";
+    auth_basic_user_file /var/www/signalerfassung.com/shared/.htpasswd;
+
+    access_log /var/log/nginx/signalerfassung.access.log signalerfassung_privacy;
+    error_log /var/log/nginx/signalerfassung.error.log warn;
+
+    # Public marketing and legal pages can be read by social preview crawlers.
+    location = / {
+        auth_basic off;
+        try_files /index.html =404;
+    }
+
+    location = /index.html {
+        auth_basic off;
+        try_files $uri =404;
+    }
+
+    location = /Scania_Signalerfassung_Homepage_Final_use.html {
+        auth_basic off;
+        return 301 /;
+    }
+
+    location = /impressum.html {
+        auth_basic off;
+        try_files $uri =404;
+    }
+
+    location = /datenschutz.html {
+        auth_basic off;
+        try_files $uri =404;
+    }
+
+    location = /zugang-anfragen.html {
+        auth_basic off;
+        try_files $uri =404;
+    }
+
+    location = /site.webmanifest {
+        auth_basic off;
+        try_files $uri =404;
+    }
+
+    location ^~ /assets/ {
+        auth_basic off;
+        expires 7d;
+        add_header Cache-Control "public, max-age=604800";
+        try_files $uri =404;
+    }
+
+    location = /Scania_Signalanalyse.html {
+        return 301 /signalerfassung-analyse-tool.html;
+    }
+
+    location = /api/usage {
+        limit_except POST { deny all; }
+        proxy_pass http://127.0.0.1:3407/api/usage;
+        proxy_set_header X-Remote-User $remote_user;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+        proxy_http_version 1.1;
+    }
+
+    location = /api/access-requests {
+        auth_basic off;
+        limit_except POST { deny all; }
+        client_max_body_size 16k;
+        proxy_pass http://127.0.0.1:3407/api/access-requests;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+        proxy_http_version 1.1;
+    }
+
+    location ^~ /admin/api/ {
+        proxy_pass http://127.0.0.1:3407;
+        proxy_set_header X-Remote-User $remote_user;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+        proxy_http_version 1.1;
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location ~* \.(?:css|js|png|jpg|jpeg|webp|svg|ico|woff2?)$ {
+        expires 7d;
+        add_header Cache-Control "public, max-age=604800";
+        try_files $uri =404;
+    }
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header X-Robots-Tag "noindex, nofollow, noarchive" always;
+}

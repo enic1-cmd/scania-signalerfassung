@@ -1,0 +1,21 @@
+const fs=require('node:fs');
+const path=require('node:path');
+const mailer=require('../server/mailer');
+
+const root=path.resolve(__dirname,'..');
+const output=path.join(root,'output','email-previews');
+fs.mkdirSync(output,{recursive:true});
+const logo=`data:image/png;base64,${fs.readFileSync(path.join(root,'assets','signalerfassung-wordmark.png')).toString('base64')}`;
+const request=mailer.buildAccessRequestNotification({name:'Max Mustermann',email:'max.mustermann@example.com',createdAt:new Date('2026-09-16T09:30:00+02:00').toISOString()});
+const confirmation=mailer.buildAccessRequestConfirmation({name:'Max Mustermann',email:'max.mustermann@example.com',createdAt:new Date('2026-09-16T09:30:00+02:00').toISOString()});
+const welcome=mailer.buildWelcomeEmail({name:'Max Mustermann',email:'max.mustermann@example.com',username:'max.mustermann',password:'Start!2026-Sicher'});
+const requestEn=mailer.buildAccessRequestNotification({name:'Alex Smith',email:'alex.smith@example.com',createdAt:new Date('2026-09-28T10:30:00+02:00').toISOString(),language:'en'});
+const confirmationEn=mailer.buildAccessRequestConfirmation({name:'Alex Smith',email:'alex.smith@example.com',createdAt:new Date('2026-09-28T10:30:00+02:00').toISOString(),language:'en'});
+const welcomeEn=mailer.buildWelcomeEmail({name:'Alex Smith',email:'alex.smith@example.com',username:'alex.smith',password:'Start!2026-Secure',language:'en'});
+fs.writeFileSync(path.join(output,'01-anfrage-bestaetigt.html'),confirmation.html.replace('cid:signalerfassung-logo',logo));
+fs.writeFileSync(path.join(output,'02-neue-zugangsanfrage-admin.html'),request.html.replace('cid:signalerfassung-logo',logo));
+fs.writeFileSync(path.join(output,'03-zugang-freigeschaltet.html'),welcome.html.replace('cid:signalerfassung-logo',logo));
+fs.writeFileSync(path.join(output,'04-request-confirmed-en.html'),confirmationEn.html.replace('cid:signalerfassung-logo',logo));
+fs.writeFileSync(path.join(output,'05-neue-zugangsanfrage-admin-en-kunde.html'),requestEn.html.replace('cid:signalerfassung-logo',logo));
+fs.writeFileSync(path.join(output,'06-access-approved-en.html'),welcomeEn.html.replace('cid:signalerfassung-logo',logo));
+console.log(JSON.stringify({confirmation:path.join(output,'01-anfrage-bestaetigt.html'),request:path.join(output,'02-neue-zugangsanfrage-admin.html'),welcome:path.join(output,'03-zugang-freigeschaltet.html'),confirmationEn:path.join(output,'04-request-confirmed-en.html'),requestEn:path.join(output,'05-neue-zugangsanfrage-admin-en-kunde.html'),welcomeEn:path.join(output,'06-access-approved-en.html')},null,2));

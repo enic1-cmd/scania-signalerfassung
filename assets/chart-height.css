@@ -1,0 +1,14 @@
+.chart-body{display:flex;flex:1;min-height:0;overflow:hidden}
+.chart-viewport{flex:1;min-width:0;min-height:0;overflow:auto;scrollbar-gutter:stable;overscroll-behavior:contain}
+.analysis-surface .chart-card{min-width:0}
+.analysis-surface .chart-body .chart-stage{flex:none;min-height:0;min-width:700px;height:390px}
+.chart-height-control{display:flex;flex-direction:column;align-items:center;gap:10px;flex:0 0 52px;padding:14px 4px;background:#f3f8fd;border-left:1px solid #d4e3f0;color:#19466c;font-size:11px;font-weight:700}
+.chart-height-control label{cursor:pointer}
+.chart-height-control output{font-variant-numeric:tabular-nums;white-space:nowrap}
+.chart-height-control input{writing-mode:vertical-lr;direction:rtl;appearance:none;-webkit-appearance:none;flex:1;min-height:80px;max-height:260px;width:6px;margin:4px 0;background:#c5d9ea;border-radius:6px;cursor:ns-resize;touch-action:none}
+.chart-height-control input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border:3px solid #fff;border-radius:50%;background:#0059a4;box-shadow:0 1px 5px #15395855}
+.chart-height-control input::-moz-range-thumb{width:16px;height:16px;border:3px solid #fff;border-radius:50%;background:#0059a4;box-shadow:0 1px 5px #15395855}
+.chart-height-control input:focus-visible{outline:2px solid #0059a4;outline-offset:9px}
+.chart-height-control button{border:1px solid #bfd4e8;border-radius:12px;background:#fff;color:#00559b;min-width:36px;min-height:30px;font:inherit;cursor:pointer}
+.chart-height-control button:hover{background:#e1eef9}
+.chart-height-control button:focus-visible{outline:2px solid #0059a4;outline-offset:2px}

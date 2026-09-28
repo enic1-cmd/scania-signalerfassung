@@ -1,0 +1,67 @@
+body.analysis-workspace>header{padding:7px 16px;min-height:60px;gap:10px;flex-shrink:0}
+body.analysis-workspace .h-brand-symbol{height:40px}
+body.analysis-workspace .h-brand-wordmark{width:185px}
+body.analysis-workspace .h-subtitle{white-space:nowrap}
+body.analysis-workspace .h-filename{max-width:180px}
+.workspace-bar{display:flex;align-items:center;flex-wrap:wrap;gap:7px;padding:7px 14px;background:#f6fafe;border-bottom:1px solid #cdddea;flex-shrink:0;position:relative;z-index:12}
+.workspace-bar .view-switch{margin:0 8px 0 0}
+.workspace-button{display:inline-flex;gap:6px;align-items:center;font:inherit;font-size:11px;font-weight:700;white-space:nowrap;border:1px solid #c6d8e8;background:#fff;color:#07579c;border-radius:8px;padding:7px 10px;cursor:pointer}
+.workspace-button:hover,.workspace-button[aria-expanded="true"]{background:#e1edf8;border-color:#6598c5}
+.workspace-button:focus-visible{outline:2px solid #0055a0;outline-offset:2px}
+.workspace-button.has-filter:after{content:'';width:6px;height:6px;border-radius:50%;background:#e7a500}
+.workspace-summary{font-size:11px;color:#60788e;margin-left:auto;white-space:nowrap}
+.workspace-focus{background:#07579c;color:#fff;border-color:#07579c;margin-left:6px}
+.workspace-focus:hover,.workspace-focus[aria-pressed="true"]{background:#003d75;color:#fff}
+.workspace-panel{position:absolute;left:14px;right:14px;top:var(--workspace-panel-top,48px);z-index:11;max-height:min(48vh,390px);overflow:auto;background:#f7fafd;border:1px solid #bbd1e4;border-radius:0 0 12px 12px;box-shadow:0 14px 30px #06284933;padding:8px}
+.workspace-panel[hidden]{display:none!important}
+.workspace-panel .signal-toggle{display:none}
+.workspace-panel .signal-body,.workspace-panel .signal-body.open{max-height:none;overflow:visible;transition:none}
+.workspace-panel .signal-pills{padding-bottom:12px}
+.workspace-panel .meta-card{box-shadow:none;padding:8px;gap:12px}
+.workspace-panel .meta-item{margin:0;padding:0 16px 0 0}
+.workspace-panel .ctrl-bar{border:0;padding:8px}
+.workspace-panel-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:5px 10px 8px;font-size:12px;font-weight:800;color:#143b61;border-bottom:1px solid #d8e5f0}
+.analysis-surface{display:flex;flex:1;min-height:0;min-width:0;position:relative;overflow:hidden;background:#edf4fa}
+.analysis-surface>#table-wrap{min-width:0;min-height:0}
+.analysis-surface>.chart-wrap{min-width:0;padding:8px}
+.analysis-surface .chart-card{display:flex;flex-direction:column;min-height:350px;flex:1}
+.analysis-surface .chart-head{padding:8px 12px;gap:10px;flex-shrink:0}
+.analysis-surface .chart-actions{flex-wrap:wrap}
+.analysis-surface .chart-stage{height:auto;flex:1;min-height:390px;overflow:hidden}
+.analysis-surface #signal-chart{min-height:0}
+.annotation-sidebar{display:flex;flex-direction:column;width:330px;flex:0 0 330px;min-height:0;background:#f7fafe;border-left:1px solid #bed3e6;z-index:6}
+.annotation-sidebar[hidden]{display:none}
+.annotation-sidebar .annotation-list{flex:1;min-height:0;max-height:none;border:0;padding:6px 10px}
+.annotation-sidebar .annotation-entry{flex-wrap:wrap;gap:6px;padding:8px}
+.annotation-sidebar .annotation-entry p{flex-basis:100%;line-height:1.5}
+.annotation-sidebar .workspace-panel-heading{padding:12px}
+.annotation-tools{padding:6px 14px;gap:6px}
+.annotation-tools button{padding:6px 10px}
+.annotation-hint{font-size:10px;min-width:120px}
+body.analysis-focus>header{display:none!important}
+body.analysis-focus #app-view>.app-footer{display:none}
+body.analysis-focus #app-view{position:fixed;inset:0;z-index:100;background:#edf4fa}
+body.analysis-focus .workspace-summary{color:#07579c}
+@media(max-width:1200px){
+  body.analysis-workspace .h-subtitle,body.analysis-workspace .h-sep{display:none}
+  body.analysis-workspace .h-filename{max-width:125px}
+  .annotation-hint{display:none}
+  .annotation-sidebar{position:absolute;right:0;top:0;bottom:0;width:min(340px,calc(100% - 24px));box-shadow:-10px 0 28px #12314c33}
+}
+@media(max-width:900px){
+  body.analysis-workspace>header{flex-wrap:wrap;min-height:0}
+  body.analysis-workspace .h-filename{display:none!important}
+  body.analysis-workspace .h-actions{flex-wrap:wrap}
+  .workspace-summary{display:none}
+  .workspace-focus{margin-left:auto}
+  .analysis-surface .chart-head{flex-direction:row;flex-wrap:wrap}
+  .analysis-surface .chart-actions{width:auto}
+  .workspace-panel{left:6px;right:6px;max-height:45vh}
+  .analysis-surface .chart-card{min-width:700px}
+}
+@media(max-height:700px){
+  body.analysis-workspace>header{padding-top:4px;padding-bottom:4px;min-height:46px}
+  body.analysis-workspace .h-brand-symbol{height:30px}
+  .workspace-bar{padding-top:5px;padding-bottom:5px}
+  .analysis-surface .chart-subtitle{display:none}
+}

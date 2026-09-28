@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Impressum | SWS / SDP3 Signalerfassung Analyse-Tool</title>
+<style>
+  :root{
+    --navy:#002b55;--blue:#0055a0;--dark:#003d75;--gold:#f5a800;
+    --text:#0b1d35;--muted:#617086;--line:#d9e4ef;
+    --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:"Segoe UI",Arial,sans-serif;color:var(--text);
+    background:
+      radial-gradient(circle at top left,rgba(0,85,160,.13),transparent 36rem),
+      linear-gradient(135deg,#f7fbff,#edf4fa);
+    line-height:1.65;
+  }
+  .shell{width:min(100% - 72px,1680px);margin:0 auto}
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    background:linear-gradient(135deg,rgba(0,43,85,.98),rgba(0,84,166,.96));
+    box-shadow:0 12px 30px rgba(0,18,44,.18);
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .nav{
+    min-height:76px;
+    display:flex;align-items:center;gap:22px;
+    color:#fff;
+  }
+  .brand{display:flex;align-items:center;gap:11px;text-decoration:none;min-width:0;border-bottom:0}
+  .brand-symbol{height:54px;width:auto;display:block;flex-shrink:0;filter:drop-shadow(0 2px 9px rgba(0,0,0,.34))}
+  .brand-wordmark{width:205px;max-width:30vw;height:auto;display:block;flex-shrink:1;filter:drop-shadow(0 2px 9px rgba(0,0,0,.34))}
+  .brand-line{width:1px;height:34px;background:rgba(255,255,255,.22)}
+  .brand small{display:block;color:rgba(255,255,255,.76);font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:11px}
+  .navlinks{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .navlinks a{
+    position:relative;
+    text-decoration:none;color:rgba(255,255,255,.82);
+    font-weight:700;font-size:13px;letter-spacing:.02em;
+    padding:10px 14px;border-radius:999px;border-bottom:0;
+    transition:color .2s var(--ease),background .2s var(--ease);
+  }
+  .navlinks a:hover{background:rgba(255,255,255,.1);color:#fff}
+  .navlinks a.active{color:#fff;background:rgba(255,255,255,.12)}
+  .navlinks a.active:after{
+    content:"";position:absolute;left:50%;bottom:3px;transform:translateX(-50%);
+    width:5px;height:5px;border-radius:50%;background:var(--gold);
+    box-shadow:0 0 10px var(--gold);
+  }
+  .tool-launcher{position:relative;z-index:90}
+  .tool-launcher summary{
+    width:38px;height:38px;display:grid;place-items:center;
+    border-radius:12px;cursor:pointer;list-style:none;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+    transition:background .15s,border-color .15s,transform .15s;
+  }
+  .tool-launcher summary::-webkit-details-marker{display:none}
+  .tool-launcher summary:hover,.tool-launcher[open] summary{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.32);transform:translateY(-1px)}
+  .tool-grid-icon{display:grid;grid-template-columns:repeat(3,4px);gap:3px}
+  .tool-grid-icon span{width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 5px rgba(255,255,255,.45)}
+  .tool-panel{
+    position:absolute;top:calc(100% + 12px);right:-8px;width:204px;
+    background:#fff;color:#16365f;border:1px solid rgba(0,61,117,.12);
+    box-shadow:0 16px 38px rgba(0,30,70,.22);padding:8px 0;border-radius:4px;
+  }
+  .tool-panel:before{content:'';position:absolute;top:-7px;right:20px;width:14px;height:14px;background:rgba(255,255,255,.98);transform:rotate(45deg);border-left:1px solid rgba(0,61,117,.12);border-top:1px solid rgba(0,61,117,.12)}
+  .tool-link{display:block;text-decoration:none;text-align:center;padding:12px;color:#17355a;border-bottom:0;transition:background .15s,transform .15s}
+  .tool-link:hover{background:#f1f6fb;transform:translateX(-2px)}
+  .tool-link strong{display:block;font-size:18px;line-height:1.05;font-weight:900;letter-spacing:.02em}
+  .tool-link span{display:block;margin-top:6px;font-size:10px;font-weight:800;line-height:1.35;letter-spacing:.1em;text-transform:uppercase;color:#1f3f6f}
+  .tool-link.sws strong{color:#0055a0}.tool-link.wio strong{color:#2d77d0}.tool-link.spii strong{color:#ef4444}.tool-link.oa strong{color:#7c4aa4}.tool-link.conversion strong{color:#48a565}.tool-link.fras strong{color:#e5ac00}
+  .nav-cta{
+    height:40px;text-decoration:none;background:var(--gold);color:var(--navy);border:1px solid #ffc547;border-bottom:1px solid #ffc547;
+    padding:0 16px;border-radius:8px;font-size:13px;font-weight:900;
+    box-shadow:0 7px 18px rgba(0,25,60,.22);
+    display:inline-flex;align-items:center;gap:10px;white-space:nowrap;
+    transition:transform .2s var(--ease),box-shadow .2s var(--ease),background .2s var(--ease);
+  }
+  .nav-cta:after{content:"\2192";font-size:18px;line-height:1;transition:transform .2s var(--ease)}
+  .nav-cta:hover{transform:translateY(-1px);background:#ffc547;box-shadow:0 11px 24px rgba(0,20,55,.28)}
+  .nav-cta:hover:after{transform:translateX(3px)}
+  .language-switch{position:relative;z-index:90;flex-shrink:0}
+  .language-switch summary{
+    height:38px;min-width:70px;padding:0 9px;display:flex;align-items:center;justify-content:center;gap:6px;
+    border:1px solid rgba(255,255,255,.24);border-radius:10px;background:rgba(255,255,255,.08);
+    color:#fff;cursor:pointer;list-style:none;font-size:12px;font-weight:850;letter-spacing:.04em;
+  }
+  .language-switch summary::-webkit-details-marker{display:none}
+  .language-switch summary:hover,.language-switch[open] summary{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4)}
+  .language-switch summary svg{width:16px;height:16px}
+  .language-switch .language-chevron{width:12px;height:12px;transition:transform .18s var(--ease)}
+  .language-switch[open] .language-chevron{transform:rotate(180deg)}
+  .language-panel{position:absolute;top:calc(100% + 10px);right:0;width:150px;padding:6px;background:#fff;color:var(--navy);border:1px solid rgba(0,61,117,.12);border-radius:8px;box-shadow:0 16px 38px rgba(0,30,70,.22)}
+  .language-panel button{width:100%;height:38px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:inherit;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;font:inherit;font-size:12px;font-weight:750;text-align:left}
+  .language-panel button:hover{background:#edf5fb}
+  .language-panel button[aria-pressed="true"]{background:#e4f1fb;color:var(--blue);font-weight:900}
+  .language-panel button span{font-size:10px;letter-spacing:.06em;color:#64748b}
+  a{color:var(--blue);font-weight:800;text-decoration:none;border-bottom:1px solid rgba(0,85,160,.35)}
+  a:hover{border-bottom-color:var(--gold)}
+  main{max-width:980px;margin:42px auto;padding:0 20px}
+  .card{
+    background:rgba(255,255,255,.96);border:1px solid var(--line);
+    border-radius:22px;box-shadow:0 22px 56px rgba(0,30,70,.12);
+    overflow:hidden;
+  }
+  .hero{padding:34px clamp(22px,5vw,48px);background:linear-gradient(135deg,#fff,#eef6ff)}
+  .eyebrow{color:var(--blue);font-weight:900;letter-spacing:.12em;text-transform:uppercase;font-size:13px}
+  h1{margin:8px 0 0;font-size:clamp(34px,6vw,58px);line-height:1.02}
+  .content{padding:10px clamp(22px,5vw,48px) 42px}
+  section{border-top:1px solid var(--line);padding:24px 0}
+  h2{margin:0 0 10px;color:var(--dark);font-size:22px}
+  p{margin:0 0 12px}
+  footer{max-width:980px;margin:0 auto 36px;padding:0 20px;color:var(--muted);font-size:13px}
+  @media(max-width:1100px){
+    .nav{gap:12px}.brand-line,.brand small{display:none}.navlinks a{padding:8px 9px}
+  }
+  @media(max-width:640px){
+    .shell{width:min(100% - 28px,1180px)}
+    .nav{flex-wrap:wrap;padding:12px 0}
+    .navlinks{order:3;width:100%;justify-content:flex-start;overflow:auto}
+    .brand-line,.brand small{display:none}
+    .brand-symbol{height:44px}
+    .brand-wordmark{width:180px;max-width:55vw}
+    .nav-cta{display:none}
+    main{margin:24px auto}
+  }
+</style>
+</head>
+<body data-legal-page="imprint">
+<header class="topbar">
+  <nav class="shell nav" aria-label="Hauptnavigation">
+    <a class="brand" href="/" aria-label="Zur Landingpage">
+      <img class="brand-symbol" src="assets/signalerfassung-symbol.png" alt="">
+      <img class="brand-wordmark" src="assets/signalerfassung-wordmark.png" alt="Signalerfassung">
+      <span class="brand-line"></span>
+      <small>Analyse-Tool</small>
+    </a>
+    <div class="navlinks">
+      <a href="/">Landingpage</a>
+      <a class="active" href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </div>
+    <details class="tool-launcher">
+      <summary aria-label="Relevante Portale &ouml;ffnen" title="Relevante Portale">
+        <span class="tool-grid-icon" aria-hidden="true">
+          <span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+        </span>
+      </summary>
+      <div class="tool-panel">
+        <a class="tool-link sws" href="https://sws.scania.com/" target="_blank" rel="noopener noreferrer">
+          <strong>SWS</strong>
+          <span>Scania Workshop Suite</span>
+        </a>
+        <a class="tool-link wio" href="https://wio.scania.com/sws/de-DE" target="_blank" rel="noopener noreferrer">
+          <strong>WIO</strong>
+          <span>Scania Workshop Information Online</span>
+        </a>
+        <a class="tool-link spii" href="https://spii.scania.com/" target="_blank" rel="noopener noreferrer">
+          <strong>SPII</strong>
+          <span>Scania Product Individual Information</span>
+        </a>
+        <a class="tool-link oa" href="https://operationalanalysis.scania.com/OdsWeb" target="_blank" rel="noopener noreferrer">
+          <strong>OA</strong>
+          <span>Operational Analysis</span>
+        </a>
+        <a class="tool-link conversion" href="https://conversion.scania.com/" target="_blank" rel="noopener noreferrer">
+          <strong>CONVERSION</strong>
+          <span>Conversion Workshop</span>
+        </a>
+        <a class="tool-link fras" href="https://frasext.frasdistributor.prod.gf.aws.scania.com/arsys/forms/ars/FRAS%3ADLRF%3AMainMenu/Default+Administrator+View/?cacheid=5e1523cf" target="_blank" rel="noopener noreferrer">
+          <strong>FRAS</strong>
+          <span>Field Repair Assistance System</span>
+        </a>
+      </div>
+    </details>
+    <details class="language-switch">
+      <summary aria-label="Sprache: Deutsch" title="Sprache">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20"/></svg>
+        <span class="language-current">DE</span>
+        <svg class="language-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </summary>
+      <div class="language-panel" role="menu">
+        <button type="button" role="menuitem" data-lang-set="de" aria-pressed="true">Deutsch <span>DE</span></button>
+        <button type="button" role="menuitem" data-lang-set="en" aria-pressed="false">English <span>EN</span></button>
+      </div>
+    </details>
+    <a class="nav-cta" href="signalerfassung-analyse-tool.html">App &ouml;ffnen</a>
+  </nav>
+</header>
+<main>
+  <article class="card">
+    <div class="hero">
+      <div class="eyebrow">Rechtliche Angaben</div>
+      <h1>Impressum</h1>
+    </div>
+    <div class="content">
+      <section>
+        <h2>Angaben gem&auml;&szlig; &sect; 5 DDG</h2>
+        <p><strong>David Breuer Apps</strong><br>
+        David Breuer<br>
+        Steckendorfer Stra&szlig;e 119<br>
+        47798 Krefeld<br>
+        Deutschland</p>
+      </section>
+      <section>
+        <h2>Kontakt</h2>
+        <p>E-Mail: <a href="mailto:contact.breuer.apps@gmail.com">contact.breuer.apps@gmail.com</a></p>
+      </section>
+      <section>
+        <h2>Verantwortlich f&uuml;r den Inhalt</h2>
+        <p>David Breuer<br>
+        Steckendorfer Stra&szlig;e 119<br>
+        47798 Krefeld</p>
+      </section>
+      <section>
+        <h2>Hinweis zu Marken und externen Systemen</h2>
+        <p>Dieses Analyse-Tool ist ein internes beziehungsweise inoffizielles Hilfswerkzeug. Es steht nicht in Verbindung mit Scania CV AB oder verbundenen Unternehmen. Genannte Marken, Portale, Produktnamen und Systembezeichnungen sind Eigentum der jeweiligen Rechteinhaber und werden nur beschreibend verwendet.</p>
+      </section>
+      <section>
+        <h2>Haftung f&uuml;r Inhalte</h2>
+        <p>Die Inhalte dieser Website wurden mit Sorgfalt erstellt. F&uuml;r die Richtigkeit, Vollst&auml;ndigkeit und Aktualit&auml;t der Inhalte kann jedoch keine Gew&auml;hr &uuml;bernommen werden. Das Tool dient der strukturierten Aufbereitung von Messdaten und ersetzt keine fachliche Diagnose oder verbindliche Herstellerdokumentation.</p>
+      </section>
+      <section>
+        <h2>Haftung f&uuml;r Links</h2>
+        <p>Diese Website enth&auml;lt Links zu externen Websites. Auf deren Inhalte besteht kein Einfluss. F&uuml;r die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich. Bei Bekanntwerden von Rechtsverletzungen werden entsprechende Links entfernt.</p>
+      </section>
+    </div>
+  </article>
+</main>
+<footer>
+  &copy; 2026 David Breuer Apps. Alle Rechte vorbehalten.
+</footer>
+<script src="assets/legal-i18n.js"></script>
+</body>
+</html>

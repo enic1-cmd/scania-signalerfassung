@@ -11,6 +11,33 @@
 Thumbs.db
 .DS_Store
 
+# Abhaengigkeiten, lokale Konfiguration und Zugangsdaten
+node_modules/
+server/node_modules/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
 # Arbeits-/Pruefordner
 xlsx_inspect*/
 *.tmp
+*.log
+output/
+tmp/
+.codex-video-frames/
+
+# Generierte Release-Kopien und Archive
+netlify_upload_*/
+*.zip
+
+# Abgeloeste lokale Entwurfsstaende
+/Scania_Signalanalyse.html
+/Scania_Signalerfassung_Homepage*.html
+/zugang-anfragen-vorschau.html
+/feedbackbogen-monteurtest.html
+/tool-launcher-code.md
+/tool-launcher-screenshot.png
+/assets/access-request-preview.js
+/tools/test-access-request-preview.cjs

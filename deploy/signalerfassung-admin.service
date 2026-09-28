@@ -1,0 +1,30 @@
+[Unit]
+Description=Signalerfassung Benutzerverwaltung und Nutzungsstatistik
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/signalerfassung.com/current/server
+Environment=NODE_ENV=production
+Environment=PORT=3407
+Environment=HTPASSWD_FILE=/var/www/signalerfassung.com/shared/.htpasswd
+Environment=USAGE_FILE=/var/www/signalerfassung.com/shared/usage.ndjson
+Environment=ACCESS_REQUEST_FILE=/var/www/signalerfassung.com/shared/access-requests.json
+Environment=PUBLIC_URL=https://signalerfassung.com
+Environment=REQUEST_NOTIFY_TO=david.breuer@breuer-trucks.de
+EnvironmentFile=-/var/www/signalerfassung.com/shared/mail.env
+Environment=ADMIN_USERS=david
+ExecStart=/usr/bin/node /var/www/signalerfassung.com/current/server/server.js
+Restart=on-failure
+RestartSec=3
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/signalerfassung.com/shared
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,18 @@
+{
+  "name": "SWS / SDP3 Signalerfassung Analyse-Tool",
+  "short_name": "Signalerfassung",
+  "description": "Analyse-Tool fuer SWS- und SDP3-Signalerfassung mit Support-Export.",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#002b55",
+  "theme_color": "#002b55",
+  "icons": [
+    {
+      "src": "assets/signalerfassung-app-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

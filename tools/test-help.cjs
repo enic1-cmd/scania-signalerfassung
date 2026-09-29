@@ -16,6 +16,14 @@ new Function(fs.readFileSync(path.join(root,'assets/help.js'),'utf8'));
     await page.route(/^https?:/,route=>route.abort());
     await page.goto(pathToFileURL(path.join(root,'signalerfassung-analyse-tool.html')).href);
 
+    const dragHint=page.locator('.file-picker-hint');
+    assert.equal((await dragHint.textContent()).trim(),'( oder Drag & Drop )');
+    assert.doesNotMatch(await dragHint.textContent(),/&amp;/);
+    await page.locator('[data-lang-set="en"]').click();
+    assert.equal((await dragHint.textContent()).trim(),'( or drag & drop )');
+    assert.doesNotMatch(await dragHint.textContent(),/&amp;/);
+    await page.locator('[data-lang-set="de"]').click();
+
     const trigger=page.locator('#help-trigger');
     assert(await trigger.isVisible(),'Help trigger must be visible on upload screen');
     await trigger.click();
@@ -47,7 +55,7 @@ new Function(fs.readFileSync(path.join(root,'assets/help.js'),'utf8'));
     await page.locator('.help-close').click();
     await page.waitForFunction(()=>document.getElementById('app-help').hidden);
     assert.deepEqual(errors,[]);
-    console.log(JSON.stringify({result:'PASS',contexts:['upload','chart'],search:'PASS',keyboard:'PASS',mobile:'PASS',pageErrors:errors},null,2));
+    console.log(JSON.stringify({result:'PASS',dragDrop:'DE/EN PASS',contexts:['upload','chart'],search:'PASS',keyboard:'PASS',mobile:'PASS',pageErrors:errors},null,2));
   }finally{
     await browser.close();
   }

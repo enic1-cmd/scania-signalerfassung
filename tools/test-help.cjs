@@ -22,7 +22,14 @@ new Function(fs.readFileSync(path.join(root,'assets/help.js'),'utf8'));
     await page.locator('[data-lang-set="en"]').click();
     assert.equal((await dragHint.textContent()).trim(),'( or drag & drop )');
     assert.doesNotMatch(await dragHint.textContent(),/&amp;/);
+    assert.match(await page.locator('[data-help-section="files"] summary').textContent(),/Files and formats/);
+    assert.match(await page.locator('[data-help-section="files"] .help-section-content').textContent(),/Load TXT/);
+    assert.match(await page.locator('.help-foot').textContent(),/Help does not change measurement data/);
     await page.locator('[data-lang-set="de"]').click();
+    assert.match(await page.locator('[data-help-section="files"] summary').textContent(),/Dateien und Formate/);
+    assert.match(await page.locator('[data-help-section="files"] .help-section-content').textContent(),/TXT laden/);
+    assert.doesNotMatch(await page.locator('[data-help-section="files"] .help-section-content').textContent(),/Load TXT/);
+    assert.match(await page.locator('.help-foot').textContent(),/Die Hilfe verändert keine Messdaten/);
 
     const trigger=page.locator('#help-trigger');
     assert(await trigger.isVisible(),'Help trigger must be visible on upload screen');
@@ -49,13 +56,13 @@ new Function(fs.readFileSync(path.join(root,'assets/help.js'),'utf8'));
     assert(await page.locator('[data-help-section="chart"]').evaluate(node=>node.open),'Chart context must open chart help');
 
     await page.setViewportSize({width:390,height:740});
-    await page.waitForTimeout(150);
+    await page.waitForTimeout(300);
     const drawer=await page.locator('.help-drawer').boundingBox();
-    assert(drawer.width<=390&&drawer.x>=0,'Help drawer must fit the mobile viewport');
+    assert(drawer.width<=390&&drawer.x>=0,'Help drawer must fit the mobile viewport: '+JSON.stringify(drawer));
     await page.locator('.help-close').click();
     await page.waitForFunction(()=>document.getElementById('app-help').hidden);
     assert.deepEqual(errors,[]);
-    console.log(JSON.stringify({result:'PASS',dragDrop:'DE/EN PASS',contexts:['upload','chart'],search:'PASS',keyboard:'PASS',mobile:'PASS',pageErrors:errors},null,2));
+    console.log(JSON.stringify({result:'PASS',dragDrop:'DE/EN PASS',helpLanguageRoundTrip:'DE/EN/DE PASS',contexts:['upload','chart'],search:'PASS',keyboard:'PASS',mobile:'PASS',pageErrors:errors},null,2));
   }finally{
     await browser.close();
   }

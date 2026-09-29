@@ -28,6 +28,13 @@ var AppHelp=(function(){
   document.body.appendChild(layer);
   trigger.setAttribute('aria-controls',layer.id);
   var drawer=layer.querySelector('.help-drawer'),search=layer.querySelector('.help-search'),empty=layer.querySelector('.help-empty'),lastFocus=null,closeTimer=0;
+  var germanHelp={
+    topicLabel:layer.querySelector('.help-topic-nav').getAttribute('aria-label'),
+    topics:Array.from(layer.querySelectorAll('[data-help-target]')).map(function(button){return {id:button.dataset.helpTarget,text:button.textContent};}),
+    sections:Array.from(layer.querySelectorAll('[data-help-section]')).map(function(item){return {id:item.dataset.helpSection,title:item.querySelector('summary').textContent.replace(/^\d+/,''),content:item.querySelector('.help-section-content').innerHTML};}),
+    empty:empty.textContent,
+    footer:layer.querySelector('.help-foot').textContent
+  };
   function section(id,number,title,content){return '<details class="help-section" data-help-section="'+id+'" data-help-search><summary><span class="help-section-number">'+number+'</span>'+title+'</summary><div class="help-section-content">'+content+'</div></details>';}
   function contextSection(){if(document.getElementById('upload-view').style.display!=='none')return 'files';return S.view==='chart'?'chart':'table';}
   function showSection(id){var item=layer.querySelector('[data-help-section="'+id+'"]');if(!item)return;item.hidden=false;item.open=true;requestAnimationFrame(function(){item.scrollIntoView({block:'start',behavior:'smooth'});});}
@@ -82,6 +89,11 @@ var AppHelp=(function(){
       starts[0].innerHTML='<strong>Datei laden</strong>SWS- oder SDP3-TXT auswählen beziehungsweise hineinziehen.';
       starts[1].innerHTML='<strong>Stelle untersuchen</strong>Tabelle oder Diagramm öffnen, filtern und Auffälligkeiten markieren.';
       starts[2].innerHTML='<strong>Ergebnis sichern</strong>Projekt speichern oder PDF, Excel beziehungsweise Support-ZIP exportieren.';
+      layer.querySelector('.help-topic-nav').setAttribute('aria-label',germanHelp.topicLabel);
+      germanHelp.topics.forEach(function(topic){var button=layer.querySelector('[data-help-target="'+topic.id+'"]');if(button)button.textContent=topic.text;});
+      germanHelp.sections.forEach(function(item){setSection(item.id,item.title,item.content);});
+      empty.textContent=germanHelp.empty;
+      layer.querySelector('.help-foot').textContent=germanHelp.footer;
     }
     filter();
   }

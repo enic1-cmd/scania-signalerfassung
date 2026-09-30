@@ -1,14 +1,14 @@
 /* Shared annotations use stable row IDs, independent of filtering and chart zoom. */
 var Annotations=(function(){
   'use strict';
-  var mode='inspect',chosenColor='#f5c542',selection=null,currentFile=null,drag=null,editing=null;
+  var mode='inspect',chosenColor='#ffe08a',selection=null,currentFile=null,drag=null,editing=null;
   function lang(){return window.AppI18n&&AppI18n.currentLang?AppI18n.currentLang():'de';}
   function txt(de,en){return lang()==='en'?en:de;}
   var tools=document.createElement('div');
   tools.className='annotation-tools';
   tools.innerHTML='<button type="button" data-mode="marker" aria-pressed="false">Marker im Zeitstrahl setzen</button>'+
     '<button type="button" data-mode="range" aria-pressed="false">Zeitraum markieren</button>'+
-    '<label class="annotation-color">Farbe <input type="color" value="#f5c542" aria-label="Markierungsfarbe"></label>'+
+    '<label class="annotation-color">Farbe <input type="color" value="#ffe08a" aria-label="Markierungsfarbe"></label>'+
     '<span class="annotation-hint" role="status">Messpunkt anklicken, um eine Notiz hinzuzufügen.</span>'+
     '<button type="button" class="annotation-note" disabled>Notiz hinzufügen</button>'+
     '<button type="button" class="annotation-toggle" aria-expanded="false">Notizen &amp; Markierungen (0)</button>';
@@ -26,7 +26,7 @@ var Annotations=(function(){
   function hover(x){hoverLine.hidden=x<0;if(x>=0)hoverLine.style.left=x+'px';}
   function notesAt(file,id){var notes=[];if(file.rawRows[id].note)notes.push(file.rawRows[id].note);ranges(file).forEach(function(r){if(r.note&&id>=r.start&&id<=r.end)notes.push(r.note);});return notes.join('\n');}
 
-  function validColor(value){return /^#[0-9a-f]{6}$/i.test(value||'')?value:'#f5c542';}
+  function validColor(value){return /^#[0-9a-f]{6}$/i.test(value||'')?value:'#ffe08a';}
   function rgb(value){value=validColor(value);return [1,3,5].map(function(i){return parseInt(value.slice(i,i+2),16);});}
   function tint(value){return 'rgb('+rgb(value).map(function(c){return Math.round(c*.24+255*.76);}).join(',')+')';}
   function ranges(file){return file.ranges||(file.ranges=[]);}

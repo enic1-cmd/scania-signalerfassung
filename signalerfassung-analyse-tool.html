@@ -299,9 +299,14 @@ header{
 .chart-wrap{display:none;flex:1;min-height:0;padding:12px 16px 14px;background:linear-gradient(180deg,#edf4fa,#dfeaf4);overflow:auto}
 .chart-wrap.active{display:flex;flex-direction:column}
 .chart-card{position:relative;flex:1;min-height:460px;background:#fff;border:1px solid rgba(0,61,117,.16);border-radius:14px;box-shadow:0 8px 24px rgba(0,45,85,.12);overflow:hidden}
-.chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:13px 16px;border-bottom:1px solid #dbe6f0;background:linear-gradient(135deg,#fafdff,#eef5fb)}
+.chart-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 16px;border-bottom:1px solid #dbe6f0;background:linear-gradient(135deg,#fafdff,#eef5fb);flex-wrap:wrap}
+.chart-title-block{min-width:250px;flex:1 1 330px}
 .chart-title{font-size:13px;font-weight:850;color:var(--dark)}
 .chart-subtitle{margin-top:3px;font-size:10.5px;line-height:1.4;color:var(--gray)}
+.chart-zoom-control{display:grid;grid-template-columns:auto minmax(150px,230px) 42px;align-items:center;gap:8px;flex:0 1 330px;min-width:250px;color:#31506f}
+.chart-zoom-control label{font-size:10px;font-weight:800;white-space:nowrap}
+.chart-zoom-control input[type="range"]{width:100%;height:28px;margin:0;accent-color:var(--blue);cursor:pointer;touch-action:pan-y}
+.chart-zoom-control output{font:800 10px/1.2 Consolas,monospace;color:var(--dark);text-align:right;white-space:nowrap}
 .chart-actions{display:flex;gap:7px;align-items:center;flex-shrink:0}
 .chart-action{border:1px solid rgba(0,85,160,.2);background:#fff;color:var(--blue);border-radius:18px;padding:6px 11px;font-size:10.5px;font-weight:750;cursor:pointer}
 .chart-action:hover{background:#eaf4fc;border-color:var(--blue)}
@@ -320,7 +325,7 @@ header{
 .chart-empty span{font-size:12px;line-height:1.5;max-width:520px}
 .toast{position:fixed;left:50%;bottom:50px;z-index:200;transform:translate(-50%,14px);opacity:0;pointer-events:none;background:#062748;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px 15px;box-shadow:0 10px 30px rgba(0,0,0,.28);font-size:12px;font-weight:700;transition:opacity .2s,transform .2s}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-@media(max-width:900px){.view-switch{margin-left:0}.chart-head{flex-direction:column}.chart-actions{width:100%}.chart-card{min-height:420px}}
+@media(max-width:900px){.view-switch{margin-left:0}.chart-head{align-items:stretch}.chart-title-block{flex-basis:100%}.chart-zoom-control{flex:1 1 100%;max-width:none}.chart-actions{width:100%}.chart-card{min-height:420px}}
 table{border-collapse:collapse;width:max-content;min-width:100%}
 thead{position:sticky;top:0;z-index:10}
 thead tr.th-id{background:linear-gradient(135deg,var(--dark),var(--blue))}
@@ -600,7 +605,12 @@ th.signal-th{position:relative;padding-right:42px}
   <div class="chart-wrap" id="chart-wrap">
     <div class="chart-card">
       <div class="chart-head">
-        <div><div class="chart-title">Kurvendiagramm der Messsignale</div><div class="chart-subtitle" id="chart-subtitle">Jedes Signal besitzt eine eigene Skala. Markierte Signale werden bevorzugt dargestellt.</div></div>
+        <div class="chart-title-block"><div class="chart-title">Kurvendiagramm der Messsignale</div><div class="chart-subtitle" id="chart-subtitle">Jedes Signal besitzt eine eigene Skala. Markierte Signale werden bevorzugt dargestellt.</div></div>
+        <div class="chart-zoom-control">
+          <label for="chart-time-zoom">Zeitachse</label>
+          <input type="range" id="chart-time-zoom" min="0" max="100" step="1" value="0" oninput="setChartTimelineZoom(this.value)" aria-label="Zeitachse vergrößern oder verkleinern">
+          <output id="chart-time-zoom-value" for="chart-time-zoom">1&times;</output>
+        </div>
         <div class="chart-actions">
           <button class="chart-action" onclick="selectChartSignals()">Signale auswählen</button>
           <button class="chart-action" onclick="resetChartZoom()">Gesamter Zeitraum</button>
@@ -690,6 +700,8 @@ var I18N={
     chartSubtitleDefault:'Jedes Signal besitzt eine eigene Skala. Markierte Signale werden bevorzugt dargestellt.',
     chartChoose:'Signale ausw\u00e4hlen',
     chartReset:'Gesamter Zeitraum',
+    chartZoom:'Zeitachse',
+    chartZoomAria:'Zeitachse vergr\u00f6\u00dfern oder verkleinern',
     chartEmptyTitle:'Keine numerischen Signale ausgew\u00e4hlt',
     chartEmptyText:'Markiere in \u201eErfasste Signale\u201c die gew\u00fcnschten Messwerte mit dem Stern oder blende passende Signale ein.',
     footerCopy:'SWS / SDP3 &mdash; Signalerfassung &mdash; Tool &mdash; By <a href="https://reflex.scania.com/profile/dbreue" target="_blank" rel="noopener noreferrer">David Breuer</a>',
@@ -820,6 +832,8 @@ var I18N={
     chartSubtitleDefault:'Each signal has its own scale. Marked signals are shown first.',
     chartChoose:'Choose signals',
     chartReset:'Full time range',
+    chartZoom:'Timeline',
+    chartZoomAria:'Zoom the timeline in or out',
     chartEmptyTitle:'No numeric signals selected',
     chartEmptyText:'Star the desired measurements in "Captured signals" or show suitable signals.',
     footerCopy:'SWS / SDP3 &mdash; Signal Capture &mdash; Tool &mdash; By <a href="https://reflex.scania.com/profile/dbreue" target="_blank" rel="noopener noreferrer">David Breuer</a>',
@@ -949,6 +963,7 @@ function applyAppLanguage(lang){
   setText('#view-table-btn',t('table'));setText('#view-chart-btn',t('chart'));
   setHtml('#no-data','<span>&#128269;</span>'+t('noDataRange'));
   setText('.chart-title',t('chartTitle'));setText('#chart-subtitle',t('chartSubtitleDefault'));
+  setText('.chart-zoom-control label',t('chartZoom'));setAttr('#chart-time-zoom','aria-label',t('chartZoomAria'));
   setText('.chart-action[onclick="selectChartSignals()"]',t('chartChoose'));setText('.chart-action[onclick="resetChartZoom()"]',t('chartReset'));
   setHtml('#chart-empty div','<strong>'+t('chartEmptyTitle')+'</strong><span>'+t('chartEmptyText')+'</span>');
   setHtml('.app-footer-copy',t('footerCopy'));
@@ -1542,7 +1557,7 @@ function setAnalysisView(view,silent){
   document.getElementById('view-chart-btn').classList.toggle('active',view==='chart');
   if(view==='chart'){
     requestAnimationFrame(renderChart);
-    if(!silent)showToast(currentLang()==='en'?'Curve chart active. Use the mouse wheel to zoom; choose a marking mode to mark data.':'Kurvendiagramm aktiv. Mit dem Mausrad zoomen; zum Markieren einen Markierungsmodus wählen.');
+    if(!silent)showToast(currentLang()==='en'?'Curve chart active. Use the timeline slider or mouse wheel to zoom.':'Kurvendiagramm aktiv. Mit dem Zeitachsenregler oder Mausrad zoomen.');
   }else{
     renderTable(active().filtered||active().rawRows||[]);
     requestAnimationFrame(function(){tableWrap.scrollTop=tableScrollTop;});
@@ -1646,6 +1661,31 @@ function buildChartSegments(rows,signal,windowData,maxBuckets){
   flushSegment();
   return {segments:segments,min:min,max:max};
 }
+function markedChartRuns(rows){
+  var runs=[],start=-1,color='';
+  function validColor(row){return window.Annotations?Annotations.validColor(row&&row.markerColor):'#ffe08a';}
+  for(var index=0;index<=rows.length;index++){
+    var row=rows[index],nextColor=row&&row.marked?validColor(row):'';
+    if(start<0&&nextColor){start=index;color=nextColor;continue;}
+    if(start>=0&&nextColor===color)continue;
+    if(start>=0)runs.push({start:start,end:index-1,color:color});
+    start=nextColor?index:-1;color=nextColor;
+  }
+  return runs;
+}
+function drawMarkedChartRuns(ctx,rows,left,top,plotW,height,windowData){
+  function xAt(index){return left+rowChartRatio(rows[index],index,windowData)*plotW;}
+  markedChartRuns(rows).forEach(function(run){
+    var x1=run.start===0?left:(xAt(run.start-1)+xAt(run.start))/2;
+    var x2=run.end===rows.length-1?left+plotW:(xAt(run.end)+xAt(run.end+1))/2;
+    if(run.start===run.end){
+      ctx.globalAlpha=.9;ctx.fillStyle=run.color;ctx.fillRect(xAt(run.start)-1.5,top,3,height);
+    }else{
+      ctx.globalAlpha=.64;ctx.fillStyle=run.color;ctx.fillRect(x1,top,Math.max(2,x2-x1),height);
+    }
+  });
+  ctx.globalAlpha=1;
+}
 function drawChartCanvas(canvas,A,allRows,signals,exportMode){
   var stage=canvas.parentElement;
   var cssW=exportMode?1600:Math.max(700,stage.clientWidth||1000);
@@ -1663,6 +1703,7 @@ function drawChartCanvas(canvas,A,allRows,signals,exportMode){
   var left=245,right=26,top=18,bottom=38,plotW=cssW-left-right;
   var laneH=(cssH-top-bottom)/signals.length;
   if(window.Annotations)Annotations.draw(ctx,A,rows,left,top,plotW,cssH-top-bottom,windowData);
+  drawMarkedChartRuns(ctx,rows,left,top,plotW,cssH-top-bottom,windowData);
   ctx.font='10px Segoe UI, sans-serif';ctx.textBaseline='middle';
   for(var gx=0;gx<=6;gx++){
     var gridX=left+plotW*gx/6;
@@ -1672,13 +1713,6 @@ function drawChartCanvas(canvas,A,allRows,signals,exportMode){
     ctx.fillStyle='#61758a';ctx.textAlign=gx===0?'left':(gx===6?'right':'center');
     ctx.fillText(rows[rowIndex]?rows[rowIndex].ts:'',gridX,cssH-17);
   }
-  rows.forEach(function(row,index){
-    if(!row.marked)return;
-    var x=left+rowChartRatio(row,index,windowData)*plotW;
-    ctx.strokeStyle=window.Annotations?Annotations.validColor(row.markerColor):'#f5a800';
-    ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,cssH-bottom);ctx.stroke();
-  });
   signals.forEach(function(signal,signalIndex){
     var y0=top+laneH*signalIndex,y1=y0+laneH,color=chartColor(signalIndex);
     var reduced=buildChartSegments(rows,signal,windowData,Math.min(900,Math.max(160,Math.round(plotW/2))));
@@ -1740,11 +1774,28 @@ function renderChart(){
   document.getElementById('chart-subtitle').textContent=signals.length
     ?t('chartCurves',{count:signals.length,rows:fmtNumber(rows.length),suffix:marked?t('chartMarkedSuffix'):t('chartAutoSuffix')})
     :t('chartSelectHint');
+  syncChartTimelineZoom(rows);
   drawChartCanvas(document.getElementById('signal-chart'),A,rows,signals,false);
 }
 function selectChartSignals(){
   if(!sigOpen)toggleSignals();
   showToast(t('chartToast'));
+}
+function chartTimelineMaxZoom(rows){return Math.max(1,(rows||[]).length/20);}
+function syncChartTimelineZoom(rows){
+  var slider=document.getElementById('chart-time-zoom'),output=document.getElementById('chart-time-zoom-value');if(!slider||!output)return;
+  var maxZoom=chartTimelineMaxZoom(rows),zoom=Math.max(1,1/Math.max(.000001,chartState.end-chartState.start));
+  var value=maxZoom<=1?0:Math.max(0,Math.min(100,Math.log(Math.min(maxZoom,zoom))/Math.log(maxZoom)*100));
+  slider.value=String(Math.round(value));slider.disabled=maxZoom<=1;
+  var label=zoom<10?zoom.toFixed(1):Math.round(zoom).toString();
+  output.textContent=label+'\u00d7';slider.setAttribute('aria-valuetext',label+' times');
+}
+function setChartTimelineZoom(value){
+  var rows=active().filtered||active().rawRows||[],maxZoom=chartTimelineMaxZoom(rows);
+  var zoom=Math.pow(maxZoom,Math.max(0,Math.min(100,Number(value)||0))/100),newSpan=1/zoom;
+  var center=(chartState.start+chartState.end)/2;
+  chartState.start=Math.max(0,Math.min(1-newSpan,center-newSpan/2));chartState.end=chartState.start+newSpan;
+  renderChart();
 }
 function resetChartZoom(){chartState.start=0;chartState.end=1;renderChart();showToast(currentLang()==='en'?'Full filtered time range is shown.':'Gesamter gefilterter Zeitraum wird angezeigt.');}
 function initChartInteraction(){
@@ -2638,10 +2689,10 @@ async function exportSupportZip(options){
 function esc(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function showErr(msg){var e=document.getElementById('upload-error');e.style.display=msg?'block':'none';e.textContent=msg;}
 </script>
-<script src="assets/annotations.js?v=20260916-1"></script>
+<script src="assets/annotations.js?v=20260930-2"></script>
 <script src="assets/workspace-layout.js?v=20260930-3"></script>
 <script src="assets/chart-height.js?v=20260916-1"></script>
 <script src="assets/export-save.js?v=20260916-1"></script>
-<script src="assets/help.js?v=20260916-1"></script>
+<script src="assets/help.js?v=20260930-2"></script>
 </body>
 </html>

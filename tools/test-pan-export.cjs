@@ -18,6 +18,27 @@ for(const file of ['annotations.js','export-save.js'])new Function(fs.readFileSy
     await page.locator('#view-chart-btn').click();
     await page.waitForTimeout(150);
     assert.equal(await page.locator('#signal-chart').evaluate(el=>getComputedStyle(el).cursor),'crosshair');
+    assert.equal(await page.locator('.annotation-color input').inputValue(),'#ffe08a','Default marker color should be the lighter yellow');
+    const zoomSlider=page.locator('#chart-time-zoom');
+    assert(await zoomSlider.isVisible(),'Timeline zoom slider should be visible');
+    await zoomSlider.evaluate(el=>{el.value='65';el.dispatchEvent(new Event('input',{bubbles:true}));});
+    const sliderZoom=await page.evaluate(()=>({span:chartState.end-chartState.start,value:document.getElementById('chart-time-zoom-value').textContent}));
+    assert(sliderZoom.span<.25&&sliderZoom.value!=='1×','Timeline slider should zoom the horizontal time range');
+    await page.locator('.chart-action[onclick="resetChartZoom()"]') .click();
+    assert.deepEqual(await page.evaluate(()=>[chartState.start,chartState.end,document.getElementById('chart-time-zoom').value]),[0,1,'0'],'Full range should reset slider and timeline');
+    await page.evaluate(()=>{
+      const rows=active().rawRows,start=Math.floor(rows.length*.3),end=Math.floor(rows.length*.5);
+      rows.forEach((row,index)=>{row.marked=index>=start&&index<=end;row.markerColor='#ffe08a';});
+      chartState.start=.35;chartState.end=.37;renderChart();
+    });
+    const markerFill=await page.locator('#signal-chart').evaluate(canvas=>{
+      const ctx=canvas.getContext('2d'),sx=canvas.width/canvas.getBoundingClientRect().width,sy=canvas.height/canvas.getBoundingClientRect().height;
+      const y=Math.round(23*sy),from=Math.round(250*sx),to=Math.round((canvas.getBoundingClientRect().width-32)*sx);let yellow=0,total=0;
+      for(let x=from;x<=to;x+=Math.max(1,Math.round(2*sx))){const p=ctx.getImageData(x,y,1,1).data;total++;if(p[0]>240&&p[1]>205&&p[2]<235)yellow++;}
+      return {coverage:yellow/total,yellow,total};
+    });
+    assert(markerFill.coverage>.94,'Zoomed marker range should remain a continuous yellow area: '+JSON.stringify(markerFill));
+    await page.evaluate(()=>{active().rawRows.forEach(row=>{row.marked=false;row.markerColor='';});chartState.start=0;chartState.end=1;renderChart();});
     await page.evaluate(()=>{chartState.start=.3;chartState.end=.6;renderChart();});
     const rect=await page.locator('#signal-chart').boundingBox();
     const x=rect.x+245+(rect.width-271)*.5,y=rect.y+90;

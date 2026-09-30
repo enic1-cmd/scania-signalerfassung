@@ -222,6 +222,7 @@ header{
 .btn-signal:disabled,.btn-ctrl:disabled{opacity:.48;cursor:not-allowed;pointer-events:none}
 .btn-signal.timestamp-action{border-color:rgba(220,38,38,.28);color:#b91c1c;background:#fff7f7}
 .btn-signal.timestamp-action:hover{border-color:#dc2626;background:#fee2e2}
+.btn-signal.timestamp-action[aria-pressed="true"]{border-color:#b91c1c;background:#b91c1c;color:#fff}
 .signal-pills{display:block;padding:10px 18px 16px}
 .signal-group{margin-top:12px}
 .signal-group:first-child{margin-top:0}
@@ -443,7 +444,7 @@ th.signal-th{position:relative;padding-right:42px}
 .tab-add:hover{background:rgba(245,168,0,.25)}
 </style>
 <link rel="stylesheet" href="assets/annotations.css?v=20260916-1">
-<link rel="stylesheet" href="assets/workspace-layout.css?v=20260916-1">
+<link rel="stylesheet" href="assets/workspace-layout.css?v=20260930-2">
 <link rel="stylesheet" href="assets/chart-height.css?v=20260916-1">
 <link rel="stylesheet" href="assets/help.css?v=20260916-1">
 </head>
@@ -652,6 +653,7 @@ var I18N={
     hideMarked:'Markierte ausblenden',
     clearMarks:'Markierung l\u00f6schen',
     markTimestamps:'Zeitstempel markieren',
+    unmarkTimestamps:'Zeitstempel-Markierung l\u00f6schen',
     search:'Suche',
     resetFilter:'\u2715 Filter zur\u00fccksetzen',
     shown:'Angezeigt',
@@ -741,6 +743,7 @@ var I18N={
     zipFail:'Support-ZIP konnte nicht erstellt werden: ',
     zipProgress:'Support-ZIP {percent} %',
     timestampMarkTitle:'{count} Zeitstempel mit Markerwert ab 1 markieren',
+    timestampUnmarkTitle:'Markierung von {count} Zeitstempeln entfernen',
     timestampNoTitle:'Kein Zeitstempel mit Markerwert ab 1 vorhanden',
     timestampJumpTitle:'Zum n\u00e4chsten von {count} Zeitstempeln mit Markerwert ab 1 springen',
     timestampJumpNoTitle:'Im aktuellen Filter ist kein Zeitstempel mit Markerwert ab 1 vorhanden',
@@ -780,6 +783,7 @@ var I18N={
     hideMarked:'Hide marked',
     clearMarks:'Clear marks',
     markTimestamps:'Mark timestamps',
+    unmarkTimestamps:'Clear timestamp marks',
     search:'Search',
     resetFilter:'\u2715 Reset filter',
     shown:'Shown',
@@ -869,6 +873,7 @@ var I18N={
     zipFail:'Support ZIP could not be created: ',
     zipProgress:'Support ZIP {percent} %',
     timestampMarkTitle:'Mark {count} timestamps with marker value from 1',
+    timestampUnmarkTitle:'Clear marks from {count} timestamps',
     timestampNoTitle:'No timestamp with marker value from 1 available',
     timestampJumpTitle:'Jump to the next of {count} timestamps with marker value from 1',
     timestampJumpNoTitle:'No timestamp with marker value from 1 in the current filter',
@@ -1172,9 +1177,12 @@ function updateTimestampActions(){
   var markButton=document.getElementById('mark-timestamps');
   var jumpButton=document.getElementById('jump-timestamp');
   if(markButton){
+    var allMarked=allMatches.length&&allMatches.every(function(row){return row.marked;});
     markButton.disabled=!allMatches.length;
+    markButton.setAttribute('aria-pressed',String(!!allMarked));
+    markButton.textContent=allMarked?t('unmarkTimestamps'):t('markTimestamps');
     markButton.title=allMatches.length
-      ?t('timestampMarkTitle',{count:fmtNumber(allMatches.length)})
+      ?t(allMarked?'timestampUnmarkTitle':'timestampMarkTitle',{count:fmtNumber(allMatches.length)})
       :t('timestampNoTitle');
   }
   if(jumpButton){
@@ -1400,15 +1408,18 @@ function toggleRowMarked(rowId){
   r.marked=!r.marked;
   markDirty(A);
   if(window.Annotations){r.markerColor=Annotations.color();Annotations.sync();}
+  updateTimestampActions();
   if(S.view==='chart')renderChart();else renderTable(A.filtered||A.rawRows);
 }
 function markMarkerTimestamps(){
   var A=active();
   var matches=markerRows(A,A.rawRows||[]);
   if(!matches.length)return;
-  matches.forEach(function(row){row.marked=true;});
+  var unmark=matches.every(function(row){return row.marked;});
+  matches.forEach(function(row){row.marked=!unmark;});
   markDirty(A);
   if(window.Annotations)Annotations.sync();
+  updateTimestampActions();
   if(S.view==='chart')renderChart();else renderTable(A.filtered||A.rawRows);
 }
 function jumpToMarkerTimestamp(){
@@ -1637,12 +1648,11 @@ function drawChartCanvas(canvas,A,allRows,signals,exportMode){
     ctx.fillStyle='#61758a';ctx.textAlign=gx===0?'left':(gx===6?'right':'center');
     ctx.fillText(rows[rowIndex]?rows[rowIndex].ts:'',gridX,cssH-17);
   }
-  var marker=markerSignal(A);
   rows.forEach(function(row,index){
-    if(!row.marked&&!hasActiveMarker(row,marker))return;
+    if(!row.marked)return;
     var x=left+rowChartRatio(row,index,windowData)*plotW;
-    ctx.strokeStyle=row.marked?(window.Annotations?Annotations.validColor(row.markerColor):'#f5a800'):'rgba(220,38,38,.3)';
-    ctx.lineWidth=row.marked?2:1;
+    ctx.strokeStyle=window.Annotations?Annotations.validColor(row.markerColor):'#f5a800';
+    ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,cssH-bottom);ctx.stroke();
   });
   signals.forEach(function(signal,signalIndex){
@@ -2583,7 +2593,7 @@ function esc(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').repl
 function showErr(msg){var e=document.getElementById('upload-error');e.style.display=msg?'block':'none';e.textContent=msg;}
 </script>
 <script src="assets/annotations.js?v=20260916-1"></script>
-<script src="assets/workspace-layout.js?v=20260916-1"></script>
+<script src="assets/workspace-layout.js?v=20260930-2"></script>
 <script src="assets/chart-height.js?v=20260916-1"></script>
 <script src="assets/export-save.js?v=20260916-1"></script>
 <script src="assets/help.js?v=20260916-1"></script>

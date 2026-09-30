@@ -121,21 +121,44 @@ const expected = files.map(expectedShape);
         const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
         let nonTransparent = 0;
         let nonWhite = 0;
+        let redPixels = 0;
+        let sampled = 0;
         for (let offset = 0; offset < pixels.length; offset += 16) {
+          sampled++;
           if (pixels[offset + 3]) nonTransparent++;
           if (pixels[offset] < 245 || pixels[offset + 1] < 245 || pixels[offset + 2] < 245) nonWhite++;
+          if (pixels[offset] > 205 && pixels[offset + 1] < 175 && pixels[offset + 2] < 175) redPixels++;
         }
         return {
           width: canvas.width,
           height: canvas.height,
           nonTransparent,
           nonWhite,
+          redCoverage: redPixels / sampled,
           curves: chartSignals(active(), active().filtered).length,
         };
       });
       assert(chart.width > 500 && chart.height > 200, shape.name + ': invalid chart dimensions');
       assert(chart.curves > 0, shape.name + ': no chart curves selected');
       assert(chart.nonTransparent > 100 && chart.nonWhite > 100, shape.name + ': chart canvas appears blank');
+      assert(chart.redCoverage < 0.08, shape.name + ': raw marker values cover the chart in red (' + chart.redCoverage + ')');
+
+      if (shape.name === '2026-08-06 104719.txt') {
+        const marked = await page.evaluate(() => {
+          const count = markerRows(active(), active().rawRows).length;
+          markMarkerTimestamps();
+          return {count,marked:active().rawRows.filter(row=>row.marked).length,pressed:document.getElementById('mark-timestamps').getAttribute('aria-pressed')};
+        });
+        assert(marked.count > 0, shape.name + ': expected source marker timestamps');
+        assert.equal(marked.marked, marked.count, shape.name + ': timestamp action did not mark every source timestamp');
+        assert.equal(marked.pressed, 'true');
+        const cleared = await page.evaluate(() => {
+          markMarkerTimestamps();
+          return {marked:active().rawRows.filter(row=>row.marked).length,pressed:document.getElementById('mark-timestamps').getAttribute('aria-pressed')};
+        });
+        assert.equal(cleared.marked, 0, shape.name + ': second timestamp action did not clear marks');
+        assert.equal(cleared.pressed, 'false');
+      }
 
       const exports = await page.evaluate(async () => {
         const file = active();
@@ -161,7 +184,7 @@ const expected = files.map(expectedShape);
       assert.deepEqual(exports.pdf.head, [37, 80, 68, 70], shape.name + ': invalid PDF signature');
       assert.deepEqual(exports.png.head, [137, 80, 78, 71], shape.name + ': invalid PNG signature');
 
-      results.push({ ...shape, ...parsed, chartCurves: chart.curves, exports: {
+      results.push({ ...shape, ...parsed, chartCurves: chart.curves, redCoverage: chart.redCoverage, exports: {
         xlsx: exports.xlsx.size,
         pdf: exports.pdf.size,
         png: exports.png.size,

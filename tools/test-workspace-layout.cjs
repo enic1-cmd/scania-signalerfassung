@@ -22,6 +22,15 @@ new Function(fs.readFileSync(path.join(root,'assets/workspace-layout.js'),'utf8'
     assert.equal((await page.locator('#analysis-surface').boundingBox()).height,initial.height);
     await page.locator('#workspace-filters').click();
     assert.equal(await page.locator('#workspace-panel-signals').isVisible(),false);
+    const filterLayout=await page.locator('#workspace-panel-filters').evaluate(panel=>{
+      const title=panel.querySelector('[data-workspace-title="filters"]').getBoundingClientRect();
+      const controls=panel.querySelector('.ctrl-bar').getBoundingClientRect();
+      const close=panel.querySelector('[data-workspace-close="filters"]').getBoundingClientRect();
+      const box=panel.getBoundingClientRect();
+      return {height:box.height,centers:[title,controls,close].map(rect=>rect.top+rect.height/2)};
+    });
+    assert(filterLayout.height<=60,'Filter panel should be a compact single row: '+JSON.stringify(filterLayout));
+    assert(Math.max(...filterLayout.centers)-Math.min(...filterLayout.centers)<=6,'Filter controls should share one row: '+JSON.stringify(filterLayout));
     await page.locator('#f-search').fill('16:56');
     assert(await page.locator('#workspace-filters').evaluate(n=>n.classList.contains('has-filter')));
     await page.locator('#workspace-meta').click();
@@ -61,6 +70,6 @@ new Function(fs.readFileSync(path.join(root,'assets/workspace-layout.js'),'utf8'
     await page.getByRole('button',{name:'Notizen schließen'}).click();
     assert.equal(await page.locator('.annotation-sidebar').isVisible(),false);
     assert.deepEqual(errors,[]);
-    console.log(JSON.stringify({result:'PASS',viewportHeight:850,normalDataHeight:initial.height,focusDataHeight:focused.height,sidebar:'no vertical space lost',mobile:'PASS',pageErrors:errors},null,2));
+    console.log(JSON.stringify({result:'PASS',viewportHeight:850,normalDataHeight:initial.height,focusDataHeight:focused.height,filterPanel:filterLayout,sidebar:'no vertical space lost',mobile:'PASS',pageErrors:errors},null,2));
   }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

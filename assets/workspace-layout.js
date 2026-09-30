@@ -31,6 +31,7 @@
     trigger.id='workspace-'+key;trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','workspace-panel-'+key);
     panel.id='workspace-panel-'+key;panel.className='workspace-panel';panel.hidden=true;panel.setAttribute('aria-label',item[1]);
     if(key==='filters')panel.classList.add('workspace-panel-filters');
+    if(key==='meta')panel.classList.add('workspace-panel-meta');
     var heading=document.createElement('div');heading.className='workspace-panel-heading';var title=document.createElement('span');title.dataset.workspaceTitle=key;title.textContent=item[1];heading.appendChild(title);
     var close=button('Schließen');close.dataset.workspaceClose=key;close.setAttribute('aria-label',item[1]+' schließen');close.onclick=function(){setPanel(null,key);};heading.appendChild(close);
     panel.appendChild(heading);panel.appendChild(item[2]);app.appendChild(panel);bar.appendChild(trigger);buttons[key]=trigger;panels[key]=panel;

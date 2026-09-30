@@ -27,14 +27,25 @@ new Function(fs.readFileSync(path.join(root,'assets/workspace-layout.js'),'utf8'
       const controls=panel.querySelector('.ctrl-bar').getBoundingClientRect();
       const close=panel.querySelector('[data-workspace-close="filters"]').getBoundingClientRect();
       const box=panel.getBoundingClientRect();
-      return {height:box.height,centers:[title,controls,close].map(rect=>rect.top+rect.height/2)};
+      return {height:box.height,centers:[title,controls,close].map(rect=>rect.top+rect.height/2),panelOverflow:panel.scrollWidth-panel.clientWidth,controlOverflow:panel.querySelector('.ctrl-bar').scrollWidth-panel.querySelector('.ctrl-bar').clientWidth};
     });
     assert(filterLayout.height<=60,'Filter panel should be a compact single row: '+JSON.stringify(filterLayout));
     assert(Math.max(...filterLayout.centers)-Math.min(...filterLayout.centers)<=6,'Filter controls should share one row: '+JSON.stringify(filterLayout));
+    assert(filterLayout.panelOverflow<=1&&filterLayout.controlOverflow<=1,'Filter panel should not require horizontal scrolling: '+JSON.stringify(filterLayout));
     await page.locator('#f-search').fill('16:56');
     assert(await page.locator('#workspace-filters').evaluate(n=>n.classList.contains('has-filter')));
     await page.locator('#workspace-meta').click();
     assert.equal(await page.locator('#workspace-panel-filters').isVisible(),false);
+    const metaLayout=await page.locator('#workspace-panel-meta').evaluate(panel=>{
+      const title=panel.querySelector('[data-workspace-title="meta"]').getBoundingClientRect();
+      const controls=panel.querySelector('.meta-card').getBoundingClientRect();
+      const close=panel.querySelector('[data-workspace-close="meta"]').getBoundingClientRect();
+      const box=panel.getBoundingClientRect();
+      return {height:box.height,centers:[title,controls,close].map(rect=>rect.top+rect.height/2),panelOverflow:panel.scrollWidth-panel.clientWidth,controlOverflow:panel.querySelector('.meta-card').scrollWidth-panel.querySelector('.meta-card').clientWidth};
+    });
+    assert(metaLayout.height<=60,'Measurement data panel should be a compact single row: '+JSON.stringify(metaLayout));
+    assert(Math.max(...metaLayout.centers)-Math.min(...metaLayout.centers)<=6,'Measurement data should share one row: '+JSON.stringify(metaLayout));
+    assert(metaLayout.panelOverflow<=1&&metaLayout.controlOverflow<=1,'Measurement data should not require horizontal scrolling: '+JSON.stringify(metaLayout));
     await page.locator('#workspace-meta').click();
     await page.locator('.annotation-toggle').click();
     await page.waitForTimeout(250);
@@ -70,6 +81,6 @@ new Function(fs.readFileSync(path.join(root,'assets/workspace-layout.js'),'utf8'
     await page.getByRole('button',{name:'Notizen schließen'}).click();
     assert.equal(await page.locator('.annotation-sidebar').isVisible(),false);
     assert.deepEqual(errors,[]);
-    console.log(JSON.stringify({result:'PASS',viewportHeight:850,normalDataHeight:initial.height,focusDataHeight:focused.height,filterPanel:filterLayout,sidebar:'no vertical space lost',mobile:'PASS',pageErrors:errors},null,2));
+    console.log(JSON.stringify({result:'PASS',viewportHeight:850,normalDataHeight:initial.height,focusDataHeight:focused.height,filterPanel:filterLayout,measurementPanel:metaLayout,sidebar:'no vertical space lost',mobile:'PASS',pageErrors:errors},null,2));
   }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -146,18 +146,31 @@ const expected = files.map(expectedShape);
       if (shape.name === '2026-08-06 104719.txt') {
         const marked = await page.evaluate(() => {
           const count = markerRows(active(), active().rawRows).length;
+          const events = markerEvents(active(), active().rawRows);
           markMarkerTimestamps();
-          return {count,marked:active().rawRows.filter(row=>row.marked).length,pressed:document.getElementById('mark-timestamps').getAttribute('aria-pressed')};
+          setAnalysisView('table', true);
+          renderTable(active().rawRows.slice(events[0].row.rowId, events[0].row.rowId + 1));
+          return {count,eventCount:events.length,eventValues:events.map(event=>event.value),eventRowIds:events.map(event=>event.row.rowId),marked:active().rawRows.filter(row=>row.marked).length,pressed:document.getElementById('mark-timestamps').getAttribute('aria-pressed')};
         });
         assert(marked.count > 0, shape.name + ': expected source marker timestamps');
+        assert.deepEqual(marked.eventValues, [1, 2], shape.name + ': marker transitions were not detected correctly');
         assert.equal(marked.marked, marked.count, shape.name + ': timestamp action did not mark every source timestamp');
         assert.equal(marked.pressed, 'true');
+        const markerBadges=[];
+        for(const rowId of marked.eventRowIds){
+          markerBadges.push(await page.evaluate(id=>{
+            renderTable(active().rawRows.slice(id,id+1));
+            return document.querySelector('.time-marker-event')?.textContent||'';
+          },rowId));
+        }
+        assert.deepEqual(markerBadges, ['1', '2'], shape.name + ': numbered marker events are missing in the table');
         const cleared = await page.evaluate(() => {
           markMarkerTimestamps();
           return {marked:active().rawRows.filter(row=>row.marked).length,pressed:document.getElementById('mark-timestamps').getAttribute('aria-pressed')};
         });
         assert.equal(cleared.marked, 0, shape.name + ': second timestamp action did not clear marks');
         assert.equal(cleared.pressed, 'false');
+        assert.equal(await page.locator('.time-marker-event').count(), 0, shape.name + ': marker event badges remained after clearing timestamp marks');
       }
 
       const exports = await page.evaluate(async () => {

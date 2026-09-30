@@ -360,6 +360,11 @@ td:first-child{
   max-width:none;
 }
 .time-cell{display:flex;align-items:center;gap:7px}
+.time-marker-event{
+  display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 5px;
+  border-left:3px solid var(--accent);border-radius:4px;background:var(--dark);color:#fff;
+  font:800 10px/1 "Segoe UI",sans-serif;box-shadow:0 1px 3px rgba(0,38,73,.18);flex-shrink:0;
+}
 .row-mark{
   width:10px;height:10px;border-radius:50%;border:1px solid rgba(220,38,38,.4);
   background:rgba(255,255,255,.8);cursor:pointer;flex-shrink:0;padding:0;
@@ -444,7 +449,7 @@ th.signal-th{position:relative;padding-right:42px}
 .tab-add:hover{background:rgba(245,168,0,.25)}
 </style>
 <link rel="stylesheet" href="assets/annotations.css?v=20260916-1">
-<link rel="stylesheet" href="assets/workspace-layout.css?v=20260930-2">
+<link rel="stylesheet" href="assets/workspace-layout.css?v=20260930-3">
 <link rel="stylesheet" href="assets/chart-height.css?v=20260916-1">
 <link rel="stylesheet" href="assets/help.css?v=20260916-1">
 </head>
@@ -655,10 +660,10 @@ var I18N={
     markTimestamps:'Zeitstempel markieren',
     unmarkTimestamps:'Zeitstempel-Markierung l\u00f6schen',
     search:'Suche',
-    resetFilter:'\u2715 Filter zur\u00fccksetzen',
+    resetFilter:'\u2715 Zur\u00fccksetzen',
     shown:'Angezeigt',
     total:'Gesamt',
-    jumpTimestamp:'\u2193 Springe zum Zeitstempel',
+    jumpTimestamp:'\u2193 Zum Marker',
     table:'Tabelle',
     chart:'Kurvendiagramm',
     noDataRange:'Keine Daten f\u00fcr diesen Zeitbereich.',
@@ -785,10 +790,10 @@ var I18N={
     markTimestamps:'Mark timestamps',
     unmarkTimestamps:'Clear timestamp marks',
     search:'Search',
-    resetFilter:'\u2715 Reset filter',
+    resetFilter:'\u2715 Reset',
     shown:'Shown',
     total:'Total',
-    jumpTimestamp:'\u2193 Jump to timestamp',
+    jumpTimestamp:'\u2193 Jump to marker',
     table:'Table',
     chart:'Curve chart',
     noDataRange:'No data for this time range.',
@@ -1170,6 +1175,22 @@ function markerRows(A,rows){
   var signal=markerSignal(A);
   return signal?(rows||[]).filter(function(row){return hasActiveMarker(row,signal);}):[];
 }
+function markerValue(row,signal){
+  if(!row||!signal)return null;
+  var value=Number(String(row.parts[signal.index]||'').trim().replace(',','.'));
+  return Number.isFinite(value)?value:null;
+}
+function markerEvents(A,rows){
+  var signal=markerSignal(A),events=[],previous=null,allowed=null;
+  if(!signal)return events;
+  if(rows){allowed=new Set(rows.map(function(row){return row.rowId;}));}
+  (A.rawRows||[]).forEach(function(row){
+    var value=markerValue(row,signal);
+    if(value!==null&&value>=1&&value!==previous&&(!allowed||allowed.has(row.rowId))){events.push({row:row,value:value});}
+    if(value!==null)previous=value;
+  });
+  return events;
+}
 function updateTimestampActions(){
   var A=active();
   var allMatches=markerRows(A,A.rawRows||[]);
@@ -1353,15 +1374,18 @@ function renderTable(rows){
   if(tableRAF){cancelAnimationFrame(tableRAF);tableRAF=0;}
   if(!rows.length){tbody.innerHTML='';nd.style.display='block';tbl.style.display='none';tableState={rows:[],sig:[]};return;}
   nd.style.display='none';tbl.style.display='';
-  var ROW_H=TABLE_ROW_HEIGHT,BUFFER=18,sig=visibleSignals(active()),colCount=sig.length+1;
+  var A=active(),ROW_H=TABLE_ROW_HEIGHT,BUFFER=18,sig=visibleSignals(A),colCount=sig.length+1;
   var annotationRows=window.Annotations?Annotations.tableColors(active()):new Map();
+  var markerEventValues=new Map(markerEvents(A,rows).map(function(event){return [event.row.rowId,event.value];}));
   var renderedFirst=-1,renderedLast=-1;
   function render(subset,startIdx){
     return subset.map(function(r,i){
       var abs=startIdx+i;
       var cls=(abs%2?' is-even':' is-odd')+(r.marked?' row-marked':'')+(r.rowId===jumpFocusRowId?' row-jump':'');
       var tint=annotationRows.get(r.rowId);
-      return '<tr data-row-id="'+r.rowId+'" class="data-row'+cls+(tint?' row-annotated':'')+'"'+(tint?' style="--annotation-tint:'+tint+'"':'')+'><td><div class="time-cell"><button class="row-mark'+(r.marked?' active':'')+'" title="'+esc(t('markRow'))+'" onclick="toggleRowMarked('+r.rowId+')"></button><span class="time-text">'+esc(r.ts)+'</span><button class="row-note'+(r.note?' has-note':'')+'" title="'+esc(t('editNote'))+'" aria-label="'+esc(t('noteFor')+r.ts)+'" onclick="Annotations.editRow('+r.rowId+')">&#9998;</button></div></td>'+sig.map(function(s){return '<td'+(s.marked?' class="col-marked"':'')+'>'+esc((r.parts[s.index]||'').trim().replace(/\r/g,''))+'</td>';}).join('')+'</tr>';
+      var markerEvent=markerEventValues.get(r.rowId);
+      var markerBadge=r.marked&&markerEvent!=null?'<span class="time-marker-event" title="Marker '+esc(markerEvent)+'">'+esc(markerEvent)+'</span>':'';
+      return '<tr data-row-id="'+r.rowId+'" class="data-row'+cls+(tint?' row-annotated':'')+'"'+(tint?' style="--annotation-tint:'+tint+'"':'')+'><td><div class="time-cell"><button class="row-mark'+(r.marked?' active':'')+'" title="'+esc(t('markRow'))+'" onclick="toggleRowMarked('+r.rowId+')"></button><span class="time-text">'+esc(r.ts)+'</span>'+markerBadge+'<button class="row-note'+(r.note?' has-note':'')+'" title="'+esc(t('editNote'))+'" aria-label="'+esc(t('noteFor')+r.ts)+'" onclick="Annotations.editRow('+r.rowId+')">&#9998;</button></div></td>'+sig.map(function(s){return '<td'+(s.marked?' class="col-marked"':'')+'>'+esc((r.parts[s.index]||'').trim().replace(/\r/g,''))+'</td>';}).join('')+'</tr>';
     }).join('');
   }
   tableState={rows:rows,sig:sig};
@@ -1683,6 +1707,28 @@ function drawChartCanvas(canvas,A,allRows,signals,exportMode){
       ctx.stroke();
     });
   });
+  var visibleMarkerEvents=markerEvents(A,rows).filter(function(event){return event.row.marked;}).map(function(event){
+    var index=rows.indexOf(event.row);
+    return {event:event,x:left+rowChartRatio(event.row,index,windowData)*plotW};
+  });
+  if(visibleMarkerEvents.length){
+    var clusters=[];
+    visibleMarkerEvents.forEach(function(item){
+      var cluster=clusters[clusters.length-1];
+      if(!cluster||item.x-cluster[cluster.length-1].x>=25){cluster=[];clusters.push(cluster);}
+      cluster.push(item);
+      ctx.strokeStyle='#003d75';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(item.x,top);ctx.lineTo(item.x,cssH-bottom);ctx.stroke();
+    });
+    ctx.font='800 10px Segoe UI, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    clusters.forEach(function(cluster){
+      var first=cluster[0],last=cluster[cluster.length-1];
+      var label=cluster.length===1?String(first.event.value):String(first.event.value)+'\u2013'+String(last.event.value);
+      var center=(first.x+last.x)/2,width=Math.max(20,ctx.measureText(label).width+10),x=Math.max(left+width/2,Math.min(left+plotW-width/2,center));
+      ctx.fillStyle='#003d75';ctx.fillRect(x-width/2,top+4,width,17);
+      ctx.fillStyle='#fff';ctx.fillText(label,x,top+12.5);
+    });
+  }
 }
 function renderChart(){
   if(S.view!=='chart')return;
@@ -2593,7 +2639,7 @@ function esc(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').repl
 function showErr(msg){var e=document.getElementById('upload-error');e.style.display=msg?'block':'none';e.textContent=msg;}
 </script>
 <script src="assets/annotations.js?v=20260916-1"></script>
-<script src="assets/workspace-layout.js?v=20260930-2"></script>
+<script src="assets/workspace-layout.js?v=20260930-3"></script>
 <script src="assets/chart-height.js?v=20260916-1"></script>
 <script src="assets/export-save.js?v=20260916-1"></script>
 <script src="assets/help.js?v=20260916-1"></script>

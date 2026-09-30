@@ -11,7 +11,9 @@ const SMTP_USER = String(process.env.SMTP_USER || '').trim();
 const SMTP_PASS = String(process.env.SMTP_PASS || '');
 const MAIL_TRANSPORT = String(process.env.MAIL_TRANSPORT || '').trim().toLowerCase();
 const REQUEST_NOTIFY_TO = String(process.env.REQUEST_NOTIFY_TO || 'david.breuer@breuer-trucks.de').trim();
+const FEEDBACK_NOTIFY_TO = String(process.env.FEEDBACK_NOTIFY_TO || 'contact.breuer.apps@gmail.com').trim();
 const PUBLIC_URL = String(process.env.PUBLIC_URL || 'https://signalerfassung.com').replace(/\/$/, '');
+const FEEDBACK_URL = String(process.env.FEEDBACK_URL || 'https://feedback.signalerfassung.com').replace(/\/$/, '');
 const LOGO_FILE = path.join(__dirname, '..', 'assets', 'signalerfassung-wordmark.png');
 
 function escapeHtml(value) {
@@ -61,10 +63,11 @@ function layout(title, intro, content, action, language = 'de') {
 
 async function sendMail(message) {
   const transport = createTransport();
+  const attachments = [...logoAttachment(), ...(message.attachments || [])];
   return transport.sendMail({
     from: `"Signalerfassung Analyse-Tool" <${SMTP_USER || 'contact.breuer.apps@gmail.com'}>`,
-    attachments: logoAttachment(),
-    ...message
+    ...message,
+    attachments
   });
 }
 
@@ -121,16 +124,17 @@ async function sendAccessRequestConfirmation(request) {
 function buildWelcomeEmail({ name, email, username, password, language: requestedLanguage, lang }) {
   const language = languageOf({ language: requestedLanguage, lang });
   const english = language === 'en';
+  const feedbackLink = `${FEEDBACK_URL}/?lang=${language}`;
   const content = english
-    ? `<p style="margin:0 0 18px;font-size:15px;line-height:1.65">Hello ${escapeHtml(name)},</p><p style="margin:0 0 20px;font-size:15px;line-height:1.65">Your access to the Signal Capture Analysis App has been approved. When you open the app, your browser will ask for these credentials:</p><div style="padding:20px;border:1px solid #d6e4ef;border-radius:14px;background:#f5f9fc"><div style="margin-bottom:10px;color:#687c93;font-size:12px;text-transform:uppercase;letter-spacing:.08em">Username</div><div style="margin-bottom:18px;font-family:Consolas,monospace;font-size:18px;font-weight:800;color:#075ba7">${escapeHtml(username)}</div><div style="margin-bottom:10px;color:#687c93;font-size:12px;text-transform:uppercase;letter-spacing:.08em">Temporary password</div><div style="font-family:Consolas,monospace;font-size:18px;font-weight:800;color:#075ba7;word-break:break-all">${escapeHtml(password)}</div></div><p style="margin:20px 0 0;color:#60748b;font-size:13px;line-height:1.55">Please keep these credentials secure and do not forward this email.</p>`
-    : `<p style="margin:0 0 18px;font-size:15px;line-height:1.65">Hallo ${escapeHtml(name)},</p><p style="margin:0 0 20px;font-size:15px;line-height:1.65">dein Zugang zur Signalerfassung Analyse-App wurde freigeschaltet. Beim Öffnen der App fragt dein Browser nach diesen Zugangsdaten:</p><div style="padding:20px;border:1px solid #d6e4ef;border-radius:14px;background:#f5f9fc"><div style="margin-bottom:10px;color:#687c93;font-size:12px;text-transform:uppercase;letter-spacing:.08em">Benutzername</div><div style="margin-bottom:18px;font-family:Consolas,monospace;font-size:18px;font-weight:800;color:#075ba7">${escapeHtml(username)}</div><div style="margin-bottom:10px;color:#687c93;font-size:12px;text-transform:uppercase;letter-spacing:.08em">Startpasswort</div><div style="font-family:Consolas,monospace;font-size:18px;font-weight:800;color:#075ba7;word-break:break-all">${escapeHtml(password)}</div></div><p style="margin:20px 0 0;color:#60748b;font-size:13px;line-height:1.55">Bitte bewahre die Zugangsdaten sicher auf und leite diese E-Mail nicht weiter.</p>`;
+    ? `<p style="margin:0 0 18px;font-size:15px;line-height:1.65">Hello ${escapeHtml(name)},</p><p style="margin:0 0 20px;font-size:15px;line-height:1.65">Your access to the Signal Capture Analysis App has been approved. When you open the app, your browser will ask for these credentials:</p><div style="padding:20px;border:1px solid #d6e4ef;border-radius:14px;background:#f5f9fc"><div style="margin-bottom:10px;color:#687c93;font-size:12px;text-transform:uppercase;letter-spacing:.08em">Username</div><div style="margin-bottom:18px;font-family:Consolas,monospace;font-size:18px;font-weight:800;color:#075ba7">${escapeHtml(username)}</div><div style="margin-bottom:10px;color:#687c93;font-size:12px;text-transform:uppercase;letter-spacing:.08em">Temporary password</div><div style="font-family:Consolas,monospace;font-size:18px;font-weight:800;color:#075ba7;word-break:break-all">${escapeHtml(password)}</div></div><p style="margin:20px 0 0;color:#60748b;font-size:13px;line-height:1.55">Please keep these credentials secure and do not forward this email.</p><div style="margin-top:22px;padding:17px 18px;border-left:4px solid #14824f;background:#edf8f2;font-size:14px;line-height:1.6">After testing, please share your experience in our <a href="${escapeHtml(feedbackLink)}" style="color:#075ba7;font-weight:800">English feedback form</a>. Your practical feedback helps us improve the tool.</div>`
+    : `<p style="margin:0 0 18px;font-size:15px;line-height:1.65">Hallo ${escapeHtml(name)},</p><p style="margin:0 0 20px;font-size:15px;line-height:1.65">dein Zugang zur Signalerfassung Analyse-App wurde freigeschaltet. Beim Öffnen der App fragt dein Browser nach diesen Zugangsdaten:</p><div style="padding:20px;border:1px solid #d6e4ef;border-radius:14px;background:#f5f9fc"><div style="margin-bottom:10px;color:#687c93;font-size:12px;text-transform:uppercase;letter-spacing:.08em">Benutzername</div><div style="margin-bottom:18px;font-family:Consolas,monospace;font-size:18px;font-weight:800;color:#075ba7">${escapeHtml(username)}</div><div style="margin-bottom:10px;color:#687c93;font-size:12px;text-transform:uppercase;letter-spacing:.08em">Startpasswort</div><div style="font-family:Consolas,monospace;font-size:18px;font-weight:800;color:#075ba7;word-break:break-all">${escapeHtml(password)}</div></div><p style="margin:20px 0 0;color:#60748b;font-size:13px;line-height:1.55">Bitte bewahre die Zugangsdaten sicher auf und leite diese E-Mail nicht weiter.</p><div style="margin-top:22px;padding:17px 18px;border-left:4px solid #14824f;background:#edf8f2;font-size:14px;line-height:1.6">Bitte teile uns nach deinem Test deine Erfahrung im <a href="${escapeHtml(feedbackLink)}" style="color:#075ba7;font-weight:800">Feedbackbogen für Monteure</a> mit. Dein Praxisfeedback hilft uns, das Tool gezielt zu verbessern.</div>`;
   return {
     to: email,
     subject: english ? 'Your access to the Signal Capture Analysis Tool' : 'Dein Zugang zum Signalerfassung Analyse-Tool',
     headers: { 'Content-Language': language },
     text: english
-      ? `Hello ${name},\n\nYour access has been approved.\n\nUsername: ${username}\nTemporary password: ${password}\nApp: ${PUBLIC_URL}/signalerfassung-analyse-tool.html\n\nPlease keep these credentials secure.`
-      : `Hallo ${name},\n\ndein Zugang wurde freigeschaltet.\n\nBenutzername: ${username}\nStartpasswort: ${password}\nApp: ${PUBLIC_URL}/signalerfassung-analyse-tool.html\n\nBitte bewahre die Zugangsdaten sicher auf.`,
+      ? `Hello ${name},\n\nYour access has been approved.\n\nUsername: ${username}\nTemporary password: ${password}\nApp: ${PUBLIC_URL}/signalerfassung-analyse-tool.html\n\nPlease keep these credentials secure. After testing, please share your experience: ${feedbackLink}`
+      : `Hallo ${name},\n\ndein Zugang wurde freigeschaltet.\n\nBenutzername: ${username}\nStartpasswort: ${password}\nApp: ${PUBLIC_URL}/signalerfassung-analyse-tool.html\n\nBitte bewahre die Zugangsdaten sicher auf. Nach dem Test freuen wir uns über dein Feedback: ${feedbackLink}`,
     html: layout(
       english ? 'Your access is ready' : 'Dein Zugang ist bereit',
       english ? 'The Signal Capture Analysis App has been approved for you.' : 'Die Signalerfassung Analyse-App wurde für dich freigeschaltet.',
@@ -145,13 +149,53 @@ async function sendWelcomeEmail(credentials) {
   return sendMail(buildWelcomeEmail(credentials));
 }
 
+function buildFeedbackEmail(feedback) {
+  const english = feedback.language === 'en';
+  const sender = feedback.anonymous ? (english ? 'Anonymous' : 'Anonym') : feedback.name;
+  const details = [
+    `${english ? 'Sender' : 'Absender'}: ${sender || (english ? 'Not specified' : 'Nicht angegeben')}`,
+    `${english ? 'Workshop' : 'Werkstatt'}: ${feedback.workshop || (english ? 'Not specified' : 'Nicht angegeben')}`,
+    `${english ? 'Test date' : 'Testdatum'}: ${feedback.testDate || (english ? 'Not specified' : 'Nicht angegeben')}`
+  ].join('\n');
+  const attachments = (feedback.attachments || []).map((attachment) => ({
+    filename: attachment.filename,
+    content: attachment.content,
+    contentType: attachment.contentType
+  }));
+  attachments.unshift({
+    filename: `Feedbackbericht-${feedback.testDate || new Date().toISOString().slice(0, 10)}.txt`,
+    content: Buffer.from(feedback.report, 'utf8'),
+    contentType: 'text/plain; charset=utf-8'
+  });
+  return {
+    to: FEEDBACK_NOTIFY_TO,
+    subject: `Signalerfassung Feedback: ${sender || 'Anonym'}${feedback.testDate ? ` (${feedback.testDate})` : ''}`,
+    headers: { 'Content-Language': feedback.language },
+    text: `${details}\n\n${feedback.report}`,
+    html: layout(
+      english ? 'New technician feedback' : 'Neues Monteur-Feedback',
+      english ? 'A completed feedback form has been submitted.' : 'Ein ausgefüllter Feedbackbogen wurde übermittelt.',
+      `<div style="padding:18px 20px;border:1px solid #d6e4ef;border-radius:14px;background:#f5f9fc;white-space:pre-line;font-size:14px;line-height:1.6">${escapeHtml(details)}</div><p style="margin:20px 0 0;color:#60748b;font-size:13px;line-height:1.55">${english ? 'The full report and all files are attached.' : 'Der vollständige Bericht und alle Dateien befinden sich im Anhang.'}</p>`,
+      null,
+      feedback.language
+    ),
+    attachments
+  };
+}
+
+async function sendFeedback(feedback) {
+  return sendMail(buildFeedbackEmail(feedback));
+}
+
 module.exports = {
   configured,
   buildAccessRequestNotification,
   buildAccessRequestConfirmation,
   buildWelcomeEmail,
+  buildFeedbackEmail,
   sendAccessRequestNotification,
   sendAccessRequestConfirmation,
   sendWelcomeEmail,
-  status: () => ({ configured: configured(), sender: SMTP_USER || null, notifyTo: REQUEST_NOTIFY_TO })
+  sendFeedback,
+  status: () => ({ configured: configured(), sender: SMTP_USER || null, notifyTo: REQUEST_NOTIFY_TO, feedbackTo: FEEDBACK_NOTIFY_TO })
 };

@@ -100,6 +100,16 @@ server {
         proxy_http_version 1.1;
     }
 
+    location = /api/feedback {
+        auth_basic off;
+        limit_except POST { deny all; }
+        client_max_body_size 18m;
+        proxy_pass http://127.0.0.1:3407/api/feedback;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+        proxy_http_version 1.1;
+    }
+
     location ^~ /admin/api/ {
         proxy_pass http://127.0.0.1:3407;
         proxy_set_header X-Remote-User $remote_user;
@@ -116,6 +126,73 @@ server {
         expires 7d;
         add_header Cache-Control "public, max-age=604800";
         try_files $uri =404;
+    }
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header X-Robots-Tag "noindex, nofollow, noarchive" always;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name feedback.signalerfassung.com;
+
+    root /var/www/signalerfassung.com/current;
+
+    location ^~ /.well-known/acme-challenge/ {
+        auth_basic off;
+        try_files $uri =404;
+    }
+
+    location / {
+        return 301 https://feedback.signalerfassung.com$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name feedback.signalerfassung.com;
+
+    ssl_certificate /etc/letsencrypt/live/feedback.signalerfassung.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/feedback.signalerfassung.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    root /var/www/signalerfassung.com/current;
+    index feedbackbogen-monteurtest.html;
+
+    access_log /var/log/nginx/signalerfassung-feedback.access.log signalerfassung_privacy;
+    error_log /var/log/nginx/signalerfassung-feedback.error.log warn;
+
+    location = / {
+        try_files /feedbackbogen-monteurtest.html =404;
+    }
+
+    location = /feedbackbogen-monteurtest.html {
+        return 302 /$is_args$args;
+    }
+
+    location = /api/feedback {
+        limit_except POST { deny all; }
+        client_max_body_size 18m;
+        proxy_pass http://127.0.0.1:3407/api/feedback;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+        proxy_http_version 1.1;
+    }
+
+    location ^~ /assets/ {
+        expires 7d;
+        add_header Cache-Control "public, max-age=604800";
+        try_files $uri =404;
+    }
+
+    location / {
+        return 404;
     }
 
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;

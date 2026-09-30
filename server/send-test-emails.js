@@ -4,6 +4,7 @@ const mailer = require('./mailer');
 
 const recipient = String(process.argv[2] || process.env.REQUEST_NOTIFY_TO || '').trim();
 const language = process.argv[3] === 'en' ? 'en' : 'de';
+const mode = process.argv[4] === 'welcome' ? 'welcome' : 'all';
 if (!recipient) throw new Error('Testempfänger fehlt.');
 if (!mailer.configured()) throw new Error('Der E-Mail-Versand ist nicht konfiguriert.');
 
@@ -14,8 +15,10 @@ if (!mailer.configured()) throw new Error('Der E-Mail-Versand ist nicht konfigur
     createdAt: new Date().toISOString(),
     language
   };
-  await mailer.sendAccessRequestConfirmation(request);
-  await mailer.sendAccessRequestNotification(request);
+  if (mode === 'all') {
+    await mailer.sendAccessRequestConfirmation(request);
+    await mailer.sendAccessRequestNotification(request);
+  }
   await mailer.sendWelcomeEmail({
     name: language === 'en' ? 'Alex Smith' : 'Max Mustermann',
     email: recipient,
@@ -23,7 +26,7 @@ if (!mailer.configured()) throw new Error('Der E-Mail-Versand ist nicht konfigur
     password: 'Start!2026-Secure',
     language
   });
-  console.log(`Testmails (${language.toUpperCase()}) wurden an ${recipient} versendet.`);
+  console.log(`${mode === 'welcome' ? 'Zugangsdaten-Testmail' : 'Testmails'} (${language.toUpperCase()}) wurde an ${recipient} versendet.`);
 })().catch((error) => {
   console.error(error.message);
   process.exitCode = 1;

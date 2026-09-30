@@ -31,6 +31,7 @@ test -f "$RELEASE/assets/admin.js"
 test -f "$RELEASE/assets/access-request.css"
 test -f "$RELEASE/assets/access-request.js"
 test -f "$RELEASE/zugang-anfragen.html"
+test -f "$RELEASE/feedbackbogen-monteurtest.html"
 test -f "$RELEASE/server/node_modules/nodemailer/package.json"
 
 cp -a "$SITE_CONFIG" "$SITE_BACKUP"

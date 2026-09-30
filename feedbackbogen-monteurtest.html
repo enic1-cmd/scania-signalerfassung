@@ -1,0 +1,1756 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Feedbackbogen Monteurtest | Signalerfassung Analyse-Tool</title>
+  <style>
+    :root {
+      --navy: #061b34;
+      --navy-2: #0b2f5b;
+      --blue: #075ba7;
+      --blue-light: #eaf3fb;
+      --gold: #ffb400;
+      --green: #147a4d;
+      --green-light: #eaf7f0;
+      --red: #b42318;
+      --red-light: #fff0ef;
+      --ink: #132a43;
+      --muted: #60758a;
+      --line: #cbd9e6;
+      --surface: #ffffff;
+      --canvas: #eef3f7;
+      --focus: #4aa3df;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--canvas); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    button, input, select, textarea { font: inherit; }
+    button, label, input[type="radio"], input[type="checkbox"] { cursor: pointer; }
+    a { color: inherit; }
+    [hidden] { display: none !important; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      color: #fff;
+      background: var(--navy);
+      border-bottom: 4px solid var(--gold);
+      box-shadow: 0 8px 24px rgba(4, 25, 48, 0.2);
+    }
+    .topbar-inner {
+      width: min(1440px, calc(100% - 40px));
+      min-height: 78px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .brand { min-width: 0; display: flex; align-items: center; gap: 12px; }
+    .brand-symbol { width: 58px; height: 58px; object-fit: contain; flex: 0 0 auto; }
+    .brand-wordmark { width: 230px; max-width: 24vw; height: auto; display: block; }
+    .brand-divider { width: 1px; height: 36px; flex: 0 0 auto; background: rgba(255, 255, 255, 0.25); }
+    .brand-subtitle { color: #d6e4ef; font-size: 13px; font-weight: 700; white-space: nowrap; }
+    .language-select {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      margin-left: 4px;
+      padding: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .language-select a {
+      min-width: 32px;
+      padding: 4px 7px;
+      border-radius: 4px;
+      color: #d6e4ef;
+      text-align: center;
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 850;
+    }
+    .language-select a[aria-current="true"] { color: var(--navy); background: var(--gold); }
+    .top-progress {
+      width: min(330px, 32vw);
+      margin-left: auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 7px 12px;
+    }
+    .top-progress span { color: #dceaf6; font-size: 12px; font-weight: 700; }
+    .top-progress output { color: #fff; font-size: 12px; font-weight: 800; }
+    .progress-track {
+      grid-column: 1 / -1;
+      height: 7px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 5px;
+    }
+    .progress-track i {
+      width: 0;
+      height: 100%;
+      display: block;
+      background: var(--gold);
+      transition: width 180ms ease;
+    }
+
+    .page {
+      width: min(1440px, calc(100% - 40px));
+      margin: 22px auto 48px;
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+    .sidebar {
+      position: sticky;
+      top: 104px;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 8px 22px rgba(26, 53, 78, 0.08);
+    }
+    .sidebar h2 { margin: 0 0 6px; font-size: 15px; }
+    .sidebar > p { margin: 0 0 17px; color: var(--muted); font-size: 12px; }
+    .section-nav { display: grid; gap: 3px; }
+    .section-nav a {
+      display: grid;
+      grid-template-columns: 25px 1fr;
+      align-items: center;
+      gap: 9px;
+      min-height: 38px;
+      padding: 6px 8px;
+      color: #35516d;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .section-nav a:hover, .section-nav a:focus-visible { color: var(--blue); background: var(--blue-light); }
+    .section-nav b {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      font-size: 11px;
+    }
+    .local-note {
+      margin: 18px 0 0;
+      padding: 12px;
+      color: #315c49;
+      background: var(--green-light);
+      border-left: 4px solid var(--green);
+      font-size: 11px;
+    }
+
+    .content { min-width: 0; }
+    .intro {
+      padding: clamp(24px, 4vw, 40px);
+      color: #fff;
+      background: var(--navy-2);
+      border-radius: 8px 8px 0 0;
+      border-bottom: 5px solid var(--gold);
+    }
+    .eyebrow { margin: 0 0 12px; color: #ffd15a; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+    .intro h1 { max-width: 900px; margin: 0; font-size: clamp(29px, 3.5vw, 43px); line-height: 1.08; }
+    .intro p { max-width: 900px; margin: 13px 0 0; color: #d8e7f3; font-size: 15px; }
+    .scale-note {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      margin-top: 17px;
+      padding-top: 13px;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      color: #c4d8e8;
+      font-size: 12px;
+    }
+    .scale-note strong { color: #fff; }
+
+    .feedback-form { background: var(--surface); box-shadow: 0 16px 38px rgba(26, 53, 78, 0.1); }
+    .form-section {
+      scroll-margin-top: 96px;
+      padding: clamp(22px, 3vw, 32px);
+      border-bottom: 1px solid var(--line);
+    }
+    .section-heading {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 15px;
+      align-items: start;
+      margin-bottom: 18px;
+    }
+    .section-number {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--blue);
+      border-radius: 6px;
+      font-weight: 850;
+    }
+    .section-heading h2 { margin: 0; font-size: clamp(21px, 2.2vw, 27px); line-height: 1.2; }
+    .section-heading p { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+    .subheading { margin: 22px 0 10px; font-size: 16px; }
+
+    .anonymous-box {
+      margin-bottom: 18px;
+      padding: 13px 15px;
+      background: var(--blue-light);
+      border: 1px solid #bdd6ea;
+      border-radius: 8px;
+    }
+    .anonymous-option { display: flex; align-items: flex-start; gap: 12px; font-weight: 800; }
+    .anonymous-option input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--blue); }
+    .anonymous-option small { display: block; margin-top: 3px; color: var(--muted); font-weight: 500; }
+    .anonymous-confirmation {
+      margin: 12px 0 0 32px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 750;
+    }
+    .personal-fields { transition: opacity 160ms ease; }
+    .personal-fields.is-disabled { display: none; }
+
+    .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    .field > label, .field-label {
+      display: block;
+      margin: 0 0 7px;
+      color: #294965;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .required-mark { color: var(--red); }
+    input[type="text"], input[type="date"], select, textarea {
+      width: 100%;
+      border: 1px solid #b9cad8;
+      border-radius: 6px;
+      outline: 0;
+      color: var(--ink);
+      background: #fff;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+    input[type="text"], input[type="date"], select { min-height: 44px; padding: 9px 11px; }
+    textarea { min-height: 82px; padding: 10px 11px; line-height: 1.45; resize: vertical; }
+    input:focus, select:focus, textarea:focus { border-color: var(--focus); box-shadow: 0 0 0 3px rgba(74, 163, 223, 0.16); }
+    input::placeholder, textarea::placeholder { color: #8a9bab; }
+
+    .upload-box {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border: 1px dashed #8eabc1;
+      border-radius: 6px;
+      background: #f7fbfe;
+    }
+    .upload-box:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(74, 163, 223, 0.13); }
+    .upload-copy strong { display: block; color: #294965; font-size: 13px; }
+    .upload-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .upload-control { position: relative; }
+    .upload-control input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .upload-button {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 13px;
+      border: 1px solid var(--blue);
+      border-radius: 6px;
+      color: var(--blue);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .upload-button:hover { color: #fff; background: var(--blue); }
+    .file-summary { grid-column: 1 / -1; display: grid; gap: 6px; }
+    .file-summary:empty { display: none; }
+    .file-entry {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 7px 9px;
+      color: #315873;
+      background: #e8f3fa;
+      border-radius: 5px;
+      font-size: 11px;
+    }
+    .file-entry b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-entry span { margin-left: auto; color: var(--muted); white-space: nowrap; }
+    .clear-files {
+      justify-self: start;
+      padding: 3px 0;
+      border: 0;
+      color: var(--red);
+      background: transparent;
+      font-size: 11px;
+      font-weight: 750;
+    }
+    .attachment-note {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .check-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .check-option {
+      min-height: 42px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfdff;
+      font-size: 13px;
+    }
+    .check-option:has(input:checked) { border-color: #67a5d5; background: var(--blue-light); }
+    .check-option input { width: 18px; height: 18px; margin: 1px 0 0; flex: 0 0 auto; accent-color: var(--blue); }
+
+    .task-list, .rating-list { border-top: 1px solid var(--line); }
+    .task-row {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.35fr) minmax(300px, 0.85fr);
+      gap: 16px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .task-copy { display: grid; grid-template-columns: 30px 1fr; gap: 10px; font-size: 13px; }
+    .task-copy b { color: var(--blue); font-size: 12px; }
+    .segmented { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #b9cad8; border-radius: 6px; overflow: hidden; }
+    .segmented label { position: relative; min-height: 38px; display: grid; place-items: center; padding: 5px 6px; text-align: center; font-size: 11px; font-weight: 750; }
+    .segmented label + label { border-left: 1px solid #b9cad8; }
+    .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+    .segmented label:has(input:checked) { color: #fff; background: var(--blue); }
+    .segmented label.is-problem:has(input:checked) { background: var(--red); }
+    .segmented label:nth-child(1):has(input:checked) { color: #fff; background: #14824f; }
+    .segmented label:nth-child(2):has(input:checked) { color: #fff; background: #c52f27; }
+    .segmented label:nth-child(3):has(input:checked) { color: #fff; background: #687583; }
+    .task-comment { min-height: 40px !important; padding: 8px 10px !important; font-size: 12px; }
+
+    .rating-head, .rating-row {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.3fr) 230px;
+      gap: 18px;
+      align-items: center;
+    }
+    .rating-head { padding: 8px 0; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .rating-row { min-height: 56px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+    .rating-question { font-size: 13px; }
+    .scale { display: grid; grid-template-columns: repeat(5, 38px); gap: 8px; justify-content: start; }
+    .scale label { position: relative; width: 38px; height: 38px; display: grid; place-items: center; }
+    .scale input { position: absolute; opacity: 0; pointer-events: none; }
+    .scale span {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #aebfce;
+      border-radius: 50%;
+      color: #34536f;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 850;
+    }
+    .scale input:focus-visible + span { outline: 3px solid rgba(74, 163, 223, 0.35); outline-offset: 2px; }
+    .scale input:checked + span { color: #fff; border-color: var(--blue); background: var(--blue); }
+    .scale label:nth-child(1) span { color: #a7241d; border-color: #dda8a4; }
+    .scale label:nth-child(2) span { color: #b85016; border-color: #e4b18f; }
+    .scale label:nth-child(3) span { color: #896700; border-color: #d8c27a; }
+    .scale label:nth-child(4) span { color: #39724c; border-color: #9fc9ad; }
+    .scale label:nth-child(5) span { color: #14633b; border-color: #87ba9f; }
+    .scale label:nth-child(1) input:checked + span { color: #fff; border-color: #b42318; background: #b42318; }
+    .scale label:nth-child(2) input:checked + span { color: #fff; border-color: #d65a1e; background: #d65a1e; }
+    .scale label:nth-child(3) input:checked + span { color: #332700; border-color: #e4b600; background: #f2c94c; }
+    .scale label:nth-child(4) input:checked + span { color: #fff; border-color: #4d9564; background: #4d9564; }
+    .scale label:nth-child(5) input:checked + span { color: #fff; border-color: #147a4d; background: #147a4d; }
+    .rating-comment { min-height: 40px !important; padding: 8px 10px !important; font-size: 12px; }
+
+    .prompt-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; margin-top: 18px; }
+    .prompt-grid .field:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .prompt-grid .field > label { min-height: 44px; display: flex; align-items: flex-end; }
+    .prompt-grid textarea { height: 112px; min-height: 112px; }
+    .severity-key {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .severity-key div { padding: 12px; border: 1px solid var(--line); border-top: 4px solid #7a8da0; border-radius: 6px; font-size: 11px; }
+    .severity-key div:nth-child(1) { border-top-color: #8f1010; }
+    .severity-key div:nth-child(2) { border-top-color: #d65a1e; }
+    .severity-key div:nth-child(3) { border-top-color: #d2a000; }
+    .severity-key div:nth-child(4) { border-top-color: #5590be; }
+    .severity-key strong { display: block; margin-bottom: 3px; font-size: 13px; }
+    .issue-list { display: grid; gap: 12px; }
+    .issue {
+      background: #f8fbfd;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      border-radius: 6px;
+    }
+    .issue summary { display: flex; align-items: center; gap: 10px; padding: 13px 15px; cursor: pointer; font-weight: 800; list-style: none; }
+    .issue summary::-webkit-details-marker { display: none; }
+    .issue summary::before { content: "+"; width: 24px; height: 24px; display: grid; place-items: center; flex: 0 0 auto; color: var(--blue); border: 1px solid #a9c2d6; border-radius: 50%; }
+    .issue[open] summary::before { content: "−"; }
+    .issue-summary-title { min-width: 0; overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 600; }
+    .issue-body { padding: 2px 15px 15px; }
+    .issue .field-grid { grid-template-columns: 180px minmax(0, 1fr); }
+    .issue .details-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+    .issue textarea { min-height: 90px; }
+    .issue .upload-box { margin-top: 12px; background: #fff; }
+    .issue-empty { margin: 0; padding: 18px; color: var(--muted); background: #f7fafc; border: 1px dashed #aac0d2; border-radius: 6px; text-align: center; font-size: 13px; }
+    .issue-actions { display: flex; align-items: center; gap: 10px; margin-top: 13px; }
+    .add-issue { min-height: 40px; padding: 8px 13px; color: var(--blue); background: #fff; border: 1px solid var(--blue); border-radius: 6px; font-weight: 800; }
+    .remove-issue { margin-left: auto; padding: 7px 0; color: var(--red); background: transparent; border: 0; font-size: 12px; font-weight: 750; }
+
+    .recommendations { display: grid; gap: 9px; margin-top: 15px; }
+    .recommendation {
+      display: grid;
+      grid-template-columns: 21px 1fr;
+      gap: 11px;
+      align-items: start;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfdff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .recommendation:has(input:checked) { border-color: #67a5d5; background: var(--blue-light); }
+    .recommendation input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--blue); }
+
+    .form-actions {
+      position: static;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 18px clamp(22px, 3vw, 32px) 24px;
+      background: #f7fafc;
+      border-top: 1px solid var(--line);
+    }
+    .button {
+      min-height: 42px;
+      padding: 9px 15px;
+      border: 1px solid #9db4c7;
+      border-radius: 6px;
+      color: #274864;
+      background: #fff;
+      font-weight: 800;
+    }
+    .button:hover, .button:focus-visible { border-color: var(--blue); color: var(--blue); }
+    .button.primary { color: #fff; border-color: var(--blue); background: var(--blue); }
+    .button.primary:hover, .button.primary:focus-visible { color: #fff; background: #064c8c; }
+    .button.send { margin-left: auto; color: #fff; border-color: var(--green); background: var(--green); }
+    .button.send:hover, .button.send:focus-visible { color: #fff; background: #0e633d; border-color: #0e633d; }
+    .button:disabled { cursor: wait; opacity: 0.65; }
+    .save-status { color: var(--green); font-size: 12px; font-weight: 700; }
+    .send-result { flex-basis: 100%; margin: 2px 0 0; padding: 11px 13px; border-radius: 6px; font-size: 12px; }
+    .send-result.success { color: #145c3b; background: var(--green-light); border: 1px solid #a8d4bd; }
+    .send-result.error { color: #7f2019; background: var(--red-light); border: 1px solid #e5b2ad; }
+    .send-result.info { color: #285577; background: var(--blue-light); border: 1px solid #b5d1e6; }
+    .back-to-top {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 30;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      color: #fff;
+      background: var(--navy-2);
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 8px 22px rgba(4, 25, 48, 0.28);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 160ms ease, transform 160ms ease, background 160ms ease;
+    }
+    .back-to-top.is-visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .back-to-top:hover { background: var(--blue); }
+    .back-to-top svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .thank-you-dialog {
+      width: min(430px, calc(100% - 32px));
+      padding: 0;
+      color: var(--ink);
+      background: #fff;
+      border: 0;
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(4, 25, 48, 0.32);
+    }
+    .thank-you-dialog::backdrop { background: rgba(4, 25, 48, 0.58); }
+    .thank-you-content { padding: 28px; text-align: center; }
+    .thank-you-symbol {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 16px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--green);
+      border-radius: 50%;
+      font-size: 28px;
+      font-weight: 900;
+    }
+    .thank-you-dialog h2 { margin: 0 0 9px; font-size: 23px; }
+    .thank-you-dialog p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
+    .thank-you-close {
+      min-height: 42px;
+      margin-top: 22px;
+      padding: 9px 24px;
+      color: #fff;
+      background: var(--green);
+      border: 1px solid var(--green);
+      border-radius: 6px;
+      font-weight: 800;
+    }
+    .thank-you-close:hover, .thank-you-close:focus-visible { background: #0e633d; border-color: #0e633d; }
+
+    .validation-message {
+      margin: 0 0 16px;
+      padding: 13px 15px;
+      color: #7f2019;
+      background: var(--red-light);
+      border: 1px solid #e5b2ad;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1120px) {
+      .page { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .section-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .local-note { display: none; }
+      .task-row { grid-template-columns: minmax(220px, 1fr) minmax(300px, 1fr); }
+      .rating-head, .rating-row { grid-template-columns: minmax(240px, 1fr) 230px; }
+    }
+    @media (max-width: 760px) {
+      .topbar-inner, .page { width: min(100% - 24px, 1440px); }
+      .topbar-inner { min-height: 68px; gap: 10px; }
+      .brand { flex: 1 1 auto; display: grid; grid-template-columns: 42px minmax(0, 1fr); grid-template-rows: auto auto; gap: 1px 7px; }
+      .brand-symbol { width: 42px; height: 42px; }
+      .brand-symbol { grid-row: 1 / 3; }
+      .brand-wordmark { width: 145px; max-width: 100%; align-self: end; }
+      .brand-divider { display: none; }
+      .brand-subtitle { display: block; align-self: start; color: #c6d9e8; font-size: 9px; line-height: 1.2; white-space: normal; }
+      .top-progress { width: 86px; flex: 0 0 auto; }
+      .top-progress span { display: none; }
+      .sidebar { padding: 14px; }
+      .sidebar h2, .sidebar > p { display: none; }
+      .section-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .intro { padding: 28px 22px; }
+      .intro h1 { font-size: 32px; }
+      .intro p { font-size: 15px; }
+      .form-section { padding: 26px 18px; }
+      .field-grid, .check-grid, .issue .field-grid, .issue .details-grid, .severity-key, .prompt-grid { grid-template-columns: 1fr; }
+      .prompt-grid .field:last-child:nth-child(odd) { grid-column: auto; }
+      .prompt-grid .field > label { min-height: 0; display: block; }
+      .upload-box { grid-template-columns: 1fr; }
+      .upload-button { width: 100%; }
+      .task-row, .rating-head, .rating-row { grid-template-columns: 1fr; gap: 10px; }
+      .rating-head { display: none; }
+      .scale { grid-template-columns: repeat(5, minmax(38px, 1fr)); }
+      .scale label, .scale span { width: 100%; }
+      .form-actions { position: static; padding: 16px 12px; }
+      .button { flex: 1 1 160px; }
+      .button.send { margin-left: 0; flex-basis: 100%; }
+    }
+
+    @media print {
+      @page { size: A4; margin: 14mm 12mm; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      html, body { background: #fff; font-size: 10pt; }
+      .sidebar, .form-actions, .validation-message, .back-to-top, .language-select, .thank-you-dialog { display: none !important; }
+      .topbar { position: static; box-shadow: none; }
+      .topbar-inner { width: 100%; min-height: 64px; }
+      .top-progress { display: none; }
+      .page { width: 100%; margin: 0; display: block; }
+      .content, .feedback-form { box-shadow: none; }
+      .intro { padding: 18px 20px; border-radius: 0; }
+      .intro h1 { font-size: 25pt; }
+      .intro p { font-size: 10pt; }
+      .form-section { padding: 18px 0; border-bottom: 1px solid #9eacb8; }
+      .section-heading { margin-bottom: 14px; }
+      .section-heading h2 { font-size: 18pt; }
+      .task-row, .rating-row, .issue, .check-option, .recommendation { break-inside: avoid; }
+      .task-row { grid-template-columns: 1.2fr 1fr; }
+      .rating-head, .rating-row { grid-template-columns: 1.25fr 190px; }
+      .scale { grid-template-columns: repeat(5, 32px); gap: 5px; }
+      .scale label, .scale span { width: 32px; height: 32px; }
+      input, select, textarea { box-shadow: none !important; }
+      textarea { overflow: visible; resize: none; }
+      .upload-button, .clear-files { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img class="brand-symbol" src="assets/signalerfassung-symbol.png" alt="">
+        <img class="brand-wordmark" src="assets/signalerfassung-wordmark.png" alt="Signalerfassung">
+        <span class="brand-divider" aria-hidden="true"></span>
+        <span class="brand-subtitle">Feedbackbogen für den Monteurtest</span>
+      </div>
+      <nav class="language-select" aria-label="Sprache">
+        <a href="?lang=de" data-language="de">DE</a>
+        <a href="?lang=en" data-language="en">EN</a>
+      </nav>
+      <div class="top-progress" aria-live="polite">
+        <span>Basisangaben</span>
+        <output id="progress-label">0 von 0</output>
+        <div class="progress-track" aria-hidden="true"><i id="progress-bar"></i></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+    <aside class="sidebar" aria-label="Abschnitte">
+      <h2>Abschnitte</h2>
+      <p>Du kannst jederzeit zwischen den Themen springen.</p>
+      <nav class="section-nav">
+        <a href="#angaben"><b>1</b><span>Angaben</span></a>
+        <a href="#testumfang"><b>2</b><span>Testumfang</span></a>
+        <a href="#bedienung"><b>3</b><span>Bedienung</span></a>
+        <a href="#auswertung"><b>4</b><span>Auswertung</span></a>
+        <a href="#export"><b>5</b><span>Export</span></a>
+        <a href="#fehler"><b>6</b><span>Fehler</span></a>
+        <a href="#gesamt"><b>7</b><span>Gesamturteil</span></a>
+      </nav>
+      <p class="local-note"><strong>Datenschutz:</strong> Bis zum Versand bleiben alle Eingaben und Anhänge ausschließlich in diesem Browser.</p>
+    </aside>
+
+    <main class="content">
+      <section class="intro">
+        <p class="eyebrow">Praxistest in der Werkstatt</p>
+        <h1>Deine Erfahrung zählt.</h1>
+        <p>Teste das Programm mit echten Arbeitsabläufen und sag offen, was funktioniert, was bremst und was vor dem nächsten Testlauf verbessert werden sollte.</p>
+        <div class="scale-note">
+          <strong>Bewertung:</strong>
+          <span>1 = unbrauchbar</span>
+          <span>2 = schlecht</span>
+          <span>3 = brauchbar</span>
+          <span>4 = gut</span>
+          <span>5 = sehr gut</span>
+        </div>
+      </section>
+
+      <form class="feedback-form" id="feedback-form" novalidate>
+        <section class="form-section" id="angaben">
+          <div class="section-heading">
+            <span class="section-number">1</span>
+            <div><h2>Angaben zum Test</h2><p>Persönliche Angaben können mit einem Klick vollständig weggelassen werden.</p></div>
+          </div>
+
+          <div class="anonymous-box">
+            <label class="anonymous-option" for="anonymous">
+              <input id="anonymous" name="anonymous" type="checkbox">
+              <span>Anonym ausfüllen<small>Name, Werkstatt und Funktion werden dann nicht abgefragt und nicht gespeichert.</small></span>
+            </label>
+            <p class="anonymous-confirmation" id="anonymous-confirmation" hidden>Anonymer Modus aktiv. Es werden keine persönlichen Angaben benötigt.</p>
+          </div>
+
+          <div class="personal-fields" id="personal-fields">
+            <div class="field-grid">
+              <div class="field">
+                <label for="name">Vor- und Nachname <span class="required-mark">*</span></label>
+                <input id="name" name="name" type="text" autocomplete="name" maxlength="100" required placeholder="Max Mustermann">
+              </div>
+              <div class="field">
+                <label for="workshop">Standort / Werkstatt <span class="required-mark">*</span></label>
+                <input id="workshop" name="workshop" type="text" maxlength="120" required placeholder="z. B. Musterstadt">
+              </div>
+              <div class="field full">
+                <label for="role">Funktion und Erfahrung</label>
+                <input id="role" name="role" type="text" maxlength="180" placeholder="z. B. Kfz-Mechatroniker, 8 Jahre Diagnoseerfahrung">
+              </div>
+            </div>
+          </div>
+
+          <h3 class="subheading">Technische Testangaben</h3>
+          <div class="field-grid">
+            <div class="field">
+              <label for="test-date">Testdatum <span class="required-mark">*</span></label>
+              <input id="test-date" name="test_date" type="date" required>
+            </div>
+            <div class="field">
+              <label for="duration">Testdauer</label>
+              <input id="duration" name="duration" type="text" maxlength="80" placeholder="z. B. 45 Minuten">
+            </div>
+            <div class="field">
+              <label for="device">Gerät / Betriebssystem <span class="required-mark">*</span></label>
+              <input id="device" name="device" type="text" maxlength="120" required placeholder="z. B. Werkstatt-PC, Windows 11">
+            </div>
+            <div class="field">
+              <label for="browser">Browser <span class="required-mark">*</span></label>
+              <input id="browser" name="browser" type="text" maxlength="120" required placeholder="z. B. Edge 140">
+            </div>
+            <div class="field full">
+              <label for="version">Programmversion oder verwendeter Link</label>
+              <input id="version" name="version" type="text" maxlength="220" placeholder="Versionsnummer oder Link eintragen">
+            </div>
+            <div class="field full">
+              <span class="field-label">Verwendete Messdatei(en) <small>(optional)</small></span>
+              <div class="upload-box">
+                <div class="upload-copy">
+                  <strong>SDP3- oder SWS-Textdatei anhängen</strong>
+                  <span>Bis zu 3 TXT-Dateien, jeweils maximal 8 MB.</span>
+                </div>
+                <div class="upload-control">
+                  <input id="measurement-files" name="measurement_files" type="file" accept=".txt,text/plain" multiple data-file-kind="measurement">
+                  <label class="upload-button" for="measurement-files">TXT-Datei auswählen</label>
+                </div>
+                <div class="file-summary" id="measurement-files-summary" aria-live="polite"></div>
+              </div>
+              <p class="attachment-note">Die Datei bleibt bis zum Absenden ausschließlich in diesem Browser.</p>
+            </div>
+          </div>
+
+          <h3 class="subheading">Erfahrung mit Signalerfassungen</h3>
+          <div class="check-grid" id="experience-list"></div>
+        </section>
+
+        <section class="form-section" id="testumfang">
+          <div class="section-heading">
+            <span class="section-number">2</span>
+            <div><h2>Testumfang</h2><p>Bitte möglichst eine einfache, eine größere und einen schwierigen oder fehleranfälligen Fall testen.</p></div>
+          </div>
+          <div class="task-list" id="task-list"></div>
+        </section>
+
+        <section class="form-section" id="bedienung">
+          <div class="section-heading">
+            <span class="section-number">3</span>
+            <div><h2>Bedienung und Verständlichkeit</h2><p>Wie gut findet man sich ohne lange Einweisung zurecht?</p></div>
+          </div>
+          <div class="rating-list" id="ratings-usability"></div>
+          <div class="prompt-grid">
+            <div class="field"><label for="unclear">Was war beim ersten Benutzen unklar oder unnötig kompliziert?</label><textarea id="unclear" name="unclear" placeholder="Bitte möglichst konkret beschreiben"></textarea></div>
+            <div class="field"><label for="not-found">Welche Funktion hast du gesucht, aber nicht sofort gefunden?</label><textarea id="not-found" name="not_found" placeholder="Gesuchte Funktion und erwartete Stelle"></textarea></div>
+          </div>
+        </section>
+
+        <section class="form-section" id="auswertung">
+          <div class="section-heading">
+            <span class="section-number">4</span>
+            <div><h2>Fachliche Auswertung</h2><p>Hier geht es um Plausibilität, Nutzen und Verlässlichkeit der Ergebnisse.</p></div>
+          </div>
+          <div class="rating-list" id="ratings-analysis"></div>
+          <div class="prompt-grid">
+            <div class="field"><label for="wrong-values">Gab es fachlich falsche, fehlende oder unplausible Werte?</label><textarea id="wrong-values" name="wrong_values" placeholder="Datei, Signal, Zeitpunkt und Beispiel nennen"></textarea></div>
+            <div class="field"><label for="real-case">Bei welchem realen Diagnosefall hätte dir das Tool konkret geholfen?</label><textarea id="real-case" name="real_case" placeholder="Diagnosefall und erwarteter Nutzen"></textarea></div>
+          </div>
+        </section>
+
+        <section class="form-section" id="export">
+          <div class="section-heading">
+            <span class="section-number">5</span>
+            <div><h2>Exporte und Zusammenarbeit</h2><p>Sind Berichte und Dateien für Kollegen, Teamleitung oder Support brauchbar?</p></div>
+          </div>
+          <div class="rating-list" id="ratings-export"></div>
+          <div class="prompt-grid">
+            <div class="field"><label for="report-content">Was muss ein Bericht unbedingt enthalten, damit du ihn weitergibst?</label><textarea id="report-content" name="report_content" placeholder="Pflichtangaben, Diagramme, Kommentare oder Dateiinformationen"></textarea></div>
+            <div class="field"><label for="export-change">Welche Exportfunktion ist überflüssig, fehlt oder müsste anders heißen?</label><textarea id="export-change" name="export_change" placeholder="Gewünschte Änderung oder fehlender Export"></textarea></div>
+          </div>
+        </section>
+
+        <section class="form-section" id="fehler">
+          <div class="section-heading">
+            <span class="section-number">6</span>
+            <div><h2>Fehler und Verbesserungspunkte</h2><p>Dieser Abschnitt ist freiwillig. Bei Bedarf können einzelne Punkte ergänzt und wieder eingeklappt werden.</p></div>
+          </div>
+          <div class="severity-key" aria-label="Bedeutung der Einstufungen">
+            <div><strong>Blocker</strong>Programm nicht sinnvoll nutzbar oder Ergebnis falsch.</div>
+            <div><strong>Hoch</strong>Ablauf stark behindert, kaum ein Workaround.</div>
+            <div><strong>Mittel</strong>Stört im Alltag, Workaround ist möglich.</div>
+            <div><strong>Niedrig</strong>Komfort, Formulierung, Optik oder Wunsch.</div>
+          </div>
+          <input id="issue-order" name="issue_order" type="hidden" value="">
+          <div class="issue-list" id="issue-list"></div>
+          <div class="issue-actions">
+            <button class="add-issue" id="add-issue" type="button">+ Fehler oder Verbesserung hinzufügen</button>
+          </div>
+        </section>
+
+        <section class="form-section" id="gesamt">
+          <div class="section-heading">
+            <span class="section-number">7</span>
+            <div><h2>Gesamturteil</h2><p>Zum Abschluss zählt dein ehrlicher Gesamteindruck.</p></div>
+          </div>
+          <div class="rating-list" id="ratings-overall"></div>
+
+          <h3 class="subheading">Freigabe-Einschätzung</h3>
+          <div class="recommendations" id="recommendations"></div>
+
+          <div class="prompt-grid">
+            <div class="field"><label for="top-changes">Die drei wichtigsten Änderungen vor dem nächsten Testlauf</label><textarea id="top-changes" name="top_changes" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea></div>
+            <div class="field"><label for="keep">Was sollte auf keinen Fall geändert werden, weil es bereits gut funktioniert?</label><textarea id="keep" name="keep" placeholder="Stärken des aktuellen Programms"></textarea></div>
+            <div class="field"><label for="further-notes">Weitere Hinweise, Wünsche oder Beispiele</label><textarea id="further-notes" name="further_notes" placeholder="Alles, was bisher noch keinen Platz gefunden hat"></textarea></div>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          <button class="button" id="save-draft" type="button">Zwischenspeichern</button>
+          <button class="button" id="print-feedback" type="button">Als PDF speichern</button>
+          <button class="button send" id="send-feedback" type="button">Feedback an Entwickler senden</button>
+          <span class="save-status" id="save-status" role="status" aria-live="polite"></span>
+          <p class="send-result" id="send-result" role="status" aria-live="polite" hidden></p>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <button class="back-to-top" id="back-to-top" type="button" title="Zum Seitenanfang" aria-label="Zum Seitenanfang">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg>
+  </button>
+
+  <dialog class="thank-you-dialog" id="thank-you-dialog" aria-labelledby="thank-you-title">
+    <div class="thank-you-content">
+      <div class="thank-you-symbol" aria-hidden="true">✓</div>
+      <h2 id="thank-you-title">Vielen Dank für dein Feedback!</h2>
+      <p>Deine Rückmeldung ist bei uns angekommen. Sie hilft uns sehr dabei, die Signalerfassung für den Werkstattalltag gezielt weiterzuentwickeln.</p>
+      <button class="thank-you-close" id="thank-you-close" type="button">Fenster schließen</button>
+    </div>
+  </dialog>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const languageParameter = new URLSearchParams(window.location.search).get("lang");
+      const activeLanguage = languageParameter === "en" ? "en" : "de";
+      const english = activeLanguage === "en";
+      const STORAGE_KEY = `signalerfassung-feedback-monteurtest-v1-${activeLanguage}`;
+      const form = document.getElementById("feedback-form");
+      const anonymous = document.getElementById("anonymous");
+      const personalFields = document.getElementById("personal-fields");
+      const anonymousConfirmation = document.getElementById("anonymous-confirmation");
+      const saveStatus = document.getElementById("save-status");
+      const sendResult = document.getElementById("send-result");
+      const issueList = document.getElementById("issue-list");
+      const issueOrder = document.getElementById("issue-order");
+      const backToTop = document.getElementById("back-to-top");
+      const thankYouDialog = document.getElementById("thank-you-dialog");
+      let nextIssueIndex = 0;
+
+      const text = english ? {
+        progress: (completed, total) => `${completed} of ${total}`,
+        taskAria: (number) => `Result for task ${number}`,
+        ok: "OK", notOk: "Not OK", notTested: "Not tested",
+        checkpoint: "Checkpoint", rating: "Rating 1 to 5", ratingTitle: (value) => `Rating ${value}`,
+        point: "Item", issueFallback: "Error, obstacle or improvement",
+        noIssues: "No error or improvement has been added yet.", choose: "Please select",
+        high: "High", medium: "Medium", low: "Low",
+        severity: "Severity", shortTitle: "Short title", whatAbout: "What is it about?",
+        did: "What did you do?", steps: "Steps leading to the problem",
+        happened: "What happened?", actual: "Actual behaviour",
+        expectedQuestion: "What did you expect?", expected: "Expected behaviour",
+        attachScreenshots: "Attach screenshots for this item", screenshotLimits: "Up to 4 PNG or JPG files, maximum 4 MB each.",
+        selectScreenshots: "Select screenshots", removePoint: "Remove this item", clearFiles: "Clear selection",
+        fileAlert: (count, type, limit) => `Please select no more than ${count} ${type}, with a maximum of ${limit} per file.`,
+        txtFiles: "TXT files", imageFiles: "PNG/JPG files",
+        anonymousActive: "Anonymous mode is active. No personal details are required.",
+        draftSaved: "Draft saved locally.", draftLoaded: "Saved draft loaded.",
+        noAnswer: "No answer", validation: "Please complete the basic information marked in red. All ratings and error items are optional.",
+        deleted: "All entries have been deleted.", deleteConfirm: "Do you really want to delete all entries and the locally saved draft?",
+        sendLocal: "Feedback can only be sent from the hosted questionnaire.",
+        sendBusy: "Sending feedback...", sendSuccess: "Thank you. Your feedback has been sent to the developer.",
+        sendError: "The feedback could not be sent. Please try again.",
+        totalTooLarge: "The attachments are too large in total. Please reduce them to no more than 12 MB.",
+        created: "Created", yes: "Yes", no: "No", noneAttached: "No file attached", noSelection: "No selection",
+        reportThanks: "Thank you for your honest feedback."
+      } : {
+        progress: (completed, total) => `${completed} von ${total}`,
+        taskAria: (number) => `Ergebnis Aufgabe ${number}`,
+        ok: "OK", notOk: "Nicht OK", notTested: "Nicht getestet",
+        checkpoint: "Prüfpunkt", rating: "Bewertung 1 bis 5", ratingTitle: (value) => `Bewertung ${value}`,
+        point: "Punkt", issueFallback: "Fehler, Hindernis oder Verbesserung",
+        noIssues: "Noch kein Fehler oder Verbesserungspunkt eingetragen.", choose: "Bitte wählen",
+        high: "Hoch", medium: "Mittel", low: "Niedrig",
+        severity: "Einstufung", shortTitle: "Kurztitel", whatAbout: "Worum geht es?",
+        did: "Was hast du getan?", steps: "Schritte bis zum Problem",
+        happened: "Was ist passiert?", actual: "Tatsächliches Verhalten",
+        expectedQuestion: "Was hast du erwartet?", expected: "Erwartetes Verhalten",
+        attachScreenshots: "Screenshots zu diesem Punkt anhängen", screenshotLimits: "Bis zu 4 PNG- oder JPG-Dateien, jeweils maximal 4 MB.",
+        selectScreenshots: "Screenshots auswählen", removePoint: "Diesen Punkt entfernen", clearFiles: "Auswahl löschen",
+        fileAlert: (count, type, limit) => `Bitte höchstens ${count} ${type} mit maximal ${limit} pro Datei auswählen.`,
+        txtFiles: "TXT-Dateien", imageFiles: "PNG-/JPG-Dateien",
+        anonymousActive: "Anonymer Modus aktiv. Es werden keine persönlichen Angaben benötigt.",
+        draftSaved: "Entwurf lokal gespeichert.", draftLoaded: "Gespeicherter Entwurf geladen.",
+        noAnswer: "Keine Angabe", validation: "Bitte fülle nur noch die rot markierten Basisangaben aus. Alle Bewertungen und Fehlerpunkte sind freiwillig.",
+        deleted: "Alle Eingaben wurden gelöscht.", deleteConfirm: "Sollen wirklich alle Eingaben und der lokal gespeicherte Entwurf gelöscht werden?",
+        sendLocal: "Feedback kann nur über den veröffentlichten Fragebogen versendet werden.",
+        sendBusy: "Feedback wird gesendet...", sendSuccess: "Vielen Dank. Dein Feedback wurde an den Entwickler gesendet.",
+        sendError: "Das Feedback konnte nicht gesendet werden. Bitte versuche es erneut.",
+        totalTooLarge: "Die Anhänge sind insgesamt zu groß. Bitte reduziere sie auf höchstens 12 MB.",
+        created: "Erstellt", yes: "Ja", no: "Nein", noneAttached: "Keine Datei angehängt", noSelection: "Keine Auswahl",
+        reportThanks: "Vielen Dank für das ehrliche Feedback."
+      };
+
+      let experienceItems = [
+        "Ich nutze SDP3-Signalerfassungen regelmäßig.",
+        "Ich nutze SWS-Signalerfassungen regelmäßig.",
+        "Ich werte Signale bisher meistens manuell aus.",
+        "Ich nutze Excel oder Screenshots zur Auswertung.",
+        "Ich teste mit echten Kundenfällen.",
+        "Ich teste mit Beispiel- oder Schulungsdaten."
+      ];
+
+      let taskItems = [
+        "Programm öffnen, Zugriff prüfen und die erste Orientierung ohne zusätzliche Erklärung bewerten.",
+        "Eine SDP3-Textdatei importieren und prüfen, ob Signale, Zeiten und Werte plausibel erkannt werden.",
+        "Eine SWS-Textdatei importieren und prüfen, ob Format, Spalten und Werte korrekt verarbeitet werden.",
+        "Zwischen Tabelle und Diagramm wechseln sowie ein relevantes Signal über Suche oder Filter finden.",
+        "Diagramm zoomen, verschieben, Marker setzen und Messpunkte vergleichen.",
+        "Notizen oder Hinweise eintragen und später wiederfinden.",
+        "PDF-, Excel-, Projekt- oder Support-Export erzeugen und die Vollständigkeit prüfen.",
+        "Hilfe und Fehlermeldungen prüfen, möglichst auch mit falscher, leerer oder sehr großer Datei."
+      ];
+
+      let ratingSections = {
+        usability: {
+          target: "ratings-usability",
+          title: "Bedienung und Verständlichkeit",
+          items: [
+            "Der Einstieg ist ohne lange Erklärung verständlich.",
+            "Die Oberfläche wirkt aufgeräumt und nicht überladen.",
+            "Wichtige Funktionen sind dort, wo man sie erwartet.",
+            "Begriffe, Beschriftungen und Schaltflächen sind fachlich verständlich.",
+            "Import, Tabelle, Diagramm, Suche und Filter sind logisch zu bedienen.",
+            "Das Programm reagiert schnell und Fehlermeldungen helfen weiter."
+          ]
+        },
+        analysis: {
+          target: "ratings-analysis",
+          title: "Fachliche Auswertung",
+          items: [
+            "Die importierten Signale werden vollständig und nachvollziehbar angezeigt.",
+            "Zeitachse, Werte und Einheiten wirken plausibel.",
+            "Diagramm und Signalvergleich helfen beim Erkennen von Zusammenhängen.",
+            "Relevante Auffälligkeiten sind schneller erkennbar als bisher.",
+            "Marker, Zeitbereiche und Kommentare unterstützen die Diagnose ausreichend genau.",
+            "Auch größere Dateien bleiben stabil und die Auswertung spart Zeit."
+          ]
+        },
+        export: {
+          target: "ratings-export",
+          title: "Exporte und Zusammenarbeit",
+          items: [
+            "Der PDF-Bericht enthält die Informationen, die ich weitergeben würde.",
+            "Excel-Export oder Datentabelle sind für Nacharbeit brauchbar.",
+            "Diagramme und Berichte sind gut lesbar und enthalten die richtige Informationsmenge.",
+            "Projektdatei und Support-ZIP erleichtern längere Fälle und Rückfragen."
+          ]
+        },
+        overall: {
+          target: "ratings-overall",
+          title: "Gesamturteil",
+          items: [
+            "Ich würde das Tool im Werkstattalltag freiwillig nutzen.",
+            "Ich würde das Tool einem Kollegen erklären oder empfehlen.",
+            "Das Tool ist für echte Kundenfälle ausreichend zuverlässig und spart Aufwand.",
+            "Das Tool ist reif genug für einen größeren Pilotbetrieb."
+          ]
+        }
+      };
+
+      let recommendationItems = [
+        "Sofort mit einer größeren Monteurgruppe weiter testen.",
+        "Erst kleine Korrekturen umsetzen, dann weiter testen.",
+        "Vorher größere fachliche oder technische Punkte klären.",
+        "Aktuell noch nicht für den Werkstattalltag geeignet."
+      ];
+
+      if (english) {
+        experienceItems = [
+          "I regularly work with SDP3 signal recordings.",
+          "I regularly work with SWS signal recordings.",
+          "I currently analyse signals mostly manually.",
+          "I use Excel or screenshots for analysis.",
+          "I am testing with real customer cases.",
+          "I am testing with sample or training data."
+        ];
+        taskItems = [
+          "Open the application, check access and assess the initial orientation without additional explanation.",
+          "Import an SDP3 text file and check whether signals, times and values are recognised plausibly.",
+          "Import an SWS text file and check whether format, columns and values are processed correctly.",
+          "Switch between table and chart and find a relevant signal using search or filters.",
+          "Zoom and move the chart, set markers and compare measurement points.",
+          "Enter notes or comments and find them again later.",
+          "Create a PDF, Excel, project or support export and check it for completeness.",
+          "Check help and error messages, ideally also with an invalid, empty or very large file."
+        ];
+        ratingSections = {
+          usability: {
+            target: "ratings-usability", title: "Usability and clarity", items: [
+              "Getting started is understandable without a lengthy explanation.",
+              "The interface feels organised and not overloaded.",
+              "Important functions are where I expect them to be.",
+              "Terms, labels and buttons are technically understandable.",
+              "Import, table, chart, search and filters are logical to use.",
+              "The application responds quickly and error messages are helpful."
+            ]
+          },
+          analysis: {
+            target: "ratings-analysis", title: "Technical analysis", items: [
+              "Imported signals are displayed completely and traceably.",
+              "Timeline, values and units appear plausible.",
+              "The chart and signal comparison help identify relationships.",
+              "Relevant anomalies can be identified faster than before.",
+              "Markers, time ranges and comments support diagnosis with sufficient accuracy.",
+              "Larger files remain stable and the analysis saves time."
+            ]
+          },
+          export: {
+            target: "ratings-export", title: "Exports and collaboration", items: [
+              "The PDF report contains the information I would pass on.",
+              "The Excel export or data table is useful for further work.",
+              "Charts and reports are easy to read and contain the right amount of information.",
+              "The project file and support ZIP make longer cases and follow-up questions easier."
+            ]
+          },
+          overall: {
+            target: "ratings-overall", title: "Overall assessment", items: [
+              "I would voluntarily use the tool in everyday workshop work.",
+              "I would explain or recommend the tool to a colleague.",
+              "The tool is reliable enough for real customer cases and saves effort.",
+              "The tool is mature enough for a larger pilot operation."
+            ]
+          }
+        };
+        recommendationItems = [
+          "Continue testing immediately with a larger group of technicians.",
+          "Implement minor corrections first, then continue testing.",
+          "Clarify major technical or functional issues first.",
+          "Not yet suitable for everyday workshop use."
+        ];
+      }
+
+      const staticEnglish = {
+        "Feedbackbogen für den Monteurtest": "Technician Test Feedback Form",
+        "Sprache": "Language", "Basisangaben": "Basic information", "Abschnitte": "Sections",
+        "Du kannst jederzeit zwischen den Themen springen.": "You can jump between sections at any time.",
+        "Angaben": "Details", "Testumfang": "Test scope", "Bedienung": "Usability", "Auswertung": "Analysis",
+        "Export": "Export", "Fehler": "Issues", "Gesamturteil": "Overall assessment",
+        "Datenschutz:": "Privacy:",
+        "Bis zum Versand bleiben alle Eingaben und Anhänge ausschließlich in diesem Browser.": "Until the form is submitted, all entries and attachments remain exclusively in this browser.",
+        "Praxistest in der Werkstatt": "Practical workshop test", "Deine Erfahrung zählt.": "Your experience matters.",
+        "Teste das Programm mit echten Arbeitsabläufen und sag offen, was funktioniert, was bremst und was vor dem nächsten Testlauf verbessert werden sollte.": "Test the application in real workflows and tell us openly what works, what slows you down and what should be improved before the next test run.",
+        "Bewertung:": "Rating:", "1 = unbrauchbar": "1 = unusable", "2 = schlecht": "2 = poor", "3 = brauchbar": "3 = usable", "4 = gut": "4 = good", "5 = sehr gut": "5 = very good",
+        "Angaben zum Test": "Test information", "Persönliche Angaben können mit einem Klick vollständig weggelassen werden.": "Personal details can be omitted completely with one click.",
+        "Anonym ausfüllen": "Complete anonymously", "Name, Werkstatt und Funktion werden dann nicht abgefragt und nicht gespeichert.": "Name, workshop and role will not be requested or stored.",
+        "Anonymer Modus aktiv. Es werden keine persönlichen Angaben benötigt.": "Anonymous mode is active. No personal details are required.",
+        "Vor- und Nachname": "First and last name", "Standort / Werkstatt": "Location / workshop", "Funktion und Erfahrung": "Role and experience",
+        "Technische Testangaben": "Technical test information", "Testdatum": "Test date", "Testdauer": "Test duration",
+        "Gerät / Betriebssystem": "Device / operating system", "Browser": "Browser", "Programmversion oder verwendeter Link": "Application version or link used",
+        "Verwendete Messdatei(en)": "Measurement file(s) used", "(optional)": "(optional)",
+        "SDP3- oder SWS-Textdatei anhängen": "Attach SDP3 or SWS text file", "Bis zu 3 TXT-Dateien, jeweils maximal 8 MB.": "Up to 3 TXT files, maximum 8 MB each.",
+        "TXT-Datei auswählen": "Select TXT file", "Die Datei bleibt bis zum Absenden ausschließlich in diesem Browser.": "The file remains exclusively in this browser until it is submitted.",
+        "Erfahrung mit Signalerfassungen": "Experience with signal recordings",
+        "Bitte möglichst eine einfache, eine größere und einen schwierigen oder fehleranfälligen Fall testen.": "If possible, test one simple, one larger and one difficult or error-prone case.",
+        "Bedienung und Verständlichkeit": "Usability and clarity", "Wie gut findet man sich ohne lange Einweisung zurecht?": "How easy is it to use without lengthy instruction?",
+        "Was war beim ersten Benutzen unklar oder unnötig kompliziert?": "What was unclear or unnecessarily complicated the first time you used it?",
+        "Welche Funktion hast du gesucht, aber nicht sofort gefunden?": "Which function did you look for but not find immediately?",
+        "Fachliche Auswertung": "Technical analysis", "Hier geht es um Plausibilität, Nutzen und Verlässlichkeit der Ergebnisse.": "This section is about plausibility, usefulness and reliability of the results.",
+        "Gab es fachlich falsche, fehlende oder unplausible Werte?": "Were there any technically incorrect, missing or implausible values?",
+        "Bei welchem realen Diagnosefall hätte dir das Tool konkret geholfen?": "In which real diagnostic case would the tool have helped you?",
+        "Exporte und Zusammenarbeit": "Exports and collaboration", "Sind Berichte und Dateien für Kollegen, Teamleitung oder Support brauchbar?": "Are reports and files useful for colleagues, team leaders or support?",
+        "Was muss ein Bericht unbedingt enthalten, damit du ihn weitergibst?": "What must a report contain before you would pass it on?",
+        "Welche Exportfunktion ist überflüssig, fehlt oder müsste anders heißen?": "Which export function is unnecessary, missing or should be named differently?",
+        "Fehler und Verbesserungspunkte": "Errors and improvement items", "Dieser Abschnitt ist freiwillig. Bei Bedarf können einzelne Punkte ergänzt und wieder eingeklappt werden.": "This section is optional. Add individual items as needed and collapse them again.",
+        "Bedeutung der Einstufungen": "Meaning of severity levels", "Programm nicht sinnvoll nutzbar oder Ergebnis falsch.": "Application cannot be used meaningfully or the result is incorrect.",
+        "Hoch": "High", "Mittel": "Medium", "Niedrig": "Low", "Ablauf stark behindert, kaum ein Workaround.": "Workflow severely obstructed with hardly any workaround.", "Stört im Alltag, Workaround ist möglich.": "Disruptive in everyday work, but a workaround is possible.",
+        "Komfort, Formulierung, Optik oder Wunsch.": "Convenience, wording, appearance or feature request.", "+ Fehler oder Verbesserung hinzufügen": "+ Add error or improvement",
+        "Zum Abschluss zählt dein ehrlicher Gesamteindruck.": "Finally, your honest overall impression matters.", "Freigabe-Einschätzung": "Release assessment",
+        "Die drei wichtigsten Änderungen vor dem nächsten Testlauf": "The three most important changes before the next test run",
+        "Was sollte auf keinen Fall geändert werden, weil es bereits gut funktioniert?": "What should definitely not be changed because it already works well?",
+        "Weitere Hinweise, Wünsche oder Beispiele": "Further comments, requests or examples", "Zwischenspeichern": "Save draft", "Als PDF speichern": "Save as PDF",
+        "Feedback an Entwickler senden": "Send feedback to developer",
+        "Vielen Dank für dein Feedback!": "Thank you for your feedback!",
+        "Deine Rückmeldung ist bei uns angekommen. Sie hilft uns sehr dabei, die Signalerfassung für den Werkstattalltag gezielt weiterzuentwickeln.": "Your feedback has arrived safely. It helps us improve the Signal Capture Analysis Tool specifically for everyday workshop use.",
+        "Fenster schließen": "Close window"
+      };
+
+      const placeholderEnglish = {
+        "z. B. Musterstadt": "e.g. Sampletown", "z. B. Kfz-Mechatroniker, 8 Jahre Diagnoseerfahrung": "e.g. vehicle technician, 8 years of diagnostic experience",
+        "z. B. 45 Minuten": "e.g. 45 minutes", "z. B. Werkstatt-PC, Windows 11": "e.g. workshop PC, Windows 11", "z. B. Edge 140": "e.g. Edge 140",
+        "Versionsnummer oder Link eintragen": "Enter version number or link", "Bitte möglichst konkret beschreiben": "Please describe as specifically as possible",
+        "Gesuchte Funktion und erwartete Stelle": "Function searched for and expected location", "Datei, Signal, Zeitpunkt und Beispiel nennen": "Name the file, signal, time and example",
+        "Diagnosefall und erwarteter Nutzen": "Diagnostic case and expected benefit", "Pflichtangaben, Diagramme, Kommentare oder Dateiinformationen": "Required details, charts, comments or file information",
+        "Gewünschte Änderung oder fehlender Export": "Requested change or missing export", "Stärken des aktuellen Programms": "Strengths of the current application",
+        "Alles, was bisher noch keinen Platz gefunden hat": "Anything that has not found a place yet"
+      };
+
+      function applyLanguage() {
+        document.documentElement.lang = activeLanguage;
+        document.title = english ? "Technician Test Feedback Form | Signal Capture Analysis Tool" : "Feedbackbogen Monteurtest | Signalerfassung Analyse-Tool";
+        document.querySelectorAll("[data-language]").forEach((link) => link.setAttribute("aria-current", String(link.dataset.language === activeLanguage)));
+        if (!english) return;
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) {
+          const value = node.nodeValue.trim();
+          if (staticEnglish[value]) node.nodeValue = node.nodeValue.replace(value, staticEnglish[value]);
+        }
+        document.querySelectorAll("[placeholder]").forEach((element) => {
+          if (placeholderEnglish[element.placeholder]) element.placeholder = placeholderEnglish[element.placeholder];
+        });
+        document.querySelector(".sidebar")?.setAttribute("aria-label", "Sections");
+        document.querySelector(".language-select")?.setAttribute("aria-label", "Language");
+        document.querySelector(".severity-key")?.setAttribute("aria-label", "Meaning of severity levels");
+        backToTop.title = "Back to top";
+        backToTop.setAttribute("aria-label", "Back to top");
+      }
+
+      const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (character) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", "\"": "&quot;"
+      })[character]);
+
+      function renderExperience() {
+        document.getElementById("experience-list").innerHTML = experienceItems.map((item, index) => `
+          <label class="check-option" for="experience-${index}">
+            <input id="experience-${index}" name="experience_${index}" type="checkbox" value="${escapeHtml(item)}">
+            <span>${escapeHtml(item)}</span>
+          </label>`).join("");
+      }
+
+      function renderTasks() {
+        document.getElementById("task-list").innerHTML = taskItems.map((item, index) => {
+          const name = `task_${index}`;
+          return `
+            <div class="task-row">
+              <div class="task-copy"><b>${String(index + 1).padStart(2, "0")}</b><span>${escapeHtml(item)}</span></div>
+              <div class="segmented" role="group" aria-label="${text.taskAria(index + 1)}">
+                <label><input id="${name}-ok" name="${name}" type="radio" value="${text.ok}"><span>${text.ok}</span></label>
+                <label class="is-problem"><input id="${name}-not-ok" name="${name}" type="radio" value="${text.notOk}"><span>${text.notOk}</span></label>
+                <label><input id="${name}-not-tested" name="${name}" type="radio" value="${text.notTested}"><span>${text.notTested}</span></label>
+              </div>
+            </div>`;
+        }).join("");
+      }
+
+      function renderRatings() {
+        Object.entries(ratingSections).forEach(([key, section]) => {
+          const target = document.getElementById(section.target);
+          target.innerHTML = `
+            <div class="rating-head"><span>${text.checkpoint}</span><span>${text.rating}</span></div>
+            ${section.items.map((item, index) => {
+              const group = `rating_${key}_${index}`;
+              return `
+                <div class="rating-row">
+                  <div class="rating-question" id="${group}-question">${escapeHtml(item)}</div>
+                  <div class="scale" role="radiogroup" aria-labelledby="${group}-question">
+                    ${[1, 2, 3, 4, 5].map((value) => `<label title="${text.ratingTitle(value)}"><input id="${group}-${value}" name="${group}" type="radio" value="${value}"><span>${value}</span></label>`).join("")}
+                  </div>
+                </div>`;
+            }).join("")}`;
+        });
+      }
+
+      function updateIssueOrder() {
+        const issues = [...issueList.querySelectorAll(".issue")];
+        issueOrder.value = issues.map((issue) => issue.dataset.issueIndex).join(",");
+        issues.forEach((issue, position) => {
+          const number = issue.querySelector(".issue-number");
+          if (number) number.textContent = `${text.point} ${position + 1}`;
+        });
+        const empty = issueList.querySelector(".issue-empty");
+        if (!issues.length && !empty) issueList.innerHTML = `<p class="issue-empty">${text.noIssues}</p>`;
+        if (issues.length && empty) empty.remove();
+      }
+
+      function issueMarkup(index) {
+        return `
+          <details class="issue" data-issue-index="${index}" open>
+            <summary><span class="issue-number">${text.point}</span><span class="issue-summary-title" id="issue-summary-${index}">${text.issueFallback}</span></summary>
+            <div class="issue-body">
+            <div class="field-grid">
+              <div class="field">
+                <label for="issue-severity-${index}">${text.severity}</label>
+                <select id="issue-severity-${index}" name="issue_severity_${index}">
+                  <option value="">${text.choose}</option>
+                  <option>Blocker</option><option>${text.high}</option><option>${text.medium}</option><option>${text.low}</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="issue-title-${index}">${text.shortTitle}</label>
+                <input id="issue-title-${index}" name="issue_title_${index}" type="text" maxlength="180" placeholder="${text.whatAbout}">
+              </div>
+            </div>
+            <div class="details-grid">
+              <div class="field"><label for="issue-steps-${index}">${text.did}</label><textarea id="issue-steps-${index}" name="issue_steps_${index}" placeholder="${text.steps}"></textarea></div>
+              <div class="field"><label for="issue-actual-${index}">${text.happened}</label><textarea id="issue-actual-${index}" name="issue_actual_${index}" placeholder="${text.actual}"></textarea></div>
+              <div class="field"><label for="issue-expected-${index}">${text.expectedQuestion}</label><textarea id="issue-expected-${index}" name="issue_expected_${index}" placeholder="${text.expected}"></textarea></div>
+            </div>
+            <div class="upload-box">
+              <div class="upload-copy">
+                <strong>${text.attachScreenshots}</strong>
+                <span>${text.screenshotLimits}</span>
+              </div>
+              <div class="upload-control">
+                <input id="issue-files-${index}" name="issue_files_${index}" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" multiple data-file-kind="screenshot" data-issue-index="${index}">
+                <label class="upload-button" for="issue-files-${index}">${text.selectScreenshots}</label>
+              </div>
+              <div class="file-summary" id="issue-files-${index}-summary" aria-live="polite"></div>
+            </div>
+            <button class="remove-issue" type="button" data-remove-issue="${index}">${text.removePoint}</button>
+            </div>
+          </details>`;
+      }
+
+      function addIssue(forcedIndex) {
+        const index = Number.isInteger(forcedIndex) ? forcedIndex : nextIssueIndex;
+        nextIssueIndex = Math.max(nextIssueIndex, index + 1);
+        issueList.querySelector(".issue-empty")?.remove();
+        issueList.insertAdjacentHTML("beforeend", issueMarkup(index));
+        updateIssueOrder();
+        if (!Number.isInteger(forcedIndex)) issueList.lastElementChild?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      function renderIssues(indices = []) {
+        issueList.innerHTML = "";
+        nextIssueIndex = 0;
+        indices.forEach((index) => addIssue(index));
+        updateIssueOrder();
+      }
+
+      function renderRecommendations() {
+        document.getElementById("recommendations").innerHTML = recommendationItems.map((item, index) => `
+          <label class="recommendation" for="recommendation-${index}">
+            <input id="recommendation-${index}" name="recommendation" type="radio" value="${escapeHtml(item)}">
+            <span>${escapeHtml(item)}</span>
+          </label>`).join("");
+      }
+
+      function formatFileSize(bytes) {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+      }
+
+      function fileNames(inputId) {
+        const input = document.getElementById(inputId);
+        return input ? [...input.files].map((file) => file.name) : [];
+      }
+
+      function updateFileSummary(input) {
+        const summary = document.getElementById(`${input.id}-summary`);
+        if (!summary) return;
+        const files = [...input.files];
+        summary.innerHTML = files.map((file) => `
+          <div class="file-entry"><b>${escapeHtml(file.name)}</b><span>${formatFileSize(file.size)}</span></div>`).join("");
+        if (files.length) {
+          summary.insertAdjacentHTML("beforeend", `<button class="clear-files" type="button" data-clear-files="${input.id}">${text.clearFiles}</button>`);
+        }
+      }
+
+      function validateFiles(input) {
+        const files = [...input.files];
+        const isMeasurement = input.dataset.fileKind === "measurement";
+        const maxCount = isMeasurement ? 3 : 4;
+        const maxSize = isMeasurement ? 8 * 1024 * 1024 : 4 * 1024 * 1024;
+        const validExtension = isMeasurement
+          ? (name) => /\.txt$/i.test(name)
+          : (name) => /\.(png|jpe?g)$/i.test(name);
+        const invalid = files.find((file) => !validExtension(file.name) || file.size > maxSize);
+        if (files.length > maxCount || invalid) {
+          const type = isMeasurement ? text.txtFiles : text.imageFiles;
+          const limit = isMeasurement ? "8 MB" : "4 MB";
+          window.alert(text.fileAlert(maxCount, type, limit));
+          input.value = "";
+        }
+        updateFileSummary(input);
+      }
+
+      function setAnonymousMode() {
+        const personalInputs = personalFields.querySelectorAll("input, select, textarea");
+        personalFields.classList.toggle("is-disabled", anonymous.checked);
+        anonymousConfirmation.hidden = !anonymous.checked;
+        personalInputs.forEach((input) => {
+          input.disabled = anonymous.checked;
+          if (input.id === "name" || input.id === "workshop") input.required = !anonymous.checked;
+          if (anonymous.checked) input.value = "";
+        });
+        updateProgress();
+      }
+
+      function getRequiredState() {
+        const activeRequired = [...form.querySelectorAll("[required]:not(:disabled)")];
+        const groups = new Map();
+        activeRequired.forEach((field) => {
+          const key = field.type === "radio" ? `radio:${field.name}` : `field:${field.id}`;
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(field);
+        });
+        let completed = 0;
+        groups.forEach((fields) => {
+          const first = fields[0];
+          if (first.type === "radio") {
+            if (fields.some((field) => field.checked)) completed += 1;
+          } else if (String(first.value).trim()) {
+            completed += 1;
+          }
+        });
+        return { completed, total: groups.size };
+      }
+
+      function updateProgress() {
+        const { completed, total } = getRequiredState();
+        document.getElementById("progress-label").textContent = text.progress(completed, total);
+        document.getElementById("progress-bar").style.width = `${total ? Math.round((completed / total) * 100) : 0}%`;
+      }
+
+      function saveDraft(showMessage = true) {
+        const fields = {};
+        [...form.elements].forEach((element) => {
+          if (!element.id || element.type === "button" || element.type === "file") return;
+          fields[element.id] = element.type === "checkbox" || element.type === "radio"
+            ? { checked: element.checked }
+            : { value: element.value };
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ savedAt: new Date().toISOString(), fields }));
+        if (showMessage) {
+          saveStatus.textContent = text.draftSaved;
+          window.setTimeout(() => { saveStatus.textContent = ""; }, 3000);
+        }
+      }
+
+      function restoreDraft() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        try {
+          const draft = JSON.parse(raw);
+          const savedOrder = String(draft.fields?.["issue-order"]?.value || "")
+            .split(",")
+            .map((value) => Number(value))
+            .filter((value) => Number.isInteger(value) && value >= 0);
+          renderIssues(savedOrder);
+          Object.entries(draft.fields || {}).forEach(([id, state]) => {
+            const element = document.getElementById(id);
+            if (!element || element.type === "file") return;
+            if (element.type === "checkbox" || element.type === "radio") element.checked = Boolean(state.checked);
+            else if (typeof state.value === "string") element.value = state.value;
+          });
+          issueList.querySelectorAll(".issue").forEach((issue) => {
+            const index = issue.dataset.issueIndex;
+            const title = document.getElementById(`issue-title-${index}`)?.value.trim();
+            const summary = document.getElementById(`issue-summary-${index}`);
+            if (summary && title) summary.textContent = title;
+          });
+          setAnonymousMode();
+          autoGrowTextareas();
+          saveStatus.textContent = text.draftLoaded;
+          window.setTimeout(() => { saveStatus.textContent = ""; }, 3500);
+        } catch (error) {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+
+      function autoGrowTextareas() {
+        form.querySelectorAll("textarea").forEach((textarea) => {
+          if (!textarea.value.trim()) {
+            textarea.style.height = "";
+            return;
+          }
+          textarea.style.height = "auto";
+          textarea.style.height = `${Math.max(textarea.scrollHeight, 40)}px`;
+        });
+      }
+
+      function selectedValue(name) {
+        return form.querySelector(`[name="${name}"]:checked`)?.value || text.noAnswer;
+      }
+
+      function textValue(id) {
+        return document.getElementById(id)?.value.trim() || text.noAnswer;
+      }
+
+      function buildTextReport() {
+        const labels = english ? {
+          document: "TECHNICIAN TEST FEEDBACK", testDetails: "Test information", anonymous: "Anonymous",
+          name: "Name", workshop: "Location / workshop", role: "Role / experience", testDate: "Test date",
+          duration: "Test duration", device: "Device / operating system", browser: "Browser", version: "Application version / link",
+          files: "Measurement file(s) used", experience: "Experience", testScope: "Test scope", result: "Result",
+          rating: "Rating", unclear: "What was unclear", notFound: "Function not found", wrongValues: "Incorrect / implausible values",
+          realCase: "Real diagnostic case", reportContent: "Report must contain", exportChange: "Export request",
+          issues: "Errors and improvement items", severity: "Severity", steps: "Steps", actual: "Actual", expected: "Expected",
+          screenshots: "Screenshots", noIssues: "No individual error items were entered.", release: "Release assessment",
+          topChanges: "Three most important changes", keep: "Keep unchanged", notes: "Further comments"
+        } : {
+          document: "FEEDBACKBOGEN MONTEURTEST", testDetails: "Angaben zum Test", anonymous: "Anonym",
+          name: "Name", workshop: "Standort / Werkstatt", role: "Funktion / Erfahrung", testDate: "Testdatum",
+          duration: "Testdauer", device: "Gerät / Betriebssystem", browser: "Browser", version: "Programmversion / Link",
+          files: "Verwendete Messdatei(en)", experience: "Erfahrung", testScope: "Testumfang", result: "Ergebnis",
+          rating: "Bewertung", unclear: "Was war unklar", notFound: "Nicht gefundene Funktion", wrongValues: "Falsche / unplausible Werte",
+          realCase: "Realer Diagnosefall", reportContent: "Bericht muss enthalten", exportChange: "Exportwunsch",
+          issues: "Fehler und Verbesserungspunkte", severity: "Einstufung", steps: "Schritte", actual: "Tatsächlich", expected: "Erwartet",
+          screenshots: "Screenshots", noIssues: "Keine einzelnen Fehlerpunkte eingetragen.", release: "Freigabe-Einschätzung",
+          topChanges: "Drei wichtigste Änderungen", keep: "Unbedingt beibehalten", notes: "Weitere Hinweise"
+        };
+        const lines = [];
+        const heading = (title) => lines.push("", title.toUpperCase(), "=".repeat(title.length));
+        lines.push(labels.document, english ? "Signal Capture Analysis Tool" : "Signalerfassung Analyse-Tool", `${text.created}: ${new Date().toLocaleString(english ? "en-GB" : "de-DE")}`);
+        heading(labels.testDetails);
+        lines.push(`${labels.anonymous}: ${anonymous.checked ? text.yes : text.no}`);
+        if (!anonymous.checked) lines.push(`${labels.name}: ${textValue("name")}`, `${labels.workshop}: ${textValue("workshop")}`, `${labels.role}: ${textValue("role")}`);
+        lines.push(`${labels.testDate}: ${textValue("test-date")}`, `${labels.duration}: ${textValue("duration")}`, `${labels.device}: ${textValue("device")}`, `${labels.browser}: ${textValue("browser")}`, `${labels.version}: ${textValue("version")}`);
+        const measurements = fileNames("measurement-files");
+        lines.push(`${labels.files}: ${measurements.length ? measurements.join(", ") : text.noneAttached}`);
+        const experiences = experienceItems.filter((_, index) => document.getElementById(`experience-${index}`).checked);
+        lines.push(`${labels.experience}:`, ...(experiences.length ? experiences.map((item) => `- ${item}`) : [`- ${text.noSelection}`]));
+
+        heading(labels.testScope);
+        taskItems.forEach((item, index) => {
+          lines.push(`${index + 1}. ${item}`, `   ${labels.result}: ${selectedValue(`task_${index}`)}`);
+        });
+
+        Object.entries(ratingSections).forEach(([key, section]) => {
+          heading(section.title);
+          section.items.forEach((item, index) => {
+            lines.push(`- ${item}`, `  ${labels.rating}: ${selectedValue(`rating_${key}_${index}`)} / 5`);
+          });
+          if (key === "usability") lines.push(`${labels.unclear}: ${textValue("unclear")}`, `${labels.notFound}: ${textValue("not-found")}`);
+          if (key === "analysis") lines.push(`${labels.wrongValues}: ${textValue("wrong-values")}`, `${labels.realCase}: ${textValue("real-case")}`);
+          if (key === "export") lines.push(`${labels.reportContent}: ${textValue("report-content")}`, `${labels.exportChange}: ${textValue("export-change")}`);
+        });
+
+        heading(labels.issues);
+        let issueCount = 0;
+        [...issueList.querySelectorAll(".issue")].forEach((issue) => {
+          const index = Number(issue.dataset.issueIndex);
+          const title = textValue(`issue-title-${index}`);
+          const steps = textValue(`issue-steps-${index}`);
+          const actual = textValue(`issue-actual-${index}`);
+          const expected = textValue(`issue-expected-${index}`);
+          const severity = textValue(`issue-severity-${index}`);
+          const screenshots = fileNames(`issue-files-${index}`);
+          if ([title, steps, actual, expected, severity].every((value) => value === text.noAnswer) && !screenshots.length) return;
+          issueCount += 1;
+          lines.push(`${issueCount}. ${title}`, `   ${labels.severity}: ${severity}`, `   ${labels.steps}: ${steps}`, `   ${labels.actual}: ${actual}`, `   ${labels.expected}: ${expected}`, `   ${labels.screenshots}: ${screenshots.length ? screenshots.join(", ") : text.noneAttached}`);
+        });
+        if (!issueCount) lines.push(labels.noIssues);
+
+        heading(labels.release);
+        lines.push(selectedValue("recommendation"), `${labels.topChanges}: ${textValue("top-changes")}`, `${labels.keep}: ${textValue("keep")}`, `${labels.notes}: ${textValue("further-notes")}`);
+        lines.push("", text.reportThanks);
+        return lines.join("\r\n");
+      }
+
+      function showValidation() {
+        document.querySelector(".validation-message")?.remove();
+        if (form.checkValidity()) return true;
+        const message = document.createElement("p");
+        message.className = "validation-message";
+        message.textContent = text.validation;
+        const actions = document.querySelector(".form-actions");
+        actions.parentNode.insertBefore(message, actions);
+        const firstInvalid = form.querySelector(":invalid");
+        firstInvalid?.focus({ preventScroll: true });
+        firstInvalid?.closest(".form-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return false;
+      }
+
+      const crcTable = (() => {
+        const table = new Uint32Array(256);
+        for (let index = 0; index < 256; index += 1) {
+          let value = index;
+          for (let bit = 0; bit < 8; bit += 1) value = (value & 1) ? (0xedb88320 ^ (value >>> 1)) : (value >>> 1);
+          table[index] = value >>> 0;
+        }
+        return table;
+      })();
+
+      function crc32(data) {
+        let crc = 0xffffffff;
+        for (const byte of data) crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+        return (crc ^ 0xffffffff) >>> 0;
+      }
+
+      function zipDateTime(date) {
+        const year = Math.max(1980, date.getFullYear());
+        return {
+          time: (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2),
+          date: ((year - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate()
+        };
+      }
+
+      function setUint16(view, offset, value) { view.setUint16(offset, value, true); }
+      function setUint32(view, offset, value) { view.setUint32(offset, value >>> 0, true); }
+
+      function joinBytes(parts) {
+        const size = parts.reduce((sum, part) => sum + part.length, 0);
+        const result = new Uint8Array(size);
+        let offset = 0;
+        parts.forEach((part) => { result.set(part, offset); offset += part.length; });
+        return result;
+      }
+
+      function createZip(entries) {
+        const encoder = new TextEncoder();
+        const localParts = [];
+        const centralParts = [];
+        let localOffset = 0;
+
+        entries.forEach((entry) => {
+          const name = encoder.encode(entry.name);
+          const data = entry.data;
+          const checksum = crc32(data);
+          const stamp = zipDateTime(entry.date || new Date());
+          const local = new Uint8Array(30 + name.length);
+          const localView = new DataView(local.buffer);
+          setUint32(localView, 0, 0x04034b50);
+          setUint16(localView, 4, 20);
+          setUint16(localView, 6, 0x0800);
+          setUint16(localView, 8, 0);
+          setUint16(localView, 10, stamp.time);
+          setUint16(localView, 12, stamp.date);
+          setUint32(localView, 14, checksum);
+          setUint32(localView, 18, data.length);
+          setUint32(localView, 22, data.length);
+          setUint16(localView, 26, name.length);
+          setUint16(localView, 28, 0);
+          local.set(name, 30);
+          localParts.push(local, data);
+
+          const central = new Uint8Array(46 + name.length);
+          const centralView = new DataView(central.buffer);
+          setUint32(centralView, 0, 0x02014b50);
+          setUint16(centralView, 4, 20);
+          setUint16(centralView, 6, 20);
+          setUint16(centralView, 8, 0x0800);
+          setUint16(centralView, 10, 0);
+          setUint16(centralView, 12, stamp.time);
+          setUint16(centralView, 14, stamp.date);
+          setUint32(centralView, 16, checksum);
+          setUint32(centralView, 20, data.length);
+          setUint32(centralView, 24, data.length);
+          setUint16(centralView, 28, name.length);
+          setUint16(centralView, 30, 0);
+          setUint16(centralView, 32, 0);
+          setUint16(centralView, 34, 0);
+          setUint16(centralView, 36, 0);
+          setUint32(centralView, 38, 0);
+          setUint32(centralView, 42, localOffset);
+          central.set(name, 46);
+          centralParts.push(central);
+          localOffset += local.length + data.length;
+        });
+
+        const centralDirectory = joinBytes(centralParts);
+        const end = new Uint8Array(22);
+        const endView = new DataView(end.buffer);
+        setUint32(endView, 0, 0x06054b50);
+        setUint16(endView, 4, 0);
+        setUint16(endView, 6, 0);
+        setUint16(endView, 8, entries.length);
+        setUint16(endView, 10, entries.length);
+        setUint32(endView, 12, centralDirectory.length);
+        setUint32(endView, 16, localOffset);
+        setUint16(endView, 20, 0);
+        return joinBytes([...localParts, centralDirectory, end]);
+      }
+
+      function safeFilename(name) {
+        return name.replace(/[\\/:*?"<>|]/g, "_").replace(/^\.+/, "_");
+      }
+
+      async function collectAttachments() {
+        const entries = [];
+        const measurementInput = document.getElementById("measurement-files");
+        for (const [index, file] of [...measurementInput.files].entries()) {
+          entries.push({ name: `measurements/${index + 1}-${safeFilename(file.name)}`, type: file.type || "text/plain", data: new Uint8Array(await file.arrayBuffer()), date: new Date(file.lastModified) });
+        }
+        for (const input of form.querySelectorAll('input[data-file-kind="screenshot"]')) {
+          const issueIndex = Number(input.dataset.issueIndex);
+          for (const [fileIndex, file] of [...input.files].entries()) {
+            entries.push({ name: `issue-${issueIndex + 1}/${fileIndex + 1}-${safeFilename(file.name)}`, type: file.type || "image/jpeg", data: new Uint8Array(await file.arrayBuffer()), date: new Date(file.lastModified) });
+          }
+        }
+        return entries;
+      }
+
+      function bytesToBase64(bytes) {
+        let binary = "";
+        const chunkSize = 0x8000;
+        for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+          binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+        }
+        return btoa(binary);
+      }
+
+      async function sendFeedback() {
+        if (!showValidation()) return;
+        if (window.location.protocol === "file:") {
+          sendResult.className = "send-result info";
+          sendResult.textContent = text.sendLocal;
+          sendResult.hidden = false;
+          return;
+        }
+        const button = document.getElementById("send-feedback");
+        button.disabled = true;
+        sendResult.className = "send-result info";
+        sendResult.textContent = text.sendBusy;
+        sendResult.hidden = false;
+        try {
+          saveDraft(false);
+          const attachments = await collectAttachments();
+          const totalBytes = attachments.reduce((sum, entry) => sum + entry.data.length, 0);
+          if (totalBytes > 12 * 1024 * 1024) throw new Error(text.totalTooLarge);
+          const response = await fetch("/api/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Requested-With": "signalerfassung-feedback" },
+            body: JSON.stringify({
+              language: activeLanguage,
+              anonymous: anonymous.checked,
+              name: anonymous.checked ? "" : textValue("name"),
+              workshop: anonymous.checked ? "" : textValue("workshop"),
+              testDate: textValue("test-date"),
+              report: buildTextReport(),
+              attachments: attachments.map((entry) => ({ filename: entry.name, contentType: entry.type, data: bytesToBase64(entry.data) }))
+            })
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(result.error || text.sendError);
+          sendResult.className = "send-result success";
+          sendResult.textContent = text.sendSuccess;
+          thankYouDialog.showModal();
+        } catch (error) {
+          sendResult.className = "send-result error";
+          sendResult.textContent = error.message || text.sendError;
+        } finally {
+          button.disabled = false;
+        }
+      }
+
+      async function downloadFeedback() {
+        if (!showValidation()) return;
+        saveDraft(false);
+        const report = buildTextReport();
+        const attachments = await collectAttachments();
+        const hasAttachments = attachments.length > 0;
+        const blob = hasAttachments
+          ? new Blob([createZip([{ name: "Feedbackbericht.txt", data: new TextEncoder().encode(report), date: new Date() }, ...attachments])], { type: "application/zip" })
+          : new Blob([report], { type: "text/plain;charset=utf-8" });
+        const link = document.createElement("a");
+        const date = document.getElementById("test-date").value || new Date().toISOString().slice(0, 10);
+        link.href = URL.createObjectURL(blob);
+        link.download = `Feedback_Signalerfassung_${date}.${hasAttachments ? "zip" : "txt"}`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(link.href);
+        saveStatus.textContent = english
+          ? (hasAttachments ? "ZIP file with feedback and attachments created." : "Feedback file created.")
+          : (hasAttachments ? "ZIP mit Feedback und Anhängen wurde erstellt." : "Feedbackdatei wurde erstellt.");
+      }
+
+      function resetForm() {
+        if (!window.confirm(text.deleteConfirm)) return;
+        form.reset();
+        localStorage.removeItem(STORAGE_KEY);
+        document.getElementById("test-date").value = new Date().toISOString().slice(0, 10);
+        setAnonymousMode();
+        document.querySelector(".validation-message")?.remove();
+        form.querySelectorAll(".file-summary").forEach((summary) => { summary.innerHTML = ""; });
+        form.querySelectorAll("textarea").forEach((textarea) => { textarea.style.height = ""; });
+        saveStatus.textContent = text.deleted;
+      }
+
+      applyLanguage();
+      renderExperience();
+      renderTasks();
+      renderRatings();
+      renderIssues();
+      renderRecommendations();
+      document.getElementById("test-date").value = new Date().toISOString().slice(0, 10);
+      restoreDraft();
+      setAnonymousMode();
+      updateProgress();
+
+      anonymous.addEventListener("change", setAnonymousMode);
+      form.addEventListener("input", (event) => {
+        updateProgress();
+        document.querySelector(".validation-message")?.remove();
+        if (event.target.tagName === "TEXTAREA") autoGrowTextareas();
+        if (event.target.id?.startsWith("issue-title-")) {
+          const index = event.target.id.slice("issue-title-".length);
+          const summary = document.getElementById(`issue-summary-${index}`);
+          if (summary) summary.textContent = event.target.value.trim() || text.issueFallback;
+        }
+      });
+      form.addEventListener("change", (event) => {
+        if (event.target.matches('input[type="file"]')) validateFiles(event.target);
+        updateProgress();
+      });
+      form.addEventListener("click", (event) => {
+        const clearButton = event.target.closest("[data-clear-files]");
+        if (clearButton) {
+          const input = document.getElementById(clearButton.dataset.clearFiles);
+          if (input) {
+            input.value = "";
+            updateFileSummary(input);
+          }
+          return;
+        }
+        const removeButton = event.target.closest("[data-remove-issue]");
+        if (removeButton) {
+          removeButton.closest(".issue")?.remove();
+          updateIssueOrder();
+          saveDraft(false);
+        }
+      });
+      form.addEventListener("submit", (event) => event.preventDefault());
+      document.getElementById("save-draft").addEventListener("click", () => saveDraft(true));
+      document.getElementById("add-issue").addEventListener("click", () => addIssue());
+      document.getElementById("print-feedback").addEventListener("click", () => {
+        saveDraft(false);
+        form.querySelectorAll(".issue").forEach((issue) => { issue.open = true; });
+        autoGrowTextareas();
+        window.print();
+      });
+      document.getElementById("send-feedback").addEventListener("click", sendFeedback);
+      document.getElementById("thank-you-close").addEventListener("click", () => thankYouDialog.close());
+      document.querySelectorAll("[data-language]").forEach((link) => link.addEventListener("click", () => localStorage.setItem("signalerfassung.lang", link.dataset.language)));
+      const updateBackToTop = () => backToTop.classList.toggle("is-visible", window.scrollY > 500);
+      backToTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+      window.addEventListener("scroll", updateBackToTop, { passive: true });
+      updateBackToTop();
+      window.addEventListener("beforeprint", autoGrowTextareas);
+      window.setInterval(() => saveDraft(false), 30000);
+    })();
+  </script>
+</body>
+</html>

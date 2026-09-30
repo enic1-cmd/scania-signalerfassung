@@ -13,10 +13,14 @@ const USAGE_FILE = process.env.USAGE_FILE || '/var/www/signalerfassung.com/share
 const ACCESS_REQUEST_FILE = process.env.ACCESS_REQUEST_FILE || '/var/www/signalerfassung.com/shared/access-requests.json';
 const ADMIN_USERS = new Set((process.env.ADMIN_USERS || 'david').split(',').map((v) => v.trim()).filter(Boolean));
 const MAX_BODY = 16 * 1024;
+const FEEDBACK_MAX_BODY = 18 * 1024 * 1024;
+const FEEDBACK_MAX_ATTACHMENTS = 20;
+const FEEDBACK_MAX_ATTACHMENT_BYTES = 12 * 1024 * 1024;
 const RETENTION_DAYS = 180;
 const ACCESS_REQUEST_RETENTION_DAYS = 365;
 const ALLOWED_EVENTS = new Set(['page_view', 'app_open', 'file_upload', 'excel_export', 'pdf_export']);
 const publicRequestTimes = [];
+const feedbackRequestTimes = [];
 
 function sendJson(res, status, payload) {
   const body = JSON.stringify(payload);
@@ -65,7 +69,22 @@ function verifyPublicMutation(req, res) {
   return true;
 }
 
-function readBody(req) {
+function verifyFeedbackMutation(req, res) {
+  if (req.headers['x-requested-with'] !== 'signalerfassung-feedback') {
+    sendJson(res, 403, { error: 'Ungültige Anfrage.' });
+    return false;
+  }
+  const now = Date.now();
+  while (feedbackRequestTimes.length && feedbackRequestTimes[0] < now - 60000) feedbackRequestTimes.shift();
+  if (feedbackRequestTimes.length >= 10) {
+    sendJson(res, 429, { error: 'Zu viele Anfragen. Bitte versuche es in einer Minute erneut.' });
+    return false;
+  }
+  feedbackRequestTimes.push(now);
+  return true;
+}
+
+function readBody(req, maxBytes = MAX_BODY) {
   return new Promise((resolve, reject) => {
     let body = '';
     let tooLarge = false;
@@ -73,7 +92,7 @@ function readBody(req) {
     req.on('data', (chunk) => {
       if (tooLarge) return;
       body += chunk;
-      if (body.length > MAX_BODY) {
+      if (body.length > maxBytes) {
         tooLarge = true;
         body = '';
         reject(new Error('Anfrage zu groß.'));
@@ -89,6 +108,39 @@ function readBody(req) {
     });
     req.on('error', reject);
   });
+}
+
+function validateFeedback(body) {
+  const language = body.language === 'en' ? 'en' : 'de';
+  const report = String(body.report || '').trim();
+  if (!report || report.length > 120000 || /\0/.test(report)) throw new Error('Der Feedbackbericht ist ungültig oder zu lang.');
+  const attachments = Array.isArray(body.attachments) ? body.attachments : [];
+  if (attachments.length > FEEDBACK_MAX_ATTACHMENTS) throw new Error('Es wurden zu viele Anhänge ausgewählt.');
+  let totalBytes = 0;
+  const allowedTypes = new Set(['text/plain', 'image/png', 'image/jpeg']);
+  const cleanAttachments = attachments.map((attachment) => {
+    const filename = path.basename(String(attachment.filename || '')).replace(/[^a-zA-Z0-9äöüÄÖÜß._ -]/g, '_').slice(0, 160);
+    const contentType = String(attachment.contentType || '').toLowerCase().split(';')[0].trim();
+    const encoded = String(attachment.data || '');
+    if (!filename || !allowedTypes.has(contentType) || !/^[a-zA-Z0-9+/]*={0,2}$/.test(encoded)) throw new Error('Ein Anhang hat ein ungültiges Dateiformat.');
+    const content = Buffer.from(encoded, 'base64');
+    if (!content.length) throw new Error('Ein Anhang ist leer.');
+    if (contentType === 'image/png' && !content.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) throw new Error('Eine PNG-Datei ist ungültig.');
+    if (contentType === 'image/jpeg' && !(content[0] === 0xff && content[1] === 0xd8 && content.at(-2) === 0xff && content.at(-1) === 0xd9)) throw new Error('Eine JPG-Datei ist ungültig.');
+    totalBytes += content.length;
+    return { filename, contentType, content };
+  });
+  if (totalBytes > FEEDBACK_MAX_ATTACHMENT_BYTES) throw new Error('Die Anhänge sind insgesamt größer als 12 MB.');
+  const anonymous = Boolean(body.anonymous);
+  return {
+    language,
+    anonymous,
+    name: anonymous ? '' : String(body.name || '').replace(/[<>\r\n\0]/g, '').trim().slice(0, 100),
+    workshop: anonymous ? '' : String(body.workshop || '').replace(/[<>\r\n\0]/g, '').trim().slice(0, 120),
+    testDate: /^\d{4}-\d{2}-\d{2}$/.test(String(body.testDate || '')) ? body.testDate : '',
+    report,
+    attachments: cleanAttachments
+  };
 }
 
 function parseUsers() {
@@ -468,6 +520,14 @@ const server = http.createServer(async (req, res) => {
           lastError: errors.length ? cleanEventValue(errors.join(' | '), 240) : null
         });
       }
+      sendJson(res, 202, { ok: true });
+      return;
+    }
+    if (req.method === 'POST' && url.pathname === '/api/feedback') {
+      if (!verifyFeedbackMutation(req, res)) return;
+      const body = await readBody(req, FEEDBACK_MAX_BODY);
+      const feedback = validateFeedback(body);
+      await mailer.sendFeedback(feedback);
       sendJson(res, 202, { ok: true });
       return;
     }

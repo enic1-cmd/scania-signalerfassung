@@ -991,23 +991,25 @@ function loadFiles(fileList){
   showErr('');
   var arr=Array.from(fileList);
   var uploadedAt=new Date();
-  var loaded=0,errors=[];
-  arr.forEach(function(file){
-    var r=new FileReader();
-    r.onload=function(e){
-      try{parse(e.target.result,file.name,uploadedAt);}catch(err){errors.push(file.name+': '+err.message);}
-      loaded++;
-      if(loaded===arr.length){
-        if(errors.length)showErr(t('errors')+':\n'+errors.join('\n'));
-        if(S.files.length){
-          if(document.getElementById('app-view').style.display!=='flex')S.activeIdx=0;
-          buildUI();
-          trackUsage('file_upload');
-        }
-      }
-    };
-    r.onerror=function(){errors.push(file.name+': '+t('unreadable'));loaded++;if(loaded===arr.length)showErr(t('errors')+': '+errors.join(', '));};
-    r.readAsText(file,'utf-8');
+  Promise.all(arr.map(function(file){
+    return new Promise(function(resolve){
+      var r=new FileReader();
+      r.onload=function(e){resolve({file:file,text:e.target.result});};
+      r.onerror=function(){resolve({file:file,error:t('unreadable')});};
+      r.readAsText(file,'utf-8');
+    });
+  })).then(function(results){
+    var errors=[];
+    results.forEach(function(result){
+      if(result.error){errors.push(result.file.name+': '+result.error);return;}
+      try{parse(result.text,result.file.name,uploadedAt);}catch(err){errors.push(result.file.name+': '+err.message);}
+    });
+    if(errors.length)showErr(t('errors')+':\n'+errors.join('\n'));
+    if(S.files.length){
+      if(document.getElementById('app-view').style.display!=='flex')S.activeIdx=0;
+      buildUI();
+      trackUsage('file_upload');
+    }
   });
 }
 function formatDateDE(d){
@@ -1846,14 +1848,14 @@ function renderTabs(){
   bar.style.display='flex';
   bar.innerHTML='';
   S.files.forEach(function(f,idx){
-    var t=document.createElement('div');
-    t.className='tab'+(idx===S.activeIdx?' active':'');
-    t.innerHTML='<span class="tab-name" title="'+esc(f.displayFilename||f.filename)+'">'+esc(f.displayFilename||f.filename)+'</span>'+
+    var tab=document.createElement('div');
+    tab.className='tab'+(idx===S.activeIdx?' active':'');
+    tab.innerHTML='<span class="tab-name" title="'+esc(f.displayFilename||f.filename)+'">'+esc(f.displayFilename||f.filename)+'</span>'+
                 '<button class="tab-close" title="'+esc(t('closeFile'))+'">✕</button>';
-    t.querySelector('.tab-name').onclick=function(){setActive(idx);};
-    t.onclick=function(e){if(!e.target.classList.contains('tab-close'))setActive(idx);};
-    t.querySelector('.tab-close').onclick=function(e){e.stopPropagation();closeFile(idx);};
-    bar.appendChild(t);
+    tab.querySelector('.tab-name').onclick=function(){setActive(idx);};
+    tab.onclick=function(e){if(!e.target.classList.contains('tab-close'))setActive(idx);};
+    tab.querySelector('.tab-close').onclick=function(e){e.stopPropagation();closeFile(idx);};
+    bar.appendChild(tab);
   });
   // + Add Button
   var add=document.createElement('label');

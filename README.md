@@ -52,3 +52,10 @@ Benutzer, Nutzungsstatistik, Zugangsanfragen und die optionale Mail-Konfiguratio
 ## Datenschutz
 
 Signalerfassungsdateien koennen interne technische Messdaten enthalten. Die Analyse und Exporterstellung erfolgen lokal im Browser. Der Server protokolliert nur die in der Datenschutzerklaerung genannten Nutzungsereignisse; Messdateien werden nicht hochgeladen.
+
+## Sicherheit und Projekt-Master (30.09.2026)
+
+- Die Admin-API glaubt `X-Remote-User` nur zusammen mit dem geheimen Header `X-Admin-Proxy`, den nginx mitschickt. Das Geheimnis erzeugt `deploy-release.sh` einmalig (`/etc/nginx/snippets/signalerfassung-admin-proxy.conf`, `shared/admin-proxy.env`) – es steht nie in Git.
+- `GET /internal/kpis`: Kennzahlen für Projekt-Master (nur Zahlen, keine Namen, E-Mails oder Feedback-Inhalte). Nur lokal, Token `PM_KPI_TOKEN` in `shared/pm-kpi.env`.
+- Feedbackbögen werden gezählt (`shared/feedback-stats.ndjson`: Zeit, Sprache, anonym, Anzahl Anhänge, Mailversand ok) – ohne Inhalte.
+- Tests: `cd server && npm test`.

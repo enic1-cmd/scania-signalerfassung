@@ -32,12 +32,18 @@ for(const file of ['annotations.js','export-save.js'])new Function(fs.readFileSy
       chartState.start=.35;chartState.end=.37;renderChart();
     });
     const markerFill=await page.locator('#signal-chart').evaluate(canvas=>{
-      const ctx=canvas.getContext('2d'),sx=canvas.width/canvas.getBoundingClientRect().width,sy=canvas.height/canvas.getBoundingClientRect().height;
+      const ctx=canvas.getContext('2d'),box=canvas.getBoundingClientRect(),sx=canvas.width/box.width,sy=canvas.height/box.height;
       const y=Math.round(23*sy),from=Math.round(250*sx),to=Math.round((canvas.getBoundingClientRect().width-32)*sx);let yellow=0,total=0;
       for(let x=from;x<=to;x+=Math.max(1,Math.round(2*sx))){const p=ctx.getImageData(x,y,1,1).data;total++;if(p[0]>240&&p[1]>205&&p[2]<235)yellow++;}
-      return {coverage:yellow/total,yellow,total};
+      const grid=[];
+      for(let gx=1;gx<6;gx++){const x=Math.round((245+(box.width-271)*gx/6)*sx),p=ctx.getImageData(x,y,1,1).data;grid.push(Array.from(p));}
+      const laneY=Math.round((18+(box.height-56)/8)*sy),laneX=Math.round((245+(box.width-271)*.73)*sx),lane=Array.from(ctx.getImageData(laneX,laneY,1,1).data);
+      return {coverage:yellow/total,yellow,total,grid,lane};
     });
-    assert(markerFill.coverage>.94,'Zoomed marker range should remain a continuous yellow area: '+JSON.stringify(markerFill));
+    const isYellow=p=>p[0]>240&&p[1]>205&&p[2]<235;
+    assert(markerFill.coverage>.99,'Zoomed marker range should remain a continuous yellow area: '+JSON.stringify(markerFill));
+    assert(markerFill.grid.every(isYellow),'Vertical time grid must not cut through the marker area: '+JSON.stringify(markerFill.grid));
+    assert(isYellow(markerFill.lane),'Horizontal lane dividers must not cut through the marker area: '+JSON.stringify(markerFill.lane));
     await page.evaluate(()=>{active().rawRows.forEach(row=>{row.marked=false;row.markerColor='';});chartState.start=0;chartState.end=1;renderChart();});
     await page.evaluate(()=>{chartState.start=.3;chartState.end=.6;renderChart();});
     const rect=await page.locator('#signal-chart').boundingBox();

@@ -34,6 +34,22 @@ test -f "$RELEASE/zugang-anfragen.html"
 test -f "$RELEASE/feedbackbogen-monteurtest.html"
 test -f "$RELEASE/server/node_modules/nodemailer/package.json"
 
+# nginx proves to the admin service that a request passed Basic Auth: one secret, written once,
+# readable only by root (nginx snippet) and the service group (env file). Never in git.
+PROXY_SNIPPET="/etc/nginx/snippets/signalerfassung-admin-proxy.conf"
+PROXY_ENV="$SITE_ROOT/shared/admin-proxy.env"
+if [[ ! -s "$PROXY_SNIPPET" || ! -s "$PROXY_ENV" ]]; then
+  PROXY_SECRET="$(openssl rand -hex 32)"
+  install -d -m 0755 /etc/nginx/snippets
+  (umask 077; printf 'proxy_set_header X-Admin-Proxy "%s";\n' "$PROXY_SECRET" > "$PROXY_SNIPPET")
+  (umask 077; printf 'ADMIN_PROXY_SECRET=%s\n' "$PROXY_SECRET" > "$PROXY_ENV")
+  unset PROXY_SECRET
+fi
+chown root:root "$PROXY_SNIPPET"
+chmod 0600 "$PROXY_SNIPPET"
+chown root:www-data "$PROXY_ENV"
+chmod 0640 "$PROXY_ENV"
+
 cp -a "$SITE_CONFIG" "$SITE_BACKUP"
 install -m 0644 /tmp/signalerfassung-log-format.conf "$LOG_FORMAT"
 install -m 0644 /tmp/signalerfassung.com.nginx "$SITE_CONFIG"
@@ -60,6 +76,13 @@ if [[ -f "$SITE_ROOT/shared/mail.env" ]]; then
   chown root:www-data "$SITE_ROOT/shared/mail.env"
   chmod 0640 "$SITE_ROOT/shared/mail.env"
 fi
+if [[ -f "$SITE_ROOT/shared/pm-kpi.env" ]]; then
+  chown root:www-data "$SITE_ROOT/shared/pm-kpi.env"
+  chmod 0640 "$SITE_ROOT/shared/pm-kpi.env"
+fi
+touch "$SITE_ROOT/shared/feedback-stats.ndjson"
+chown www-data:www-data "$SITE_ROOT/shared/feedback-stats.ndjson"
+chmod 0640 "$SITE_ROOT/shared/feedback-stats.ndjson"
 chown -R www-data:www-data "$RELEASE"
 
 ln -s "$RELEASE" "$SITE_ROOT/.current-$STAMP"

@@ -33,7 +33,25 @@ function sendJson(res, status, payload) {
   res.end(body);
 }
 
+// nginx proves with a secret header that a request came through it (where Basic Auth checked the
+// user). Without it X-Remote-User is ignored – otherwise any local process could claim to be admin.
+const ADMIN_PROXY_SECRET = process.env.ADMIN_PROXY_SECRET || '';
+// Projekt-Master reads aggregate numbers with its own token (GET /internal/kpis, local only).
+const PM_KPI_TOKEN = process.env.PM_KPI_TOKEN || '';
+const FEEDBACK_STATS_FILE = process.env.FEEDBACK_STATS_FILE || '/var/www/signalerfassung.com/shared/feedback-stats.ndjson';
+
+function safeEqual(left, right) {
+  const a = Buffer.from(String(left));
+  const b = Buffer.from(String(right));
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function fromProxy(req) {
+  return Boolean(ADMIN_PROXY_SECRET) && safeEqual(req.headers['x-admin-proxy'] || '', ADMIN_PROXY_SECRET);
+}
+
 function remoteUser(req) {
+  if (!fromProxy(req)) return '';
   return String(req.headers['x-remote-user'] || '').trim();
 }
 
@@ -472,6 +490,71 @@ function pruneUsage() {
   fs.renameSync(temporary, USAGE_FILE);
 }
 
+/** Counts a feedback form – only time, language, anonymity, number of attachments and mail result. */
+function recordFeedback(feedback, mailOk) {
+  const line = JSON.stringify({ at: new Date().toISOString(), language: feedback.language, anonymous: feedback.anonymous, attachments: feedback.attachments.length, mailOk });
+  try {
+    fs.appendFileSync(FEEDBACK_STATS_FILE, `${line}\n`, { mode: 0o640 });
+  } catch (error) {
+    console.error('Feedback counter not written:', error.message);
+  }
+}
+
+function readFeedbackStats() {
+  if (!fs.existsSync(FEEDBACK_STATS_FILE)) return [];
+  return fs.readFileSync(FEEDBACK_STATS_FILE, 'utf8').split(/\r?\n/).filter(Boolean).flatMap((line) => {
+    try { return [JSON.parse(line)]; } catch { return []; }
+  });
+}
+
+/** Aggregate numbers for Projekt-Master – no user names, e-mail addresses or feedback contents. */
+function projektMasterKpis(now = Date.now()) {
+  const last24h = statsFor(1);
+  const last7 = statsFor(7);
+  const last30 = statsFor(30);
+  const days = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
+  const byDay = new Map(last30.daily.map((day) => [day.date, day]));
+  const lastActivityAt = last30.users.map((user) => user.lastSeen).filter(Boolean).sort().at(-1) || null;
+  const feedback = readFeedbackStats();
+  const feedback30 = feedback.filter((entry) => Date.parse(entry.at) >= now - 30 * 86400000);
+  const mail = mailer.status();
+  const pending = last30.totals.pendingRequests;
+  const alerts = [];
+  if (pending > 0) {
+    alerts.push({
+      key: 'access-requests',
+      severity: 'warning',
+      title: `${pending} ${pending === 1 ? 'Zugangsanfrage wartet' : 'Zugangsanfragen warten'} auf Freigabe`,
+      detail: 'Im Admin-Bereich unter „Zugangsanfragen“ freigeben oder ablehnen.'
+    });
+  }
+  if (!mail.configured) {
+    alerts.push({ key: 'mail', severity: 'warning', title: 'E-Mail-Versand ist nicht eingerichtet', detail: 'Zugangsanfragen und Feedbackbögen können nicht verschickt werden.' });
+  }
+  if (feedback30.some((entry) => entry.mailOk === false)) {
+    alerts.push({ key: 'feedback-mail', severity: 'warning', title: 'Ein Feedbackbogen konnte nicht verschickt werden', detail: 'Der Mailversand ist mindestens einmal in den letzten 30 Tagen fehlgeschlagen.' });
+  }
+  return {
+    version: 1,
+    app: 'signalerfassung',
+    generatedAt: new Date(now).toISOString(),
+    lastActivityAt,
+    quietAfterHours: null,
+    metrics: [
+      { key: 'analyses_24h', label: 'Datei-Auswertungen (24 Std.)', value: last24h.totals.uploads, headline: true, emoji: '📈' },
+      { key: 'active_24h', label: 'Aktive Nutzer (24 Std.)', value: last24h.totals.activeUsers },
+      { key: 'active_7d', label: 'Aktive Nutzer (7 Tage)', value: last7.totals.activeUsers },
+      { key: 'analyses_30d', label: 'Datei-Auswertungen (30 Tage)', value: last30.totals.uploads },
+      { key: 'exports_30d', label: 'Exporte (30 Tage)', value: last30.totals.exports },
+      { key: 'accounts', label: 'Benutzerkonten', value: last30.totals.users },
+      { key: 'pending_requests', label: 'Offene Zugangsanfragen', value: pending, tone: pending ? 'warning' : 'good' },
+      { key: 'feedback_30d', label: 'Feedbackbögen (30 Tage)', value: feedback30.length }
+    ],
+    series: { label: 'Aktionen pro Tag', points: days.map((date) => ({ date, value: byDay.get(date)?.total || 0 })) },
+    alerts
+  };
+}
+
 function pruneAccessRequests() {
   if (!fs.existsSync(ACCESS_REQUEST_FILE)) return;
   const cutoff = Date.now() - ACCESS_REQUEST_RETENTION_DAYS * 86400000;
@@ -527,8 +610,27 @@ const server = http.createServer(async (req, res) => {
       if (!verifyFeedbackMutation(req, res)) return;
       const body = await readBody(req, FEEDBACK_MAX_BODY);
       const feedback = validateFeedback(body);
-      await mailer.sendFeedback(feedback);
+      try {
+        await mailer.sendFeedback(feedback);
+      } catch (error) {
+        recordFeedback(feedback, false);
+        throw error;
+      }
+      recordFeedback(feedback, true);
       sendJson(res, 202, { ok: true });
+      return;
+    }
+    if (req.method === 'GET' && url.pathname === '/internal/kpis') {
+      // Local callers only: nginx never forwards /internal, and a proxied request carries its headers.
+      if (!PM_KPI_TOKEN || req.headers['x-forwarded-proto'] || req.headers['x-remote-user']) {
+        sendJson(res, 404, { error: 'Nicht gefunden.' });
+        return;
+      }
+      if (!safeEqual(req.headers.authorization || '', `Bearer ${PM_KPI_TOKEN}`)) {
+        sendJson(res, 401, { error: 'Nicht berechtigt.' });
+        return;
+      }
+      sendJson(res, 200, projektMasterKpis());
       return;
     }
     if (!url.pathname.startsWith('/admin/api/')) {

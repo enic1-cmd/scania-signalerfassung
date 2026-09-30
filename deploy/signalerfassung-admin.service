@@ -15,6 +15,9 @@ Environment=ACCESS_REQUEST_FILE=/var/www/signalerfassung.com/shared/access-reque
 Environment=PUBLIC_URL=https://signalerfassung.com
 Environment=REQUEST_NOTIFY_TO=david.breuer@breuer-trucks.de
 EnvironmentFile=-/var/www/signalerfassung.com/shared/mail.env
+EnvironmentFile=-/var/www/signalerfassung.com/shared/admin-proxy.env
+EnvironmentFile=-/var/www/signalerfassung.com/shared/pm-kpi.env
+Environment=FEEDBACK_STATS_FILE=/var/www/signalerfassung.com/shared/feedback-stats.ndjson
 Environment=ADMIN_USERS=david
 ExecStart=/usr/bin/node /var/www/signalerfassung.com/current/server/server.js
 Restart=on-failure

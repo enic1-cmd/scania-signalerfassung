@@ -85,6 +85,8 @@ server {
         limit_except POST { deny all; }
         proxy_pass http://127.0.0.1:3407/api/usage;
         proxy_set_header X-Remote-User $remote_user;
+        # Secret proof that the request came through nginx (created by deploy-release.sh, not in git).
+        include /etc/nginx/snippets/signalerfassung-admin-proxy.conf;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Host $host;
         proxy_http_version 1.1;
@@ -113,6 +115,8 @@ server {
     location ^~ /admin/api/ {
         proxy_pass http://127.0.0.1:3407;
         proxy_set_header X-Remote-User $remote_user;
+        # Secret proof that the request came through nginx (created by deploy-release.sh, not in git).
+        include /etc/nginx/snippets/signalerfassung-admin-proxy.conf;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Host $host;
         proxy_http_version 1.1;

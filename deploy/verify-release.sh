@@ -4,11 +4,13 @@ set -Eeuo pipefail
 TEST_USER="codex-release-check"
 TEST_PASS="$(openssl rand -hex 16)"
 API="http://127.0.0.1:3407"
+PROXY_SECRET="$(sed -n "s/^ADMIN_PROXY_SECRET=//p" /var/www/signalerfassung.com/shared/admin-proxy.env)"
+test -n "$PROXY_SECRET"
 TMP_DIR="$(mktemp -d)"
 
 cleanup() {
   curl -fsS -X DELETE \
-    -H 'X-Remote-User: david' \
+    -H 'X-Remote-User: david' -H "X-Admin-Proxy: $PROXY_SECRET" \
     -H 'X-Requested-With: signalerfassung-admin' \
     "$API/admin/api/users/$TEST_USER" >/dev/null 2>&1 || true
   rm -rf "$TMP_DIR"
@@ -16,12 +18,12 @@ cleanup() {
 trap cleanup EXIT
 
 curl -fsS \
-  -H 'X-Remote-User: david' \
+  -H 'X-Remote-User: david' -H "X-Admin-Proxy: $PROXY_SECRET" \
   "$API/admin/api/session" | grep -q '"username":"david"'
 
 curl -fsS -X POST \
   -H 'Content-Type: application/json' \
-  -H 'X-Remote-User: david' \
+  -H 'X-Remote-User: david' -H "X-Admin-Proxy: $PROXY_SECRET" \
   -H 'X-Requested-With: signalerfassung-admin' \
   --data "{\"username\":\"$TEST_USER\",\"password\":\"$TEST_PASS\"}" \
   "$API/admin/api/users" | grep -q '"ok":true'
@@ -52,12 +54,16 @@ if grep -q '/api/usage' "$TMP_DIR/impressum.html"; then
 fi
 grep -q '<h1>Admin Hub</h1>' "$TMP_DIR/admin.html"
 curl -fsS -u "$TEST_USER:$TEST_PASS" https://signalerfassung.com/assets/vendor/exceljs.min.js >/dev/null
-curl -fsS -H 'X-Remote-User: david' "$API/admin/api/access-requests" | grep -q '"requests"'
+curl -fsS -H 'X-Remote-User: david' -H "X-Admin-Proxy: $PROXY_SECRET" "$API/admin/api/access-requests" | grep -q '"requests"'
 curl -fsS -X POST \
   -H 'Content-Type: application/json' \
   -H 'X-Requested-With: signalerfassung-access-request' \
   --data '{"name":"Release Test","email":"release-test@example.com","website":"bot"}' \
   "$API/api/access-requests" | grep -q '"ok":true'
+
+# Without nginx's secret the admin API must refuse any claimed user.
+forged_status="$(curl -sS -o /dev/null -w '%{http_code}' -H 'X-Remote-User: david' "$API/admin/api/session")"
+test "$forged_status" = "403"
 
 public_status="$(curl -sS -o /dev/null -w '%{http_code}' https://signalerfassung.com/)"
 test "$public_status" = "200"
@@ -65,7 +71,7 @@ protected_status="$(curl -sS -o /dev/null -w '%{http_code}' https://signalerfass
 test "$protected_status" = "401"
 
 curl -fsS -X DELETE \
-  -H 'X-Remote-User: david' \
+  -H 'X-Remote-User: david' -H "X-Admin-Proxy: $PROXY_SECRET" \
   -H 'X-Requested-With: signalerfassung-admin' \
   "$API/admin/api/users/$TEST_USER" | grep -q '"ok":true'
 trap - EXIT

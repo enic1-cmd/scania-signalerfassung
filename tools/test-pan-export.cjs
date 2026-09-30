@@ -38,13 +38,23 @@ for(const file of ['annotations.js','export-save.js'])new Function(fs.readFileSy
       const grid=[];
       for(let gx=1;gx<6;gx++){const x=Math.round((245+(box.width-271)*gx/6)*sx),p=ctx.getImageData(x,y,1,1).data;grid.push(Array.from(p));}
       const laneY=Math.round((18+(box.height-56)/8)*sy),laneX=Math.round((245+(box.width-271)*.73)*sx),lane=Array.from(ctx.getImageData(laneX,laneY,1,1).data);
-      return {coverage:yellow/total,yellow,total,grid,lane};
+      const divider=Array.from(ctx.getImageData(Math.round(245*sx),y,1,1).data);
+      return {coverage:yellow/total,yellow,total,grid,lane,divider};
     });
     const isYellow=p=>p[0]>240&&p[1]>205&&p[2]<235;
+    const colorDistance=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2]);
     assert(markerFill.coverage>.99,'Zoomed marker range should remain a continuous yellow area: '+JSON.stringify(markerFill));
     assert(markerFill.grid.every(isYellow),'Vertical time grid must not cut through the marker area: '+JSON.stringify(markerFill.grid));
-    assert(isYellow(markerFill.lane),'Horizontal lane dividers must not cut through the marker area: '+JSON.stringify(markerFill.lane));
+    assert(colorDistance(markerFill.lane,markerFill.grid[0])>6,'Horizontal lane dividers should remain visible: '+JSON.stringify(markerFill.lane));
+    assert(!isYellow(markerFill.divider),'Label and plot areas should have a visible vertical divider: '+JSON.stringify(markerFill.divider));
     await page.evaluate(()=>{active().rawRows.forEach(row=>{row.marked=false;row.markerColor='';});chartState.start=0;chartState.end=1;renderChart();});
+    const fullSignalName='EMS - Vollstaendiger besonders langer Signalname fuer den Hover-Test';
+    await page.evaluate(name=>{const A=active(),signal=chartSignals(A,A.rawRows)[0];window.originalChartSignalName=signal.displayName;signal.displayName=name;renderChart();},fullSignalName);
+    const labelRect=await page.locator('#signal-chart').boundingBox();
+    await page.mouse.move(labelRect.x+100,labelRect.y+36);
+    await page.waitForTimeout(40);
+    assert.equal(await page.locator('#chart-tooltip').textContent(),fullSignalName,'Truncated signal name should be shown completely on hover');
+    await page.evaluate(()=>{const A=active(),signal=chartSignals(A,A.rawRows)[0];signal.displayName=window.originalChartSignalName;renderChart();});
     await page.evaluate(()=>{chartState.start=.3;chartState.end=.6;renderChart();});
     const rect=await page.locator('#signal-chart').boundingBox();
     const x=rect.x+245+(rect.width-271)*.5,y=rect.y+90;

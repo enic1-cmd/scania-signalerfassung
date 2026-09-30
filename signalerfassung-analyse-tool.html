@@ -319,6 +319,7 @@ header{
 .chart-tooltip-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .chart-tooltip-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:auto;color:#dbeafe}
 .chart-tooltip-value{font-family:monospace;font-weight:750}
+.chart-tooltip-full-name{max-width:300px;font-size:11px;font-weight:750;line-height:1.4;color:#fff;overflow-wrap:anywhere}
 .chart-empty{position:absolute;inset:0;display:none;place-items:center;text-align:center;padding:30px;color:var(--gray)}
 .chart-empty.visible{display:grid}
 .chart-empty strong{display:block;color:var(--dark);font-size:16px;margin-bottom:7px}
@@ -1704,6 +1705,8 @@ function drawChartCanvas(canvas,A,allRows,signals,exportMode){
   var laneH=(cssH-top-bottom)/signals.length;
   if(window.Annotations)Annotations.draw(ctx,A,rows,left,top,plotW,cssH-top-bottom,windowData);
   drawMarkedChartRuns(ctx,rows,left,top,plotW,cssH-top-bottom,windowData);
+  ctx.strokeStyle='#b8c9d9';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(left,top);ctx.lineTo(left,cssH-bottom);ctx.stroke();
   ctx.font='10px Segoe UI, sans-serif';ctx.textBaseline='middle';
   for(var gx=0;gx<=6;gx++){
     var gridX=left+plotW*gx/6;
@@ -1717,7 +1720,7 @@ function drawChartCanvas(canvas,A,allRows,signals,exportMode){
     var y0=top+laneH*signalIndex,y1=y0+laneH,color=chartColor(signalIndex);
     var reduced=buildChartSegments(rows,signal,windowData,Math.min(900,Math.max(160,Math.round(plotW/2))));
     var min=reduced.min,max=reduced.max;
-    ctx.strokeStyle='#dce6ef';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,y1);ctx.lineTo(left,y1);ctx.stroke();
+    ctx.strokeStyle='#dce6ef';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,y1);ctx.lineTo(cssW,y1);ctx.stroke();
     ctx.fillStyle=color;ctx.fillRect(14,y0+16,18,3);
     ctx.font='700 11px Segoe UI, sans-serif';ctx.fillStyle='#143b61';ctx.textAlign='left';
     ctx.fillText(fitCanvasText(ctx,signal.displayName||signal.desc||signal.id,195),40,y0+18);
@@ -1800,27 +1803,38 @@ function setChartTimelineZoom(value){
 function resetChartZoom(){chartState.start=0;chartState.end=1;renderChart();showToast(currentLang()==='en'?'Full filtered time range is shown.':'Gesamter gefilterter Zeitraum wird angezeigt.');}
 function initChartInteraction(){
   var canvas=document.getElementById('signal-chart'),tooltip=document.getElementById('chart-tooltip');
-  canvas.addEventListener('mousemove',function(e){
-    if(window.Annotations&&Annotations.isDragging()){tooltip.classList.remove('visible');Annotations.hover(-1);return;}
-    var A=active(),allRows=A.filtered||A.rawRows||[],windowData=chartWindowRows(allRows),rows=windowData.rows;
-    var rect=canvas.getBoundingClientRect(),left=245,right=26,plotW=rect.width-left-right;
-    if(!rows.length||e.clientX-rect.left<left||e.clientX-rect.left>rect.width-right){tooltip.classList.remove('visible');chartState.hoverIndex=-1;if(window.Annotations)Annotations.hover(-1);return;}
-    var ratio=Math.max(0,Math.min(1,(e.clientX-rect.left-left)/plotW));
-    var row=nearestRowInWindow(windowData,ratio),local=rows.indexOf(row);chartState.hoverIndex=windowData.offset+local;
-    var signals=chartSignals(A,allRows);
-    tooltip.innerHTML='<div class="chart-tooltip-time">'+esc(row.ts)+(row.marked?' · '+esc(t('markedWord')):'')+'</div>'+signals.map(function(s,i){
-      var value=String(row.parts[s.index]||'').trim();
-      return '<div class="chart-tooltip-row"><span class="chart-tooltip-dot" style="background:'+chartColor(i)+'"></span><span class="chart-tooltip-name">'+esc(s.displayName||s.id)+'</span><span class="chart-tooltip-value">'+esc(value)+(s.unit?' '+esc(s.unit):'')+'</span></div>';
-    }).join('');
-    if(window.Annotations){var notes=Annotations.notesAt(A,row.rowId);if(notes)tooltip.innerHTML+='<div class="chart-tooltip-note">'+esc(notes)+'</div>';}
-    tooltip.classList.add('visible');
+  function positionTooltip(e,rect){
     var tipX=e.clientX-rect.left+14,tipY=e.clientY-rect.top+14;
     if(tipX+340>rect.width)tipX=Math.max(8,e.clientX-rect.left-350);
     var viewport=canvas.closest('.chart-viewport');
     var visibleTop=viewport?Math.max(8,viewport.getBoundingClientRect().top-rect.top+8):8;
     var visibleBottom=viewport?Math.min(rect.height,viewport.getBoundingClientRect().bottom-rect.top):rect.height;
     if(tipY+tooltip.offsetHeight>visibleBottom)tipY=Math.max(visibleTop,e.clientY-rect.top-tooltip.offsetHeight-14);
-    tooltip.style.left=tipX+'px';tooltip.style.top=tipY+'px';if(window.Annotations)Annotations.hover(left+ratio*plotW);
+    tooltip.style.left=tipX+'px';tooltip.style.top=tipY+'px';
+  }
+  canvas.addEventListener('mousemove',function(e){
+    if(window.Annotations&&Annotations.isDragging()){tooltip.classList.remove('visible');Annotations.hover(-1);return;}
+    var A=active(),allRows=A.filtered||A.rawRows||[],windowData=chartWindowRows(allRows),rows=windowData.rows;
+    var rect=canvas.getBoundingClientRect(),left=245,right=26,top=18,bottom=38,plotW=rect.width-left-right;
+    var localX=e.clientX-rect.left,localY=e.clientY-rect.top,signals=chartSignals(A,allRows);
+    if(rows.length&&localX>=0&&localX<left&&localY>=top&&localY<rect.height-bottom&&signals.length){
+      var laneH=(rect.height-top-bottom)/signals.length,signal=signals[Math.min(signals.length-1,Math.floor((localY-top)/laneH))];
+      var name=signal&&(signal.displayName||signal.desc||signal.id)||'',ctx=canvas.getContext('2d');
+      ctx.save();ctx.font='700 11px Segoe UI, sans-serif';var shortened=ctx.measureText(name).width>195;ctx.restore();
+      if(shortened){
+        tooltip.innerHTML='<div class="chart-tooltip-full-name">'+esc(name)+'</div>';
+        tooltip.classList.add('visible');positionTooltip(e,rect);chartState.hoverIndex=-1;if(window.Annotations)Annotations.hover(-1);return;
+      }
+    }
+    if(!rows.length||localX<left||localX>rect.width-right){tooltip.classList.remove('visible');chartState.hoverIndex=-1;if(window.Annotations)Annotations.hover(-1);return;}
+    var ratio=Math.max(0,Math.min(1,(e.clientX-rect.left-left)/plotW));
+    var row=nearestRowInWindow(windowData,ratio),local=rows.indexOf(row);chartState.hoverIndex=windowData.offset+local;
+    tooltip.innerHTML='<div class="chart-tooltip-time">'+esc(row.ts)+(row.marked?' · '+esc(t('markedWord')):'')+'</div>'+signals.map(function(s,i){
+      var value=String(row.parts[s.index]||'').trim();
+      return '<div class="chart-tooltip-row"><span class="chart-tooltip-dot" style="background:'+chartColor(i)+'"></span><span class="chart-tooltip-name">'+esc(s.displayName||s.id)+'</span><span class="chart-tooltip-value">'+esc(value)+(s.unit?' '+esc(s.unit):'')+'</span></div>';
+    }).join('');
+    if(window.Annotations){var notes=Annotations.notesAt(A,row.rowId);if(notes)tooltip.innerHTML+='<div class="chart-tooltip-note">'+esc(notes)+'</div>';}
+    tooltip.classList.add('visible');positionTooltip(e,rect);if(window.Annotations)Annotations.hover(left+ratio*plotW);
   });
   canvas.addEventListener('mouseleave',function(){tooltip.classList.remove('visible');chartState.hoverIndex=-1;if(window.Annotations)Annotations.hover(-1);});
   canvas.addEventListener('wheel',function(e){

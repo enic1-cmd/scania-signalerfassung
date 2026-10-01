@@ -1,0 +1,127 @@
+/* Creates the DE/EN screenshots for handbuch.html from a real recording in samples/ (gitignored).
+   Usage: node tools/create-handbook-screenshots.cjs ["samples/<file>.txt"]
+   Output: handbuch/<lang>-<name>.webp (converted with ImageMagick when available, otherwise PNG). */
+const fs=require('node:fs');
+const path=require('node:path');
+const {execFileSync,spawn}=require('node:child_process');
+const {chromium}=require('playwright');
+
+const root=path.resolve(__dirname,'..');
+const sample=path.resolve(root,process.argv[2]||'samples/2026-09-21 160628.txt');
+const out=path.join(root,'handbuch');
+if(!fs.existsSync(sample))throw new Error('Sample recording missing: '+sample);
+fs.mkdirSync(out,{recursive:true});
+
+function hasMagick(){try{execFileSync('magick',['-version'],{stdio:'ignore'});return true;}catch{return false;}}
+const magick=hasMagick();
+function save(buffer,name){
+  const png=path.join(out,name+'.png');
+  fs.writeFileSync(png,buffer);
+  if(!magick)return name+'.png';
+  execFileSync('magick',[png,'-quality','82','-define','webp:method=6',path.join(out,name+'.webp')]);
+  fs.unlinkSync(png);
+  return name+'.webp';
+}
+
+/* Pages are served over http (like production) so the PDF report can embed the wordmark logo. */
+const PORT=8765,BASE='http://127.0.0.1:'+PORT+'/';
+async function startServer(){
+  const server=spawn(process.execPath,[path.join(__dirname,'serve-local.cjs'),String(PORT)],{stdio:'ignore',windowsHide:true});
+  for(let attempt=0;attempt<50;attempt++){
+    try{const response=await fetch(BASE+'site.webmanifest');if(response.ok)return server;}catch{}
+    await new Promise(resolve=>setTimeout(resolve,100));
+  }
+  server.kill();throw new Error('Local server did not start');
+}
+
+(async()=>{
+  const server=await startServer();
+  const browser=await chromium.launch({headless:true,channel:'chrome'});
+  const written=[];
+  try{
+    for(const lang of ['de','en']){
+      const page=await browser.newPage({viewport:{width:1440,height:860},deviceScaleFactor:1.5});
+      await page.addInitScript(l=>localStorage.setItem('signalerfassung.lang',l),lang);
+      await page.route('**/api/usage',route=>route.fulfill({status:204}));
+      await page.goto(BASE+'signalerfassung-analyse-tool.html');
+      await page.waitForTimeout(300);
+      written.push(save(await page.screenshot(),lang+'-upload'));
+
+      await page.locator('#file-input').setInputFiles(sample);
+      await page.waitForFunction(()=>S.files.length===1);
+      await page.waitForTimeout(200);
+      /* Example annotations so markers, ranges and notes are visible */
+      await page.evaluate(en=>{
+        const A=active(),n=A.rawRows.length;
+        const a=A.rawRows[Math.floor(n*.36)];a.marked=true;a.markerColor='#e4002b';a.markerWidth=3;a.note=en?'Jerk when pulling away, engine speed drops briefly.':'Ruckeln beim Anfahren, Drehzahl bricht kurz ein.';
+        A.ranges=[{id:'demo-range',start:Math.floor(n*.47),end:Math.floor(n*.53),color:'#ffe08a',note:en?'Load change: pedal 0 to 60 %, gearbox shifts down.':'Lastwechsel: Pedal 0 auf 60 %, Getriebe schaltet zurück.'}];
+        const c=A.rawRows[Math.floor(n*.71)];c.marked=true;c.markerColor='#7c3aed';c.markerWidth=5;
+        A.dirty=false;Annotations.sync();
+      },lang==='en');
+      await page.addStyleTag({content:'.toast{display:none!important}'});
+
+      /* Table with capture marker badge */
+      await page.evaluate(()=>{const e=markerEvents(active())[3];scrollTableToRow(e.row.rowId,false);});
+      await page.waitForTimeout(400);
+      written.push(save(await page.screenshot(),lang+'-table'));
+
+      /* Chart with toolbox */
+      await page.locator('#view-chart-btn').click();await page.waitForTimeout(500);
+      await page.mouse.move(10,10);
+      written.push(save(await page.screenshot(),lang+'-chart'));
+      written.push(save(await page.locator('.annotation-tools').screenshot(),lang+'-toolbox'));
+
+      /* Signal picker */
+      await page.locator('.chart-action[onclick="selectChartSignals()"]').click();await page.waitForTimeout(250);
+      written.push(save(await page.locator('.chart-card').screenshot(),lang+'-picker'));
+      await page.keyboard.press('Escape');
+
+      /* Overlay: speed, pedal and engine speed in one lane */
+      await page.evaluate(()=>{
+        const A=active(),pick=['EMS-CanVehicleSpeed','EMS-AccPedalFilt','TMS-EngineSpeed'];
+        A.signals.forEach(s=>{s.marked=pick.includes(s.id);s.overlay=pick.includes(s.id);});
+        refreshColumns();
+      });
+      await page.waitForTimeout(300);
+      written.push(save(await page.locator('.chart-card').screenshot(),lang+'-overlay'));
+      await page.evaluate(()=>{active().signals.forEach(s=>{s.marked=false;s.overlay=false;});refreshColumns();});
+
+      /* Notes sidebar */
+      await page.locator('.annotation-toggle').click();await page.waitForTimeout(300);
+      written.push(save(await page.screenshot(),lang+'-notes'));
+      await page.locator('.annotation-toggle').click();
+
+      /* Export menu */
+      await page.locator('#export-menu summary').click();await page.waitForTimeout(200);
+      written.push(save(await page.screenshot({clip:{x:860,y:0,width:580,height:330}}),lang+'-export'));
+      await page.locator('#export-menu summary').click();
+
+      /* Help drawer */
+      await page.locator('#help-trigger').click();await page.waitForTimeout(400);
+      written.push(save(await page.screenshot(),lang+'-help'));
+      await page.keyboard.press('Escape');
+
+      /* PDF report pages rendered with pdf.js (dev dependency only, not deployed) */
+      const pdfjs=path.join(root,'node_modules/pdfjs-dist/legacy/build/pdf.min.js');
+      if(fs.existsSync(pdfjs)){
+        const b64=await page.evaluate(async()=>{
+          const blob=exportPDF({file:captureExportState(active()).file,download:false});
+          const bytes=new Uint8Array(await blob.arrayBuffer());let raw='';for(let i=0;i<bytes.length;i+=0x8000)raw+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(raw);
+        });
+        const viewer=await browser.newPage({deviceScaleFactor:1});
+        await viewer.goto('about:blank');
+        await viewer.addScriptTag({path:pdfjs});
+        await viewer.addScriptTag({path:path.join(root,'node_modules/pdfjs-dist/legacy/build/pdf.worker.min.js')});
+        const pages=await viewer.evaluate(async data=>{
+          const bytes=Uint8Array.from(atob(data),c=>c.charCodeAt(0)),doc=await pdfjsLib.getDocument({data:bytes}).promise,urls=[];
+          for(const number of [1,2,7]){if(number>doc.numPages)continue;const page=await doc.getPage(number),vp=page.getViewport({scale:1.8}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;urls.push(c.toDataURL('image/png'));}
+          return urls;
+        },b64);
+        ['report-summary','report-chart','report-capture'].forEach((name,i)=>{if(pages[i])written.push(save(Buffer.from(pages[i].split(',')[1],'base64'),lang+'-'+name));});
+        await viewer.close();
+      }else console.warn('pdfjs-dist not installed - report pages skipped (npm install --no-save pdfjs-dist@3.11.174)');
+      await page.close();
+    }
+  }finally{await browser.close();server.kill();}
+  console.log(JSON.stringify({written,converted:magick?'webp':'png'},null,2));
+})().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="de" data-ui-lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Handbuch · Signalerfassung</title>
+<link rel="icon" type="image/png" sizes="1024x1024" href="assets/signalerfassung-app-icon.png">
+<style>
+:root{--dark:#003d75;--blue:#0055a0;--accent:#f5a800;--ink:#14263b;--muted:#566c82;--line:#d6e3ee;--soft:#f3f8fc;--capture:#0b4f8a}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;color:var(--ink);background:#eef4f9;line-height:1.6}
+html[data-ui-lang="de"] [data-lang="en"],html[data-ui-lang="en"] [data-lang="de"]{display:none!important}
+a{color:var(--blue)}
+.hb-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:10px 22px;background:linear-gradient(135deg,var(--dark),#075fa8);color:#fff;border-bottom:3px solid var(--accent);box-shadow:0 4px 18px #00203f40}
+.hb-brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}
+.hb-brand img:first-child{height:38px;width:auto}
+.hb-brand img:last-child{height:24px;width:auto}
+.hb-title{font-weight:800;font-size:14px;padding-left:14px;border-left:1px solid #ffffff40;white-space:nowrap}
+.hb-spacer{flex:1}
+.hb-button{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border:1px solid #ffffff4d;border-radius:999px;background:#ffffff1a;color:#fff;font:700 12px/1 inherit;text-decoration:none;cursor:pointer;white-space:nowrap}
+.hb-button:hover{background:#fff;color:var(--dark)}
+.hb-button.primary{background:var(--accent);border-color:var(--accent);color:#092743}
+.hb-lang{display:inline-flex;padding:3px;border-radius:999px;background:#ffffff1f;border:1px solid #ffffff3d}
+.hb-lang button{border:0;background:transparent;color:#fff;font:800 11px/1 inherit;padding:6px 10px;border-radius:999px;cursor:pointer}
+.hb-lang button[aria-pressed="true"]{background:#fff;color:var(--dark)}
+.hb-top :focus-visible,.hb-toc a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hb-layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;max-width:1320px;margin:0 auto;padding:26px 22px 60px}
+.hb-toc{position:sticky;top:84px;align-self:start;max-height:calc(100vh - 100px);overflow:auto;padding:16px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 20px #002b5410}
+.hb-toc strong{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.hb-toc ol{margin:0;padding:0;list-style:none;counter-reset:toc}
+.hb-toc li{counter-increment:toc}
+.hb-toc a{display:flex;gap:8px;padding:6px 8px;border-radius:8px;color:var(--ink);font-size:13px;font-weight:600;text-decoration:none}
+.hb-toc a:before{content:counter(toc,decimal-leading-zero);font-size:11px;font-weight:800;color:var(--blue);min-width:20px;padding-top:1px}
+.hb-toc a:hover,.hb-toc a.is-active{background:#e6f0f9;color:var(--dark)}
+main{min-width:0}
+.hb-hero{padding:30px 32px;border-radius:18px;background:linear-gradient(135deg,#fff,#eaf3fb);border:1px solid var(--line);box-shadow:0 10px 30px #002b5414;margin-bottom:22px}
+.hb-hero .eyebrow{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);text-shadow:0 0 1px #0002}
+.hb-hero h1{margin:6px 0 10px;font-size:34px;line-height:1.15;color:var(--dark)}
+.hb-hero p{margin:0;max-width:780px;color:var(--muted);font-size:15px}
+.hb-new{margin-top:18px;padding:16px 18px;border-radius:12px;background:#fff8de;border-left:4px solid var(--accent)}
+.hb-new h2{margin:0 0 6px;font-size:15px;color:#5a4410}
+.hb-new ul{margin:0;padding-left:18px;color:#594516;font-size:14px}
+section.chapter{margin:0 0 22px;padding:26px 30px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 20px #002b540d}
+.chapter h2{display:flex;align-items:center;gap:12px;margin:0 0 12px;font-size:23px;color:var(--dark)}
+.chapter h2 .num{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border-radius:10px;background:var(--dark);color:#fff;font-size:13px}
+.chapter h3{margin:20px 0 6px;font-size:16px;color:var(--dark)}
+.chapter p,.chapter li{font-size:14.5px}
+.chapter ul,.chapter ol{padding-left:20px}
+.chapter li{margin:5px 0}
+figure{margin:16px 0 6px}
+figure a{display:block;border-radius:12px;overflow:hidden;border:1px solid var(--line);box-shadow:0 8px 24px #002b5418;background:#fff}
+figure img{display:block;width:100%;height:auto}
+figure.narrow{max-width:760px}
+figcaption{margin-top:8px;font-size:12.5px;color:var(--muted)}
+.tip{margin:14px 0;padding:12px 14px;border-left:3px solid var(--accent);border-radius:0 10px 10px 0;background:#fff8de;color:#594516;font-size:14px}
+.note{margin:14px 0;padding:12px 14px;border-left:3px solid var(--capture);border-radius:0 10px 10px 0;background:#e9f2fb;color:#123f68;font-size:14px}
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin:14px 0}
+.tool{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--soft)}
+.tool strong{display:block;color:var(--dark);margin-bottom:3px}
+.tool span{font-size:13.5px;color:var(--muted)}
+table.keys{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+table.keys td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.keys td:first-child{white-space:nowrap;width:42%;font-weight:700;color:var(--dark)}
+kbd{display:inline-block;min-width:22px;padding:2px 7px;border:1px solid #b8cde0;border-bottom-width:2px;border-radius:6px;background:#fff;font:700 12px/1.4 Consolas,monospace;text-align:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.hb-foot{max-width:1320px;margin:0 auto;padding:0 22px 40px;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:980px){
+  .hb-layout{grid-template-columns:1fr}
+  .hb-toc{position:static;max-height:none}
+  .hb-title{display:none}
+  .grid2{grid-template-columns:1fr}
+}
+@media(max-width:620px){
+  .hb-top{flex-wrap:wrap;padding:8px 16px}
+  .hb-brand img:last-child{display:none}
+  .hb-layout{padding:16px 16px 40px}
+  .hb-hero{padding:22px 18px}.hb-hero h1{font-size:26px}
+  section.chapter{padding:20px 16px}
+  .hb-button .hide-small{display:none}
+}
+.hb-totop{position:fixed;right:22px;bottom:22px;z-index:30;display:grid;place-items:center;width:48px;height:48px;padding:0;border:1px solid rgba(0,61,117,.25);border-radius:50%;background:rgba(0,61,117,.55);color:#fff;box-shadow:0 8px 22px rgba(0,32,63,.25);backdrop-filter:blur(4px);cursor:pointer;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .2s,transform .2s,background .15s}
+.hb-totop.is-visible{opacity:1;transform:none;pointer-events:auto}
+.hb-totop:hover{background:rgba(0,61,117,.9)}
+.hb-totop:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:620px){.hb-totop{right:16px;bottom:16px;width:44px;height:44px}}
+@media(prefers-reduced-motion:reduce){.hb-totop{transition:none}html{scroll-behavior:auto}}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff}
+  .hb-top,.hb-toc,.hb-foot,.hb-totop{display:none!important}
+  .hb-layout{display:block;padding:0;max-width:none}
+  .hb-hero,section.chapter{box-shadow:none;border:0;padding:0;margin:0 0 10mm}
+  section.chapter{break-before:page}
+  figure a{box-shadow:none}
+  figure{break-inside:avoid}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<header class="hb-top">
+  <a class="hb-brand" href="index.html" aria-label="Signalerfassung">
+    <img src="assets/signalerfassung-symbol.png" alt="" width="64" height="52">
+    <img src="assets/signalerfassung-wordmark.png" alt="Signalerfassung" width="215" height="30">
+  </a>
+  <span class="hb-title"><span data-lang="de">Handbuch</span><span data-lang="en">Manual</span></span>
+  <span class="hb-spacer"></span>
+  <div class="hb-lang" role="group" aria-label="Sprache / Language">
+    <button type="button" data-set-lang="de" aria-pressed="true">DE</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <button class="hb-button" type="button" onclick="window.print()"><span aria-hidden="true">&#128424;</span><span class="hide-small"><span data-lang="de">Drucken / PDF</span><span data-lang="en">Print / PDF</span></span></button>
+  <a class="hb-button primary" href="signalerfassung-analyse-tool.html"><span data-lang="de">Zur Analyse</span><span data-lang="en">Open analysis</span> &rarr;</a>
+</header>
+
+<div class="hb-layout">
+  <nav class="hb-toc" aria-label="Inhalt / Contents">
+    <strong><span data-lang="de">Inhalt</span><span data-lang="en">Contents</span></strong>
+    <ol>
+      <li><a href="#start"><span data-lang="de">Messdatei laden</span><span data-lang="en">Load a recording</span></a></li>
+      <li><a href="#workspace"><span data-lang="de">Arbeitsbereich</span><span data-lang="en">Workspace</span></a></li>
+      <li><a href="#table"><span data-lang="de">Tabelle</span><span data-lang="en">Table</span></a></li>
+      <li><a href="#chart"><span data-lang="de">Kurvendiagramm</span><span data-lang="en">Curve chart</span></a></li>
+      <li><a href="#signals"><span data-lang="de">Signale auswählen &amp; überlagern</span><span data-lang="en">Choose &amp; overlay signals</span></a></li>
+      <li><a href="#toolbox"><span data-lang="de">Werkzeugleiste</span><span data-lang="en">Toolbar</span></a></li>
+      <li><a href="#capture"><span data-lang="de">Erfassungsmarker</span><span data-lang="en">Capture markers</span></a></li>
+      <li><a href="#notes"><span data-lang="de">Notizen &amp; Markierungen</span><span data-lang="en">Notes &amp; markers</span></a></li>
+      <li><a href="#undo"><span data-lang="de">Rückgängig &amp; Kürzel</span><span data-lang="en">Undo &amp; shortcuts</span></a></li>
+      <li><a href="#project"><span data-lang="de">Projekte</span><span data-lang="en">Projects</span></a></li>
+      <li><a href="#export"><span data-lang="de">Export &amp; Bericht</span><span data-lang="en">Export &amp; report</span></a></li>
+      <li><a href="#help"><span data-lang="de">Hilfe in der App</span><span data-lang="en">In-app help</span></a></li>
+      <li><a href="#privacy"><span data-lang="de">Datenschutz</span><span data-lang="en">Privacy</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <div class="hb-hero">
+      <div class="eyebrow"><span data-lang="de">Handbuch · Stand Oktober 2026</span><span data-lang="en">Manual · October 2026</span></div>
+      <h1><span data-lang="de">Signalerfassung Analyse-Tool</span><span data-lang="en">Signal Capture Analysis Tool</span></h1>
+      <p data-lang="de">Das Analyse-Tool wertet Signalerfassungen aus SWS und SDP3 direkt im Browser aus: Tabelle, Kurvendiagramm, Erfassungsmarker, eigene Markierungen und Notizen sowie Berichte als PDF, Excel und Support-ZIP. Die Messdateien verlassen dabei nie dein Gerät.</p>
+      <p data-lang="en">The analysis tool evaluates SWS and SDP3 signal captures directly in the browser: table, curve chart, capture markers, own markings and notes plus reports as PDF, Excel and support ZIP. The measurement files never leave your device.</p>
+      <div class="hb-new">
+        <h2><span data-lang="de">Neu in dieser Version</span><span data-lang="en">New in this version</span></h2>
+        <ul data-lang="de">
+          <li><strong>Werkzeugleiste</strong> mit Navigieren, Marker, Zeitraum, Farben, Markerdicke und Rückgängig/Wiederholen (Strg+Z / Strg+Y).</li>
+          <li><strong>Erfassungsmarker</strong> sind eine eigene Ebene mit eigener Farbe und Sprungpfeilen und verändern deine Markierungen nicht mehr.</li>
+          <li><strong>Kurven übereinanderlegen</strong> und ausgewählte Signale direkt im Diagramm an- und abhaken.</li>
+          <li><strong>Y-Achse per Mausrad</strong> über dem Höhenregler oder mit Strg + Mausrad, Zeitachse verschieben mit Umschalt + Mausrad.</li>
+          <li><strong>Neuer PDF-Bericht</strong> mit großem, unverzerrtem Kurvendiagramm, Detailseiten und Messwerten an jedem Erfassungsmarker; Excel mit Diagramm, Marker- und Statistikblatt.</li>
+        </ul>
+        <ul data-lang="en">
+          <li><strong>Toolbar</strong> with Navigate, Marker, Time range, colours, marker width and Undo/Redo (Ctrl+Z / Ctrl+Y).</li>
+          <li><strong>Capture markers</strong> are a separate layer with their own colour and jump arrows and no longer change your markings.</li>
+          <li><strong>Overlay curves</strong> and tick the selected signals directly in the chart.</li>
+          <li><strong>Y axis with the mouse wheel</strong> over the height slider or with Ctrl + wheel, pan the time axis with Shift + wheel.</li>
+          <li><strong>New PDF report</strong> with a large, undistorted curve chart, detail pages and values at every capture marker; Excel with chart, marker and statistics sheets.</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="chapter" id="start">
+      <h2><span class="num">01</span><span data-lang="de">Messdatei laden</span><span data-lang="en">Load a recording</span></h2>
+      <div data-lang="de">
+        <p>Ziehe eine oder mehrere <strong>.txt-Dateien</strong> aus SWS oder SDP3 auf die Startfläche oder wähle sie über „Datei auswählen“. Das Format wird automatisch erkannt. Mit „Gespeichertes Projekt öffnen“ setzt du eine frühere Auswertung fort.</p>
+        <ul><li><strong>SDP3</strong> liefert Steuergerät, Beschreibung, Einheit und technische Signal-ID.</li><li><strong>SWS</strong> liefert Bezeichnung und Einheit. Fehlende Steuergeräte und IDs werden gekennzeichnet, nicht erfunden.</li><li>Mehrere Dateien erscheinen als Tabs. Über „+ Datei hinzufügen“ kommen weitere hinzu.</li></ul>
+      </div>
+      <div data-lang="en">
+        <p>Drag one or more SWS or SDP3 <strong>.txt files</strong> onto the start area or choose them with "Choose file". The format is detected automatically. "Open saved project" continues an earlier evaluation.</p>
+        <ul><li><strong>SDP3</strong> provides ECU, description, unit and technical signal ID.</li><li><strong>SWS</strong> provides name and unit. Missing ECUs and IDs are marked, never invented.</li><li>Several files appear as tabs. "+ Add file" adds more.</li></ul>
+      </div>
+      <figure><a href="handbuch/de-upload.webp" data-lang="de" target="_blank"><img src="handbuch/de-upload.webp" alt="Startfläche zum Laden einer Messdatei" loading="lazy" width="2160" height="1290"></a><a href="handbuch/en-upload.webp" data-lang="en" target="_blank"><img src="handbuch/en-upload.webp" alt="Start area to load a recording" loading="lazy" width="2160" height="1290"></a>
+        <figcaption><span data-lang="de">Startfläche: Datei auswählen, hineinziehen oder Projekt öffnen.</span><span data-lang="en">Start area: choose or drop a file, or open a project.</span></figcaption></figure>
+    </section>
+
+    <section class="chapter" id="workspace">
+      <h2><span class="num">02</span><span data-lang="de">Arbeitsbereich</span><span data-lang="en">Workspace</span></h2>
+      <div data-lang="de">
+        <p>Nach dem Laden ist der Arbeitsbereich in vier Ebenen aufgebaut:</p>
+        <ol><li><strong>Kopfzeile:</strong> Projekt speichern/öffnen, Export, Neu, Sprache, Hilfe (i) und Werkstatt-Portale.</li><li><strong>Ansichtsleiste:</strong> Tabelle oder Kurvendiagramm, „Erfasste Signale“, „Filter“, „Messdaten“ und der Fokusmodus.</li><li><strong>Werkzeugleiste:</strong> alle Werkzeuge für Marker, Zeiträume, Erfassungsmarker, Rückgängig und Notizen (Kapitel 6).</li><li><strong>Analysefläche:</strong> Tabelle oder Diagramm, rechts optional die Liste „Notizen &amp; Markierungen“.</li></ol>
+        <p class="tip"><strong>Fokusmodus</strong> blendet Kopf- und Fußzeile aus und gibt der Analyse den ganzen Bildschirm. Escape führt zurück.</p>
+      </div>
+      <div data-lang="en">
+        <p>After loading, the workspace has four levels:</p>
+        <ol><li><strong>Header:</strong> save/open project, export, new, language, help (i) and workshop portals.</li><li><strong>View bar:</strong> table or curve chart, "Captured signals", "Filter", "Measurement data" and focus mode.</li><li><strong>Toolbar:</strong> every tool for markers, time ranges, capture markers, undo and notes (chapter 6).</li><li><strong>Analysis area:</strong> table or chart, optionally the "Notes &amp; markers" list on the right.</li></ol>
+        <p class="tip"><strong>Focus mode</strong> hides header and footer and gives the analysis the full screen. Escape returns.</p>
+      </div>
+      <figure><a href="handbuch/de-chart.webp" data-lang="de" target="_blank"><img src="handbuch/de-chart.webp" alt="Arbeitsbereich mit Kurvendiagramm" loading="lazy" width="2160" height="1290"></a><a href="handbuch/en-chart.webp" data-lang="en" target="_blank"><img src="handbuch/en-chart.webp" alt="Workspace with curve chart" loading="lazy" width="2160" height="1290"></a>
+        <figcaption><span data-lang="de">Arbeitsbereich mit Werkzeugleiste und Kurvendiagramm.</span><span data-lang="en">Workspace with toolbar and curve chart.</span></figcaption></figure>
+    </section>
+
+    <section class="chapter" id="table">
+      <h2><span class="num">03</span><span data-lang="de">Tabelle</span><span data-lang="en">Table</span></h2>
+      <div data-lang="de">
+        <p>Die Tabelle zeigt jede Messzeile mit Zeitstempel und allen sichtbaren Signalen. Auch große Dateien bleiben flüssig, weil nur der sichtbare Teil gezeichnet wird.</p>
+        <ul><li><strong>Kreis</strong> am Zeitstempel: eigenen Marker setzen oder entfernen.</li><li><strong>Stift:</strong> Notiz zu dieser Zeile.</li><li><strong>Nummernkästchen:</strong> Erfassungsmarker, also die Zeile, in der der Markerknopf gedrückt wurde.</li><li><strong>Stern / ×</strong> im Spaltenkopf: Signal hervorheben oder ausblenden. Derselbe Stern sitzt im Diagramm oben rechts an jeder Spur.</li><li><strong>Filter → Zum Marker</strong> springt zum nächsten Erfassungsmarker.</li></ul>
+      </div>
+      <div data-lang="en">
+        <p>The table shows every measurement row with timestamp and all visible signals. Large files stay responsive because only the visible part is drawn.</p>
+        <ul><li><strong>Circle</strong> at the timestamp: set or remove an own marker.</li><li><strong>Pencil:</strong> note for this row.</li><li><strong>Number badge:</strong> capture marker, the row where the marker button was pressed.</li><li><strong>Star / ×</strong> in the column header: highlight or hide a signal. The same star sits in the top right corner of every chart lane.</li><li><strong>Filter → Jump to marker</strong> moves to the next capture marker.</li></ul>
+      </div>
+      <figure><a href="handbuch/de-table.webp" data-lang="de" target="_blank"><img src="handbuch/de-table.webp" alt="Tabellenansicht mit Erfassungsmarker" loading="lazy" width="2160" height="1290"></a><a href="handbuch/en-table.webp" data-lang="en" target="_blank"><img src="handbuch/en-table.webp" alt="Table view with capture marker" loading="lazy" width="2160" height="1290"></a>
+        <figcaption><span data-lang="de">Tabelle: Erfassungsmarker 4 ist mit Nummer und farbigem Rand gekennzeichnet.</span><span data-lang="en">Table: capture marker 4 is shown with its number and a coloured edge.</span></figcaption></figure>
+    </section>
+
+    <section class="chapter" id="chart">
+      <h2><span class="num">04</span><span data-lang="de">Kurvendiagramm</span><span data-lang="en">Curve chart</span></h2>
+      <div data-lang="de">
+        <p>Jedes Signal hat eine eigene Spur mit eigener Skala; Minimum und Maximum stehen links neben der Spur. Die Zeitachse entspricht der echten Messzeit, kurze Spitzen bleiben auch bei großen Dateien sichtbar.</p>
+        <h3>Bedienung</h3>
+        <ul><li><strong>Zeitachse:</strong> Regler oben oder Mausrad (zoomt am Mauszeiger).</li><li><strong>Verschieben:</strong> im Werkzeug „Navigieren“ ziehen oder Umschalt + Mausrad.</li><li><strong>Höhe (Y-Achse):</strong> Regler rechts ziehen, Mausrad über dem Regler oder Strg + Mausrad im Diagramm. Über den Signalnamen scrollt das Mausrad ein vergrößertes Diagramm hoch und runter.</li><li><strong>Werteanzeige:</strong> das dunkle Infofenster zeigt Zeit und alle Werte an der Mausposition, dazu Marker und Notizen. Ist es im Weg, machst du es mit <kbd>T</kbd> + Mausrad durchsichtiger (Touchpad: <kbd>T</kbd> + Zwei-Finger-Scrollen).</li><li><strong>Gesamter Zeitraum:</strong> setzt Zoom und Verschiebung zurück.</li></ul>
+        <p class="note">Das Diagramm zeigt alle sichtbaren numerischen Signale, egal wie viele erfasst wurden. Jede Spur behält eine gut lesbare Mindesthöhe; passen nicht alle auf den Bildschirm, erreichst du die weiteren Spuren über die <strong>Scrollleiste rechts</strong> oder das Mausrad über den Signalnamen. Über die Haken in „Signale auswählen“ blendest du einzelne Kurven aus. Der <strong>Stern oben rechts an jeder Spur</strong> hebt ein Signal gelb hervor, genau wie der Stern in der Tabelle.</p>
+      </div>
+      <div data-lang="en">
+        <p>Every signal has its own lane and scale; minimum and maximum are shown left of the lane. The time axis follows the real measurement time, short peaks stay visible even in large files.</p>
+        <h3>Controls</h3>
+        <ul><li><strong>Time axis:</strong> slider at the top or mouse wheel (zooms at the cursor).</li><li><strong>Pan:</strong> drag with the "Navigate" tool or Shift + wheel.</li><li><strong>Height (Y axis):</strong> drag the slider on the right, use the wheel over the slider or Ctrl + wheel in the chart. Over the signal names the wheel scrolls an enlarged chart up and down.</li><li><strong>Value tooltip:</strong> the dark info box shows time and all values at the mouse position plus markers and notes. If it is in the way, make it more transparent with <kbd>T</kbd> + wheel (touchpad: <kbd>T</kbd> + two-finger scroll).</li><li><strong>Full time range:</strong> resets zoom and pan.</li></ul>
+        <p class="note">The chart shows all visible numeric signals, however many were captured. Every lane keeps a readable minimum height; if they do not all fit on the screen, reach further lanes with the <strong>scrollbar on the right</strong> or the mouse wheel over the signal names. Untick single curves in "Choose signals" to hide them. The <strong>star in the top right corner of every lane</strong> highlights a signal in yellow, just like the star in the table.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="signals">
+      <h2><span class="num">05</span><span data-lang="de">Signale auswählen &amp; überlagern</span><span data-lang="en">Choose &amp; overlay signals</span></h2>
+      <div data-lang="de">
+        <p><strong>Signale auswählen</strong> öffnet eine Liste aller numerischen Signale mit Suche. Ein Haken zeigt die Kurve im Diagramm, ohne Haken ist sie ausgeblendet. Tabelle und Sterne bleiben davon unberührt. „Alle zeigen“ hebt die Auswahl auf und zeigt wieder alle Signale.</p>
+        <ul><li><strong>Getrennt / Übereinander:</strong> legt alle ausgewählten Kurven in eine gemeinsame Spur, ideal zum Vergleichen unterschiedlicher Signale, z. B. Pedal, Drehzahl und Geschwindigkeit.</li><li><strong>Wellen-Symbol</strong> je Signal: nur einzelne Kurven überlagern, die übrigen bleiben getrennt.</li><li><strong>Gemeinsame Skala:</strong> überlagerte Kurven teilen sich einen Wertebereich mit Achsbeschriftung. Sinnvoll bei gleicher Einheit, z. B. mehreren Drehzahlen.</li></ul>
+      </div>
+      <div data-lang="en">
+        <p><strong>Choose signals</strong> opens a list of all numeric signals with search. A tick shows the curve in the chart, without a tick it is hidden. Table and stars are not affected. "Show all" clears the selection and shows every signal again.</p>
+        <ul><li><strong>Separate / Overlaid:</strong> puts all selected curves into one shared lane, ideal to compare different signals such as pedal, engine speed and vehicle speed.</li><li><strong>Wave icon</strong> per signal: overlay only single curves, the others stay separate.</li><li><strong>Shared scale:</strong> overlaid curves share one value range with axis labels. Useful for the same unit, e.g. several speeds in rpm.</li></ul>
+      </div>
+      <div class="grid2">
+        <figure><a href="handbuch/de-picker.webp" data-lang="de" target="_blank"><img src="handbuch/de-picker.webp" alt="Auswahlmenü Signale im Diagramm" loading="lazy"></a><a href="handbuch/en-picker.webp" data-lang="en" target="_blank"><img src="handbuch/en-picker.webp" alt="Signals in chart picker" loading="lazy"></a>
+          <figcaption><span data-lang="de">Auswahlmenü mit Haken, Überlagern und gemeinsamer Skala.</span><span data-lang="en">Picker with ticks, overlay and shared scale.</span></figcaption></figure>
+        <figure><a href="handbuch/de-overlay.webp" data-lang="de" target="_blank"><img src="handbuch/de-overlay.webp" alt="Drei überlagerte Kurven" loading="lazy"></a><a href="handbuch/en-overlay.webp" data-lang="en" target="_blank"><img src="handbuch/en-overlay.webp" alt="Three overlaid curves" loading="lazy"></a>
+          <figcaption><span data-lang="de">Geschwindigkeit, Pedal und Motordrehzahl übereinander.</span><span data-lang="en">Vehicle speed, pedal and engine speed overlaid.</span></figcaption></figure>
+      </div>
+    </section>
+
+    <section class="chapter" id="toolbox">
+      <h2><span class="num">06</span><span data-lang="de">Werkzeugleiste</span><span data-lang="en">Toolbar</span></h2>
+      <figure class="narrow"><a href="handbuch/de-toolbox.webp" data-lang="de" target="_blank"><img src="handbuch/de-toolbox.webp" alt="Werkzeugleiste" loading="lazy"></a><a href="handbuch/en-toolbox.webp" data-lang="en" target="_blank"><img src="handbuch/en-toolbox.webp" alt="Toolbar" loading="lazy"></a></figure>
+      <div class="tools" data-lang="de">
+        <div class="tool"><strong>Navigieren</strong><span>Ziehen verschiebt den Zeitstrahl, ein Klick wählt einen Messpunkt für eine Notiz.</span></div>
+        <div class="tool"><strong>Marker</strong><span>Klick setzt einen eigenen Marker in Farbe und Dicke. Klick auf einen Marker entfernt ihn.</span></div>
+        <div class="tool"><strong>Zeitraum</strong><span>Maustaste gedrückt halten und von Start bis Ende ziehen, im Diagramm oder in der Tabelle. Überlappende Zeiträume bleiben durchscheinend beide sichtbar.</span></div>
+        <div class="tool"><strong>Farbe</strong><span>Sechs Schnellfarben und eine frei wählbare Farbe. Marker und Zeitraum merken sich je eine eigene Farbe.</span></div>
+        <div class="tool"><strong>Dicke</strong><span>1, 3, 5 oder 8 Pixel für neue Marker.</span></div>
+        <div class="tool"><strong>Erfassungsmarker</strong><span>Ein-/ausblenden, Farbe wählen, mit ‹ › zum vorherigen oder nächsten springen (Kapitel 7).</span></div>
+        <div class="tool"><strong>Rückgängig / Wiederholen</strong><span>Jede Änderung an Markern, Zeiträumen, Notizen und Farben Schritt für Schritt (Strg+Z / Strg+Y).</span></div>
+        <div class="tool"><strong>Notiz &amp; Liste</strong><span>Notiz zur Auswahl schreiben, Liste „Notizen &amp; Markierungen“ öffnen.</span></div>
+      </div>
+      <div class="tools" data-lang="en">
+        <div class="tool"><strong>Navigate</strong><span>Dragging pans the timeline, a click selects a measurement point for a note.</span></div>
+        <div class="tool"><strong>Marker</strong><span>A click sets an own marker in colour and width. Clicking a marker removes it.</span></div>
+        <div class="tool"><strong>Time range</strong><span>Hold the mouse button and drag from start to end, in the chart or the table. Overlapping ranges stay translucent so both remain visible.</span></div>
+        <div class="tool"><strong>Color</strong><span>Six quick colours and a custom colour. Marker and time range each remember their own colour.</span></div>
+        <div class="tool"><strong>Width</strong><span>1, 3, 5 or 8 pixels for new markers.</span></div>
+        <div class="tool"><strong>Capture markers</strong><span>Show/hide, choose the colour, jump to the previous or next with ‹ › (chapter 7).</span></div>
+        <div class="tool"><strong>Undo / Redo</strong><span>Every change to markers, ranges, notes and colours step by step (Ctrl+Z / Ctrl+Y).</span></div>
+        <div class="tool"><strong>Note &amp; list</strong><span>Write a note for the selection, open the "Notes &amp; markers" list.</span></div>
+      </div>
+      <p class="tip" data-lang="de"><strong>Nachträglich ändern:</strong> Im Werkzeug „Navigieren“ einen Marker oder Zeitraum anklicken und dann Farbe oder Dicke wählen. Das ändert genau diese Markierung und lässt sich rückgängig machen.</p>
+      <p class="tip" data-lang="en"><strong>Change later:</strong> With the "Navigate" tool click a marker or range, then pick a colour or width. That changes exactly this marking and can be undone.</p>
+    </section>
+
+    <section class="chapter" id="capture">
+      <h2><span class="num">07</span><span data-lang="de">Erfassungsmarker</span><span data-lang="en">Capture markers</span></h2>
+      <div data-lang="de">
+        <p>Während der Messfahrt kann der Fahrer bei jeder Auffälligkeit den <strong>Markerknopf</strong> drücken. Die Signalerfassung zählt dabei die Spalte „Marker“ hoch: 0 bis zum ersten Druck, dann 1, 2, 3 und so weiter. Der Wert bleibt bis zum nächsten Druck stehen.</p>
+        <p>Das Tool erkennt jeden Druck an der Stelle, an der der Zähler steigt, und zeigt ihn als <strong>nummerierte Linie</strong> im Diagramm und als Nummernkästchen in der Tabelle. Die Zahl im Button „Erfassungsmarker“ zeigt, wie viele Drücke die Datei enthält.</p>
+        <ul><li>Button: ein- und ausblenden. Deine eigenen Marker bleiben dabei immer erhalten.</li><li>Farbfeld daneben: Farbe der Erfassungsmarker frei wählen.</li><li>‹ ›: zum vorherigen oder nächsten Erfassungsmarker springen. Das Diagramm zoomt dafür auf einen passenden Ausschnitt.</li></ul>
+        <p class="note">Im PDF-Bericht stehen die Messwerte aller Diagrammsignale zu jedem Knopfdruck in einer Tabelle, dazu eine Detailansicht von ±8 Sekunden je Marker.</p>
+      </div>
+      <div data-lang="en">
+        <p>During the test drive the driver can press the <strong>marker button</strong> whenever something happens. The signal capture counts the "Marker" column up: 0 until the first press, then 1, 2, 3 and so on. The value stays until the next press.</p>
+        <p>The tool detects each press where the counter increases and shows it as a <strong>numbered line</strong> in the chart and a number badge in the table. The number in the "Capture markers" button shows how many presses the file contains.</p>
+        <ul><li>Button: show or hide. Your own markers always stay untouched.</li><li>Colour field next to it: choose the colour of the capture markers.</li><li>‹ ›: jump to the previous or next capture marker. The chart zooms to a suitable section.</li></ul>
+        <p class="note">The PDF report lists the values of all chart signals at every button press in a table, plus a ±8 second detail view per marker.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="notes">
+      <h2><span class="num">08</span><span data-lang="de">Notizen &amp; Markierungen</span><span data-lang="en">Notes &amp; markers</span></h2>
+      <div data-lang="de">
+        <p>Jede eigene Markierung bekommt einen <strong>Buchstaben</strong> (A, B, C …). Er steht unten im Diagramm, in der Liste und in allen Berichten. Ein Stern am Buchstaben bedeutet: mit Notiz.</p>
+        <ol><li>Messpunkt, Marker oder Zeitraum auswählen.</li><li>„Notiz hinzufügen“ klicken und Beobachtung, vermutete Ursache oder nächsten Prüfschritt eintragen.</li><li>In der Liste „Notizen &amp; Markierungen“ jeden Eintrag anzeigen, bearbeiten, umfärben oder entfernen.</li></ol>
+      </div>
+      <div data-lang="en">
+        <p>Every own marking gets a <strong>letter</strong> (A, B, C ...). It appears at the bottom of the chart, in the list and in all reports. An asterisk next to the letter means: with note.</p>
+        <ol><li>Select a measurement point, marker or time range.</li><li>Click "Add note" and enter the observation, suspected cause or next test step.</li><li>In the "Notes &amp; markers" list show, edit, recolour or remove every entry.</li></ol>
+      </div>
+      <figure><a href="handbuch/de-notes.webp" data-lang="de" target="_blank"><img src="handbuch/de-notes.webp" alt="Liste Notizen und Markierungen" loading="lazy" width="2160" height="1290"></a><a href="handbuch/en-notes.webp" data-lang="en" target="_blank"><img src="handbuch/en-notes.webp" alt="Notes and markers list" loading="lazy" width="2160" height="1290"></a>
+        <figcaption><span data-lang="de">Marker A mit Notiz, Zeitraum B und Marker C – rechts die Liste.</span><span data-lang="en">Marker A with note, time range B and marker C – the list on the right.</span></figcaption></figure>
+    </section>
+
+    <section class="chapter" id="undo">
+      <h2><span class="num">09</span><span data-lang="de">Rückgängig &amp; Tastenkürzel</span><span data-lang="en">Undo &amp; shortcuts</span></h2>
+      <table class="keys" data-lang="de"><tbody>
+        <tr><td><kbd>Strg</kbd> + <kbd>Z</kbd></td><td>Rückgängig: Marker, Zeiträume, Notizen, Farben, Löschen, Erfassungsmarker ein/aus</td></tr>
+        <tr><td><kbd>Strg</kbd> + <kbd>Y</kbd> &nbsp;oder&nbsp; <kbd>Strg</kbd> + <kbd>Umschalt</kbd> + <kbd>Z</kbd></td><td>Wiederholen</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Werkzeug beenden, Menüs, Hilfe und Fokusmodus schließen</td></tr>
+        <tr><td>Mausrad</td><td>Zeitachse am Mauszeiger zoomen</td></tr>
+        <tr><td><kbd>Umschalt</kbd> + Mausrad</td><td>Zeitachse verschieben</td></tr>
+        <tr><td><kbd>Strg</kbd> + Mausrad</td><td>Spurhöhe (Y-Achse) ändern</td></tr>
+        <tr><td>Mausrad über „Höhe“</td><td>Spurhöhe (Y-Achse) ändern</td></tr>
+        <tr><td>Mausrad über den Signalnamen</td><td>vergrößertes Diagramm hoch und runter scrollen</td></tr>
+        <tr><td><kbd>T</kbd> + Mausrad<br><small>Touchpad: <kbd>T</kbd> halten + zwei Finger scrollen</small></td><td>Transparenz der Werteanzeige (dunkles Infofenster mit allen Werten) in 10-%-Schritten; die Einstellung bleibt gespeichert</td></tr>
+      </tbody></table>
+      <table class="keys" data-lang="en"><tbody>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>Z</kbd></td><td>Undo: markers, ranges, notes, colours, deletions, capture markers on/off</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>Y</kbd> &nbsp;or&nbsp; <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td><td>Redo</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Leave tool, close menus, help and focus mode</td></tr>
+        <tr><td>Mouse wheel</td><td>Zoom the time axis at the cursor</td></tr>
+        <tr><td><kbd>Shift</kbd> + wheel</td><td>Pan the time axis</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + wheel</td><td>Change lane height (Y axis)</td></tr>
+        <tr><td>Wheel over "Height"</td><td>Change lane height (Y axis)</td></tr>
+        <tr><td>Wheel over the signal names</td><td>Scroll an enlarged chart up and down</td></tr>
+        <tr><td><kbd>T</kbd> + wheel<br><small>Touchpad: hold <kbd>T</kbd> + two-finger scroll</small></td><td>Transparency of the value tooltip (dark info box with all values) in 10 % steps; the setting is remembered</td></tr>
+      </tbody></table>
+      <p class="tip" data-lang="de">In Eingabefeldern wie dem Notizfeld wirkt Strg+Z wie gewohnt auf den Text, nicht auf die Markierungen.</p>
+      <p class="tip" data-lang="en">In input fields such as the note field Ctrl+Z works on the text as usual, not on the markings.</p>
+    </section>
+
+    <section class="chapter" id="project">
+      <h2><span class="num">10</span><span data-lang="de">Projekte</span><span data-lang="en">Projects</span></h2>
+      <div data-lang="de">
+        <p>„Projekt speichern“ sichert den kompletten Arbeitsstand als <strong>.signalprojekt</strong>: Originalmessungen, Filter, sichtbare, markierte und überlagerte Signale, eigene Marker mit Farbe und Dicke, Zeiträume, Notizen sowie Farbe und Sichtbarkeit der Erfassungsmarker. „Projekt öffnen“ stellt alles wieder her. Ältere Projekte werden automatisch übernommen.</p>
+        <p class="tip">Ungespeicherte Änderungen werden vor „Neu“, dem Öffnen eines Projekts oder dem Schließen einer Datei abgefragt.</p>
+      </div>
+      <div data-lang="en">
+        <p>"Save project" stores the complete workspace as <strong>.signalprojekt</strong>: original measurements, filters, visible, starred and overlaid signals, own markers with colour and width, time ranges, notes and the colour and visibility of capture markers. "Open project" restores everything. Older projects are converted automatically.</p>
+        <p class="tip">You are asked about unsaved changes before "New", opening a project or closing a file.</p>
+      </div>
+    </section>
+
+    <section class="chapter" id="export">
+      <h2><span class="num">11</span><span data-lang="de">Export &amp; Bericht</span><span data-lang="en">Export &amp; report</span></h2>
+      <div data-lang="de">
+        <p>Der gelbe <strong>Export</strong>-Button erstellt eine von drei Auswertungen. Alle Teile entstehen aus demselben eingefrorenen Arbeitsstand und lokal im Browser.</p>
+        <h3>PDF-Auswertung (Diagnosebericht)</h3>
+        <ol><li>Zusammenfassung mit Kennzahlen, Messdaten und Inhaltsverzeichnis</li><li>Kurvendiagramm über den gesamten Zeitraum in voller Seitenbreite und unverzerrt, dazu der aktuelle Ausschnitt, falls gezoomt</li><li>Eine Detailseite je markiertem Zeitraum oder Marker mit Notiz</li><li>Erfassungsmarker: Messwerte zu jedem Knopfdruck und Detailansichten (±8 s)</li><li>Notizen &amp; Markierungen, Signalstatistik (Min, Max, Mittelwert), Signalübersicht</li><li>Messdatenauszug an allen Markern sowie Anfang und Ende der Zeiträume</li></ol>
+        <h3>Excel-Auswertung</h3>
+        <p>Blätter „Übersicht“, „Signale“ (mit Min/Max/Mittelwert), „Messdaten“ (alle Zeilen, Marker farbig, Spalte „Markierung / Notiz“), „Markierungen“, „Diagramm“, „Erfassungsmarker“ und „Notizen und Zeitbereiche“.</p>
+        <h3>Support-ZIP</h3>
+        <p>Originaldateien, PDF, Excel, Kurvendiagramm als Bild (gesamt und Ausschnitt), Projektdatei und README, alles in einem Paket für den Support.</p>
+        <h3>Mehrere Messungen</h3>
+        <p>Sind mehrere .txt-Dateien geladen, erscheint oben im Export-Menü die Auswahl <strong>Umfang</strong>:</p>
+        <ul><li><strong>Alle Dateien</strong> (Voreinstellung): ein gemeinsamer PDF-Bericht mit Deckblatt, Vergleichstabelle aller Messungen und je Messung einem eigenen Kapitel samt Inhaltsverzeichnis; in Excel eine Arbeitsmappe mit dem Blatt „Messungen“ und nummerierten Blättern je Datei („1 Messdaten“, „2 Messdaten“ …).</li><li><strong>Nur diese Datei:</strong> Export der gerade aktiven Messung wie bisher.</li><li>Das <strong>Support-ZIP</strong> enthält immer alle Messungen: Originale, gemeinsamen PDF-Bericht, eine Excel-Datei und Diagrammbilder je Messung.</li></ul>
+      </div>
+      <div data-lang="en">
+        <p>The yellow <strong>Export</strong> button creates one of three evaluations. All parts come from the same frozen workspace state and are created locally in the browser.</p>
+        <h3>PDF evaluation (diagnostic report)</h3>
+        <ol><li>Summary with key figures, measurement data and contents</li><li>Curve chart for the full time range at full page width and undistorted, plus the current view if zoomed</li><li>One detail page per marked range or marker with note</li><li>Capture markers: values at every button press and detail views (±8 s)</li><li>Notes &amp; markers, signal statistics (min, max, mean), signal overview</li><li>Measurement excerpt at all markers and at the start and end of ranges</li></ol>
+        <h3>Excel evaluation</h3>
+        <p>Sheets "Overview", "Signals" (with min/max/mean), "Measurement data" (all rows, markers coloured, column "Marking / note"), "Markers", "Chart", "Capture markers" and "Notes and time ranges".</p>
+        <h3>Support ZIP</h3>
+        <p>Original files, PDF, Excel, curve chart as image (full range and view), project file and README, all in one package for support.</p>
+        <h3>Several recordings</h3>
+        <p>With more than one .txt file loaded, the export menu shows a <strong>Scope</strong> switch at the top:</p>
+        <ul><li><strong>All files</strong> (default): one combined PDF report with a cover, a comparison table of all recordings and one chapter per recording with its own contents; in Excel one workbook with the sheet "Recordings" and numbered sheets per file ("1 Measurement data", "2 Measurement data" ...).</li><li><strong>This file only:</strong> exports the active recording as before.</li><li>The <strong>support ZIP</strong> always contains every recording: originals, combined PDF report, one Excel file and chart images per recording.</li></ul>
+      </div>
+      <div class="grid2">
+        <figure><a href="handbuch/de-report-summary.webp" data-lang="de" target="_blank"><img src="handbuch/de-report-summary.webp" alt="PDF-Bericht Zusammenfassung" loading="lazy"></a><a href="handbuch/en-report-summary.webp" data-lang="en" target="_blank"><img src="handbuch/en-report-summary.webp" alt="PDF report summary" loading="lazy"></a>
+          <figcaption><span data-lang="de">Seite 1: Zusammenfassung mit Inhaltsverzeichnis.</span><span data-lang="en">Page 1: summary with contents.</span></figcaption></figure>
+        <figure><a href="handbuch/de-report-chart.webp" data-lang="de" target="_blank"><img src="handbuch/de-report-chart.webp" alt="PDF-Bericht Kurvendiagramm" loading="lazy"></a><a href="handbuch/en-report-chart.webp" data-lang="en" target="_blank"><img src="handbuch/en-report-chart.webp" alt="PDF report curve chart" loading="lazy"></a>
+          <figcaption><span data-lang="de">Kurvendiagramm in voller Breite mit Markern.</span><span data-lang="en">Full-width curve chart with markers.</span></figcaption></figure>
+        <figure><a href="handbuch/de-report-capture.webp" data-lang="de" target="_blank"><img src="handbuch/de-report-capture.webp" alt="PDF-Bericht Erfassungsmarker" loading="lazy"></a><a href="handbuch/en-report-capture.webp" data-lang="en" target="_blank"><img src="handbuch/en-report-capture.webp" alt="PDF report capture markers" loading="lazy"></a>
+          <figcaption><span data-lang="de">Messwerte zu jedem Erfassungsmarker.</span><span data-lang="en">Values at every capture marker.</span></figcaption></figure>
+        <figure><a href="handbuch/de-export.webp" data-lang="de" target="_blank"><img src="handbuch/de-export.webp" alt="Exportmenü" loading="lazy"></a><a href="handbuch/en-export.webp" data-lang="en" target="_blank"><img src="handbuch/en-export.webp" alt="Export menu" loading="lazy"></a>
+          <figcaption><span data-lang="de">Exportmenü in der Kopfzeile.</span><span data-lang="en">Export menu in the header.</span></figcaption></figure>
+      </div>
+    </section>
+
+    <section class="chapter" id="help">
+      <h2><span class="num">12</span><span data-lang="de">Hilfe in der App</span><span data-lang="en">In-app help</span></h2>
+      <p data-lang="de">Das <strong>i</strong> in der Kopfzeile öffnet die Kurzhilfe direkt beim passenden Thema, mit Suche und einem Link zu diesem Handbuch.</p>
+      <p data-lang="en">The <strong>i</strong> in the header opens the short help directly at the matching topic, with search and a link to this manual.</p>
+      <figure class="narrow"><a href="handbuch/de-help.webp" data-lang="de" target="_blank"><img src="handbuch/de-help.webp" alt="Hilfe in der App" loading="lazy"></a><a href="handbuch/en-help.webp" data-lang="en" target="_blank"><img src="handbuch/en-help.webp" alt="In-app help" loading="lazy"></a></figure>
+    </section>
+
+    <section class="chapter" id="privacy">
+      <h2><span class="num">13</span><span data-lang="de">Datenschutz &amp; lokale Verarbeitung</span><span data-lang="en">Privacy &amp; local processing</span></h2>
+      <p data-lang="de">Messdateien werden ausschließlich im Browser verarbeitet und nicht hochgeladen. PDF, Excel, Bilder, Projekt und Support-ZIP entstehen auf deinem Gerät. Der Server verwaltet nur den Zugang und eine reduzierte Nutzungsstatistik. Details: <a href="datenschutz.html">Datenschutz</a> · <a href="impressum.html">Impressum</a>.</p>
+      <p data-lang="en">Measurement files are processed only in the browser and are never uploaded. PDF, Excel, images, project and support ZIP are created on your device. The server only manages access and reduced usage statistics. Details: <a href="datenschutz.html">Privacy</a> · <a href="impressum.html">Legal notice</a>.</p>
+    </section>
+  </main>
+</div>
+<button class="hb-totop" type="button" aria-label="Zum Seitenanfang" title="Zum Seitenanfang"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+<footer class="hb-foot">SWS / SDP3 — Signalerfassung — <span data-lang="de">Handbuch</span><span data-lang="en">Manual</span> — By David Breuer</footer>
+<script>
+(function(){
+  'use strict';
+  var KEY='signalerfassung.lang',toTop=document.querySelector('.hb-totop');
+  /* Back-to-top arrow: appears once the reader has scrolled past the first screen. */
+  function syncToTop(){toTop.classList.toggle('is-visible',window.scrollY>Math.min(600,window.innerHeight*.6));}
+  window.addEventListener('scroll',syncToTop,{passive:true});
+  toTop.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});var link=document.querySelector('.hb-top a');if(link)link.focus({preventScroll:true});});
+  function stored(){try{return localStorage.getItem(KEY)==='en'?'en':'de';}catch(e){return 'de';}}
+  function apply(lang){
+    lang=lang==='en'?'en':'de';
+    try{localStorage.setItem(KEY,lang);}catch(e){}
+    document.documentElement.lang=lang;document.documentElement.dataset.uiLang=lang;
+    document.title=lang==='en'?'Manual · Signal Capture':'Handbuch · Signalerfassung';
+    document.querySelectorAll('[data-set-lang]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.setLang===lang));});
+    var label=lang==='en'?'Back to top':'Zum Seitenanfang';toTop.setAttribute('aria-label',label);toTop.title=label;
+  }
+  document.querySelectorAll('[data-set-lang]').forEach(function(b){b.addEventListener('click',function(){apply(b.dataset.setLang);});});
+  apply(stored());
+  syncToTop();
+  var links=Array.from(document.querySelectorAll('.hb-toc a')),sections=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
+  if('IntersectionObserver' in window){
+    var observer=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(!entry.isIntersecting)return;links.forEach(function(a){a.classList.toggle('is-active',a.getAttribute('href')==='#'+entry.target.id);});});},{rootMargin:'-90px 0px -65% 0px'});
+    sections.forEach(function(section){if(section)observer.observe(section);});
+  }
+})();
+</script>
+</body>
+</html>

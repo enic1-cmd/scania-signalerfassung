@@ -35,11 +35,16 @@ curl -fsS https://signalerfassung.com/zugang-anfragen.html -o "$TMP_DIR/request.
 curl -fsS https://signalerfassung.com/impressum.html -o "$TMP_DIR/impressum.html"
 curl -fsS https://signalerfassung.com/datenschutz.html -o "$TMP_DIR/datenschutz.html"
 curl -fsS -u "$TEST_USER:$TEST_PASS" https://signalerfassung.com/admin/ -o "$TMP_DIR/admin.html"
+curl -fsS -u "$TEST_USER:$TEST_PASS" https://signalerfassung.com/handbuch.html -o "$TMP_DIR/handbuch.html"
+curl -fsS https://signalerfassung.com/assets/report-export.js -o "$TMP_DIR/report-export.js"
 
 grep -q 'Messdaten' "$TMP_DIR/index.html"
 grep -q 'Erfasste Signale' "$TMP_DIR/app.html"
 grep -q 'help-trigger' "$TMP_DIR/app.html"
 grep -q 'Hilfe zur Analyse' "$TMP_DIR/help.js"
+grep -q 'Signalerfassung Analyse-Tool' "$TMP_DIR/handbuch.html"
+grep -q 'ReportExport' "$TMP_DIR/report-export.js"
+grep -q 'report-export.js' "$TMP_DIR/app.html"
 grep -q 'Persönlich freigegeben.' "$TMP_DIR/request.html"
 grep -q 'https://reflex.scania.com/profile/dbreue' "$TMP_DIR/request.html"
 grep -q '<h1>Impressum</h1>' "$TMP_DIR/impressum.html"
@@ -55,6 +60,8 @@ fi
 grep -q '<h1>Admin Hub</h1>' "$TMP_DIR/admin.html"
 curl -fsS -u "$TEST_USER:$TEST_PASS" https://signalerfassung.com/assets/vendor/exceljs.min.js >/dev/null
 curl -fsS -H 'X-Remote-User: david' -H "X-Admin-Proxy: $PROXY_SECRET" "$API/admin/api/access-requests" | grep -q '"requests"'
+curl -fsS -H 'X-Remote-User: david' -H "X-Admin-Proxy: $PROXY_SECRET" "$API/admin/api/feedback" | grep -q '"feedback"'
+curl -fsS -H 'X-Remote-User: david' -H "X-Admin-Proxy: $PROXY_SECRET" "$API/admin/api/audit" | grep -q '"entries"'
 curl -fsS -X POST \
   -H 'Content-Type: application/json' \
   -H 'X-Requested-With: signalerfassung-access-request' \
@@ -69,6 +76,10 @@ public_status="$(curl -sS -o /dev/null -w '%{http_code}' https://signalerfassung
 test "$public_status" = "200"
 protected_status="$(curl -sS -o /dev/null -w '%{http_code}' https://signalerfassung.com/signalerfassung-analyse-tool.html)"
 test "$protected_status" = "401"
+manual_status="$(curl -sS -o /dev/null -w '%{http_code}' https://signalerfassung.com/handbuch.html)"
+test "$manual_status" = "401"
+manual_image_status="$(curl -sS -o /dev/null -w '%{http_code}' https://signalerfassung.com/handbuch/de-chart.webp)"
+test "$manual_image_status" = "401"
 
 curl -fsS -X DELETE \
   -H 'X-Remote-User: david' -H "X-Admin-Proxy: $PROXY_SECRET" \

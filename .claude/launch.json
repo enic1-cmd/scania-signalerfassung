@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "signalerfassung-local",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tools/serve-local.cjs",
+        "8080"
+      ],
+      "port": 8080
+    },
+    {
+      "name": "signalerfassung-admin-demo",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tools/admin-demo.cjs",
+        "8090"
+      ],
+      "port": 8090
+    }
+  ]
+}

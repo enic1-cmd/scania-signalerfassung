@@ -32,6 +32,9 @@ test -f "$RELEASE/assets/access-request.css"
 test -f "$RELEASE/assets/access-request.js"
 test -f "$RELEASE/zugang-anfragen.html"
 test -f "$RELEASE/feedbackbogen-monteurtest.html"
+test -f "$RELEASE/handbuch.html"
+test -f "$RELEASE/assets/report-export.js"
+test -f "$RELEASE/assets/chart-signals.js"
 test -f "$RELEASE/server/node_modules/nodemailer/package.json"
 
 # nginx proves to the admin service that a request passed Basic Auth: one secret, written once,

@@ -1,0 +1,14 @@
+{
+  "name": "signalerfassung",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SWS / SDP3 Signalerfassung Analyse-Tool – lokale Entwicklung und Browsertests",
+  "scripts": {
+    "serve": "node tools/serve-local.cjs",
+    "test": "node tools/run-tests.cjs",
+    "test:server": "npm --prefix server test"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

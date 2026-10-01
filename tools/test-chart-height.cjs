@@ -26,8 +26,8 @@ for(const file of ['index.html','signalerfassung-analyse-tool.html','impressum.h
     await page.mouse.move(thumb.x+thumb.width/2,thumb.y+11,{steps:12});
     await page.mouse.up();
     await page.waitForTimeout(100);
-    assert.equal(await slider.inputValue(),'3','Dragging up increases height');
-    assert.equal(await page.locator('#chart-stage').evaluate(el=>el.clientHeight),before*3);
+    assert.equal(await slider.inputValue(),'4','Dragging up increases height');
+    assert.equal(await page.locator('#chart-stage').evaluate(el=>el.clientHeight),before*4);
     assert.equal((await page.locator('.chart-viewport').boundingBox()).height,viewport.height,'Viewport stays fixed');
     assert.deepEqual(await page.evaluate(()=>[chartState.start,chartState.end]),[0,1],'Height does not alter time zoom');
     await page.locator('.chart-viewport').evaluate(el=>{el.scrollTop=el.clientHeight;});
@@ -43,7 +43,7 @@ for(const file of ['index.html','signalerfassung-analyse-tool.html','impressum.h
     await page.waitForTimeout(100);
     assert(await page.evaluate(()=>chartState.end-chartState.start<1),'Mouse wheel still zooms time');
     await slider.focus();await page.keyboard.press('ArrowDown');
-    assert.equal(await slider.inputValue(),'2.9','Keyboard can reduce height');
+    assert.equal(await slider.inputValue(),'3.9','Keyboard can reduce height');
     await page.locator('.chart-height-control button').click();
     await page.waitForTimeout(100);
     assert.equal(await page.locator('#chart-stage').evaluate(el=>el.clientHeight),before);

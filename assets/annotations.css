@@ -1,17 +1,36 @@
-.annotation-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 16px;background:#f4f8fc;border-top:1px solid #d9e5ef;border-bottom:1px solid #d9e5ef;flex-shrink:0}
-.annotation-tools button,.annotation-dialog button{font:inherit;font-size:11px;font-weight:700;border:1px solid #bfd2e4;border-radius:18px;padding:7px 12px;background:#fff;color:#07579c;cursor:pointer}
-.annotation-tools button[aria-pressed="true"]{background:#07579c;border-color:#07579c;color:#fff;box-shadow:0 2px 6px #00375b26}
-.annotation-tools button:disabled{opacity:.45;cursor:default}
-.annotation-tools button:focus-visible,.row-note:focus-visible,.annotation-entry button:focus-visible{outline:2px solid #0055a0;outline-offset:2px}
-.annotation-color{display:flex;align-items:center;gap:6px;font-size:11px;color:#27415f;font-weight:700;padding:0 7px}
-.annotation-color input{width:29px;height:29px;padding:2px;border:1px solid #bfd2e4;border-radius:8px;background:#fff;cursor:pointer}
-.annotation-hint{flex:1;min-width:180px;font-size:11px;color:#546a80}
+.annotation-tools{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding:7px 16px;background:#f4f8fc;border-top:1px solid #d9e5ef;border-bottom:1px solid #d9e5ef;flex-shrink:0}
+.annotation-tools>.annotation-note,.annotation-tools>.annotation-toggle,.annotation-dialog button{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:11px;font-weight:700;border:1px solid #bfd2e4;border-radius:18px;padding:7px 12px;background:#fff;color:#07579c;cursor:pointer}
+.annotation-tools>.annotation-note:hover:not(:disabled),.annotation-tools>.annotation-toggle:hover{background:#e8f2fb;border-color:#6598c5}
+.annotation-tools>.annotation-toggle[aria-expanded="true"]{background:#07579c;border-color:#07579c;color:#fff}
+.annotation-tools button:disabled{opacity:.42;cursor:default}
+.annotation-tools button:focus-visible,.annotation-tools input:focus-visible,.row-note:focus-visible,.annotation-entry button:focus-visible{outline:2px solid #0055a0;outline-offset:2px}
+.annotation-tools svg{flex-shrink:0}
+.tool-group{display:inline-flex;align-items:center;gap:3px;padding:3px;background:#fff;border:1px solid #d3e1ee;border-radius:12px;box-shadow:0 1px 2px #0a2d4d0d}
+.tool-group button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:28px;border:0;background:transparent;border-radius:9px;padding:4px 9px;color:#07579c;font:inherit;font-size:11px;font-weight:750;white-space:nowrap;cursor:pointer}
+.tool-group button:hover:not(:disabled){background:#e8f2fb}
+.tool-group button[aria-pressed="true"]{background:#07579c;color:#fff;box-shadow:0 2px 6px #00375b26}
+.tool-label{font-size:9.5px;font-weight:850;letter-spacing:.05em;text-transform:uppercase;color:#5b7086;padding:0 2px 0 6px}
+.tool-label.is-disabled{opacity:.4}
+.tool-swatches,.tool-widths{display:inline-flex;align-items:center;gap:2px}
+.tool-group .tool-swatch{width:22px;min-height:22px;height:22px;padding:0;border-radius:50%;background:var(--swatch);border:2px solid #fff;box-shadow:0 0 0 1px #b6cadd}
+.tool-group .tool-swatch:hover:not(:disabled){background:var(--swatch);transform:scale(1.08)}
+.tool-group .tool-swatch[aria-pressed="true"]{background:var(--swatch);box-shadow:0 0 0 2px #07579c}
+.annotation-color,.tool-txt-color{display:inline-flex;align-items:center;cursor:pointer;padding:0 2px}
+.annotation-color input,.tool-txt-color input{width:26px;height:26px;padding:1px;border:1px solid #bfd2e4;border-radius:8px;background:#fff;cursor:pointer}
+.tool-txt-color input:disabled{opacity:.4;cursor:default}
+.tool-group .tool-width{width:28px;padding:0;color:#24496d}
+.tool-group .tool-width:disabled{opacity:.35}
+.tool-group .tool-icon{width:30px;padding:0}
+.tool-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e1edf8;color:#07579c;font-size:10px;font-weight:850}
+.tool-txt[aria-pressed="true"] .tool-count{background:#fff;color:#07579c}
+.annotation-hint{flex:1 1 120px;min-width:0;font-size:11px;color:#546a80;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .annotation-list{background:#f7fafe;max-height:200px;overflow:auto;flex-shrink:0;border-bottom:1px solid #d9e5ef;padding:8px 16px}
 .annotation-list[hidden]{display:none}
 .annotation-entry{display:flex;align-items:center;gap:10px;border-left:4px solid var(--entry-color);padding:7px 10px;margin:5px 0;background:#fff;border-radius:7px;font-size:11px;color:#16365f}
 .annotation-entry p{flex:1;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;min-width:0}
 .annotation-entry button{font:inherit;color:#07579c;background:#edf5fc;border:1px solid #c5d7e8;border-radius:6px;cursor:pointer;padding:5px 8px}
 .annotation-entry .annotation-delete{color:#b42323;background:#fff5f4}
+.annotation-letter{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 5px;border-radius:11px;font-size:11px;font-weight:850;box-shadow:0 0 0 1px #13263a33;flex-shrink:0}
 .annotation-dialog{border:1px solid #c6d8e9;border-radius:18px;padding:24px;width:min(520px,calc(100vw - 32px));color:#123657;background:#fafdff;box-shadow:0 20px 70px #00254155}
 .annotation-dialog::backdrop{background:#09243c80}
 .annotation-dialog h2{font-size:19px;margin:0 0 6px}
@@ -29,5 +48,26 @@
 .row-note{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex:0 0 20px;padding:0;border:0;border-radius:4px;background:transparent;color:#718399;cursor:pointer;opacity:.4}
 .row-note.has-note,.time-cell:hover .row-note,.row-note:focus-visible{opacity:1;color:#07579c;background:#e5f0fa}
 tbody tr.data-row.row-annotated td,tbody tr.data-row.row-annotated td:first-child{background:var(--annotation-tint)!important;color:#16365f!important}
+tbody tr.data-row.row-capture td:first-child{box-shadow:inset 4px 0 var(--capture-color,#0b4f8a)}
 tbody tr.data-row.annotation-selected td:first-child{box-shadow:inset 3px 0 #07579c}
+.time-marker-event{background:var(--capture-color,#003d75)!important;border-left-color:#ffffff99!important}
 .annotation-list-empty{font-size:12px;color:#61758a;padding:10px}
+@media(max-width:1640px){
+  .tool-label{display:none}
+}
+@media(max-width:1500px){
+  .annotation-hint{display:none}
+  .annotation-tools>.annotation-toggle .tool-text-long{display:none}
+}
+@media(min-width:1501px){
+  .annotation-tools>.annotation-toggle .tool-text-short{display:none}
+}
+@media(max-width:1180px){
+  .tool-capture .tool-text{display:none}
+}
+@media(max-width:760px){
+  .annotation-tools{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding:6px 10px}
+  .tool-group,.annotation-tools>.annotation-note,.annotation-tools>.annotation-toggle{flex-shrink:0}
+  .tool-modes .tool-text,.annotation-tools>.annotation-note .tool-text{display:none}
+  .tool-swatches .tool-swatch:nth-child(n+5){display:none}
+}

@@ -55,9 +55,9 @@ body.analysis-workspace .h-filename{max-width:180px}
 .annotation-sidebar .annotation-entry{flex-wrap:wrap;gap:6px;padding:8px}
 .annotation-sidebar .annotation-entry p{flex-basis:100%;line-height:1.5}
 .annotation-sidebar .workspace-panel-heading{padding:12px}
-.annotation-tools{padding:6px 14px;gap:6px}
-.annotation-tools button{padding:6px 10px}
-.annotation-hint{font-size:10px;min-width:120px}
+.annotation-tools{padding:6px 14px}
+.annotation-tools>.annotation-note,.annotation-tools>.annotation-toggle{padding:6px 10px}
+.annotation-hint{font-size:10px}
 body.analysis-focus>header{display:none!important}
 body.analysis-focus #app-view>.app-footer{display:none}
 body.analysis-focus #app-view{position:fixed;inset:0;z-index:100;background:#edf4fa}

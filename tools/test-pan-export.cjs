@@ -18,7 +18,10 @@ for(const file of ['annotations.js','export-save.js'])new Function(fs.readFileSy
     await page.locator('#view-chart-btn').click();
     await page.waitForTimeout(150);
     assert.equal(await page.locator('#signal-chart').evaluate(el=>getComputedStyle(el).cursor),'crosshair');
-    assert.equal(await page.locator('.annotation-color input').inputValue(),'#ffe08a','Default marker color should be the lighter yellow');
+    assert.equal(await page.locator('.annotation-color input').inputValue(),'#e4002b','Markers default to a clearly visible red');
+    await page.locator('[data-mode="range"]').click();
+    assert.equal(await page.locator('.annotation-color input').inputValue(),'#ffe08a','Time ranges keep the lighter yellow');
+    await page.locator('[data-mode="range"]').click();
     const zoomSlider=page.locator('#chart-time-zoom');
     assert(await zoomSlider.isVisible(),'Timeline zoom slider should be visible');
     await zoomSlider.evaluate(el=>{el.value='65';el.dispatchEvent(new Event('input',{bubbles:true}));});
@@ -37,7 +40,7 @@ for(const file of ['annotations.js','export-save.js'])new Function(fs.readFileSy
       for(let x=from;x<=to;x+=Math.max(1,Math.round(2*sx))){const p=ctx.getImageData(x,y,1,1).data;total++;if(p[0]>240&&p[1]>205&&p[2]<235)yellow++;}
       const grid=[];
       for(let gx=1;gx<6;gx++){const x=Math.round((245+(box.width-271)*gx/6)*sx),p=ctx.getImageData(x,y,1,1).data;grid.push(Array.from(p));}
-      const laneY=Math.round((18+(box.height-56)/8)*sy),laneX=Math.round((245+(box.width-271)*.73)*sx),lane=Array.from(ctx.getImageData(laneX,laneY,1,1).data);
+      const laneY=Math.round(chartState.layout.lanes[0].y1*sy),laneX=Math.round((245+(box.width-271)*.73)*sx),lane=Array.from(ctx.getImageData(laneX,laneY,1,1).data);
       const divider=Array.from(ctx.getImageData(Math.round(245*sx),y,1,1).data);
       return {coverage:yellow/total,yellow,total,grid,lane,divider};
     });

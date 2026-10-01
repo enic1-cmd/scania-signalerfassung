@@ -1,5 +1,21 @@
 /* Open the picker while the button click still grants user activation. */
-var exportSaveBusy=false;
+var exportSaveBusy=false,exportScope='all';
+/* With several loaded recordings, PDF and Excel cover all of them (one report / one workbook) or only the active one.
+   The support ZIP always contains every recording. */
+function exportAllFiles(){return S.files.length>1&&exportScope==='all';}
+function syncExportScope(){
+  var box=document.querySelector('.export-scope');if(!box)return;
+  var en=window.AppI18n&&AppI18n.currentLang&&AppI18n.currentLang()==='en',count=S.files.length;
+  box.hidden=count<2;
+  box.querySelector('.export-scope-label').textContent=en?'Scope':'Umfang';
+  box.querySelector('[data-export-scope="all"]').textContent=(en?'All files':'Alle Dateien')+' ('+count+')';
+  box.querySelector('[data-export-scope="active"]').textContent=en?'This file only':'Nur diese Datei';
+  box.setAttribute('aria-label',en?'Export scope':'Exportumfang');
+  box.querySelectorAll('[data-export-scope]').forEach(function(button){button.setAttribute('aria-pressed',String(button.dataset.exportScope===exportScope));});
+}
+document.querySelectorAll('[data-export-scope]').forEach(function(button){
+  button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();exportScope=button.dataset.exportScope;syncExportScope();});
+});
 async function saveExport(kind){
   if(exportSaveBusy)return;
   var i18n=window.AppI18n||{};
@@ -12,9 +28,10 @@ async function saveExport(kind){
   };
   var format=formats[kind],sourceFile=active();
   if(!format||!sourceFile.filtered||!sourceFile.filtered.length){alert(t('noExportData'));return;}
-  var workspace=captureExportState(sourceFile),file=workspace.file;
+  var workspace=captureExportState(sourceFile),file=workspace.file,all=exportAllFiles()&&kind!=='zip';
   var suffix=kind==='zip'?(lang==='en'?'Support_package':'Supportpaket'):(lang==='en'?'Evaluation':'Auswertung');
-  var name=safeFileName(normalizedSignalFileName(file.filename)).replace(/\.txt$/i,'')+'_'+suffix+'.'+kind;
+  var stem=all?(lang==='en'?'Signal_Capture_'+workspace.files.length+'_recordings':'Signalerfassung_'+workspace.files.length+'_Messungen'):safeFileName(normalizedSignalFileName(file.filename)).replace(/\.txt$/i,'');
+  var name=stem+'_'+suffix+'.'+kind;
   var handle=null,buttons=Array.from(document.querySelectorAll('.export-option'));
   var states=buttons.map(function(b){return b.disabled;});
   exportSaveBusy=true;buttons.forEach(function(b){b.disabled=true;});
@@ -27,8 +44,9 @@ async function saveExport(kind){
     }else if(!confirm(t('browserDownloadConfirm')))return;
     showToast(format.label+t('creating'));
     var blob;
-    if(kind==='pdf')blob=exportPDF({file:file,download:false});
+    if(kind==='pdf')blob=all?exportPDF({files:workspace.files,download:false}):exportPDF({file:file,download:false});
     else if(kind==='zip')blob=await exportSupportZip({file:file,workspace:workspace,download:false});
+    else if(all)blob=await exportAllXLSX(workspace.files);
     else{
       var rows=file.rawRows;
       blob=await exportStyledXLSX(file,rows,file.filtered,visibleSignals(file),rows[0].ts.substring(0,8),rows[rows.length-1].ts.substring(0,8),{download:false});

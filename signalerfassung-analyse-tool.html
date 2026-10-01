@@ -102,13 +102,20 @@ header{
 .export-menu>summary::-webkit-details-marker{display:none}
 .btn-export{background:linear-gradient(135deg,#f5a800,#ffc340);color:#08213f;box-shadow:0 3px 12px rgba(245,168,0,.3)}
 .btn-export:hover,.export-menu[open]>.btn-export{background:linear-gradient(135deg,#ffc340,#ffd36b);transform:translateY(-1px)}
-.export-panel{position:absolute;top:calc(100% + 12px);right:0;width:230px;padding:8px;background:#fff;border:1px solid rgba(0,61,117,.15);border-radius:12px;box-shadow:0 18px 42px rgba(0,30,70,.28)}
+.export-panel{position:absolute;top:calc(100% + 12px);right:0;width:250px;padding:8px;background:#fff;border:1px solid rgba(0,61,117,.15);border-radius:12px;box-shadow:0 18px 42px rgba(0,30,70,.28)}
 .export-panel:before{content:'';position:absolute;top:-7px;right:25px;width:14px;height:14px;background:#fff;transform:rotate(45deg);border-left:1px solid rgba(0,61,117,.15);border-top:1px solid rgba(0,61,117,.15)}
 .export-option{position:relative;display:flex;width:100%;align-items:center;gap:11px;padding:11px 12px;border:0;border-radius:8px;background:transparent;color:#16365f;text-align:left;font:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:background .15s,transform .15s}
 .export-option:hover{background:#edf5fc;transform:translateX(-2px)}
 .export-option:disabled{opacity:.65;cursor:wait;transform:none}
 .export-option .export-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;color:#fff;font-size:16px;line-height:1;flex:0 0 30px}
 .export-option .export-copy{display:flex;flex-direction:column;gap:2px}
+.export-scope{display:flex;flex-direction:column;gap:6px;margin:2px 2px 8px;padding:8px;border-radius:9px;background:#f2f7fc;border:1px solid #d6e4f1}
+.export-scope[hidden]{display:none}
+.export-scope-label{font-size:9px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:#5b7086}
+.export-scope-buttons{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:2px;border-radius:8px;background:#fff;border:1px solid #d6e4f1}
+.export-scope-buttons button{border:0;border-radius:6px;background:transparent;color:#07579c;font:inherit;font-size:10.5px;font-weight:750;padding:6px 4px;cursor:pointer;white-space:nowrap}
+.export-scope-buttons button[aria-pressed="true"]{background:#07579c;color:#fff}
+.export-scope-buttons button:focus-visible{outline:2px solid #0055a0;outline-offset:1px}
 .export-option small{font-size:9px;font-weight:600;color:#687990;letter-spacing:.02em}
 .export-option.btn-xlsx,.export-option.btn-pdf{background:transparent;color:#16365f;box-shadow:none}
 .export-option.btn-xlsx:hover,.export-option.btn-pdf:hover{background:#edf5fc}
@@ -220,9 +227,6 @@ header{
 }
 .btn-signal:hover{border-color:var(--blue);background:rgba(0,85,160,.08)}
 .btn-signal:disabled,.btn-ctrl:disabled{opacity:.48;cursor:not-allowed;pointer-events:none}
-.btn-signal.timestamp-action{border-color:rgba(220,38,38,.28);color:#b91c1c;background:#fff7f7}
-.btn-signal.timestamp-action:hover{border-color:#dc2626;background:#fee2e2}
-.btn-signal.timestamp-action[aria-pressed="true"]{border-color:#b91c1c;background:#b91c1c;color:#fff}
 .signal-pills{display:block;padding:10px 18px 16px}
 .signal-group{margin-top:12px}
 .signal-group:first-child{margin-top:0}
@@ -312,7 +316,9 @@ header{
 .chart-action:hover{background:#eaf4fc;border-color:var(--blue)}
 .chart-stage{position:relative;min-height:390px;height:calc(100% - 65px)}
 #signal-chart{display:block;width:100%;height:100%;min-height:390px;cursor:crosshair}
-.chart-tooltip{display:none;position:absolute;z-index:5;pointer-events:none;min-width:190px;max-width:340px;padding:9px 11px;border-radius:9px;background:rgba(3,30,58,.94);color:#fff;box-shadow:0 8px 25px rgba(0,0,0,.25);font-size:10px;line-height:1.45}
+.chart-tooltip{display:none;position:absolute;z-index:5;pointer-events:none;min-width:190px;max-width:340px;padding:9px 11px;border-radius:9px;background:rgba(3,30,58,var(--tooltip-alpha,.94));color:#fff;box-shadow:0 8px 25px rgba(0,0,0,calc(var(--tooltip-alpha,.94)*.27));font-size:10px;line-height:1.45;text-shadow:0 0 2px rgba(3,30,58,.95),0 1px 3px rgba(3,30,58,.9);transition:background-color .12s}
+.chart-tooltip.is-adjusting{outline:2px solid #f5a800;outline-offset:2px}
+.chart-tooltip-alpha{margin-top:6px;padding-top:5px;border-top:1px solid #ffffff33;font-weight:800;color:#ffd069}
 .chart-tooltip.visible{display:block}
 .chart-tooltip-time{font-family:monospace;font-size:11px;font-weight:800;color:#ffd069;margin-bottom:5px}
 .chart-tooltip-row{display:flex;align-items:center;gap:6px;justify-content:space-between}
@@ -454,10 +460,11 @@ th.signal-th{position:relative;padding-right:42px}
 }
 .tab-add:hover{background:rgba(245,168,0,.25)}
 </style>
-<link rel="stylesheet" href="assets/annotations.css?v=20260916-1">
-<link rel="stylesheet" href="assets/workspace-layout.css?v=20260930-3">
-<link rel="stylesheet" href="assets/chart-height.css?v=20260916-1">
-<link rel="stylesheet" href="assets/help.css?v=20260916-1">
+<link rel="stylesheet" href="assets/annotations.css?v=20261001-1">
+<link rel="stylesheet" href="assets/workspace-layout.css?v=20261001-1">
+<link rel="stylesheet" href="assets/chart-height.css?v=20261001-1">
+<link rel="stylesheet" href="assets/chart-signals.css?v=20261001-1">
+<link rel="stylesheet" href="assets/help.css?v=20261001-1">
 </head>
 <body>
 <header>
@@ -475,6 +482,13 @@ th.signal-th{position:relative;padding-right:42px}
     <details class="export-menu" id="export-menu">
       <summary class="btn-hdr btn-export" aria-label="Exportoptionen &ouml;ffnen" title="PDF, Excel oder Support-ZIP exportieren">&#8595; Export</summary>
       <div class="export-panel">
+        <div class="export-scope" role="group" hidden>
+          <span class="export-scope-label">Umfang</span>
+          <div class="export-scope-buttons">
+            <button type="button" data-export-scope="all" aria-pressed="true">Alle Dateien</button>
+            <button type="button" data-export-scope="active" aria-pressed="false">Nur diese Datei</button>
+          </div>
+        </div>
         <button class="export-option btn-pdf" type="button" onclick="closeExportMenu();saveExport('pdf')">
           <span class="export-icon" aria-hidden="true"><img src="assets/vendor/file-icons/acrobat.svg" alt="" width="30" height="30"></span>
           <span class="export-copy">PDF-Auswertung<small>Druckfertiger Bericht</small></span>
@@ -495,7 +509,7 @@ th.signal-th{position:relative;padding-right:42px}
     <button type="button" data-lang-set="de" aria-pressed="true">DE</button>
     <button type="button" data-lang-set="en" aria-pressed="false">EN</button>
   </div>
-  <button class="help-trigger" id="help-trigger" type="button" aria-expanded="false" aria-label="Hilfe und Funktionserklärungen öffnen" title="Hilfe und Funktionserklärungen">i</button>
+  <button class="help-trigger" id="help-trigger" type="button" aria-expanded="false" aria-label="Hilfe und Funktionserklärungen öffnen" title="Hilfe und Funktionserklärungen"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.2"/><path d="M12 11v6"/><circle cx="12" cy="7.6" r=".6" fill="currentColor"/></svg></button>
   <details class="tool-launcher" id="tool-launcher">
     <summary aria-label="Werkstatt-Portale &ouml;ffnen" title="Werkstatt-Portale">
       <span class="tool-grid-icon" aria-hidden="true">
@@ -576,7 +590,6 @@ th.signal-th{position:relative;padding-right:42px}
         <button class="btn-signal" onclick="showOnlyMarkedSignals()">Nur markierte</button>
         <button class="btn-signal" onclick="hideMarkedSignals()">Markierte ausblenden</button>
         <button class="btn-signal" onclick="clearSignalMarks()">Markierung l&ouml;schen</button>
-        <button class="btn-signal timestamp-action" id="mark-timestamps" onclick="markMarkerTimestamps()" title="Alle Zeilen mit einem Markerwert ab 1 markieren">Zeitstempel markieren</button>
       </div>
       <div class="signal-pills" id="signal-pills"></div>
     </div>
@@ -698,13 +711,13 @@ var I18N={
     helpTitle:'Hilfe und Funktionserkl\u00e4rungen',
     workshopPortals:'Werkstatt-Portale',
     chartTitle:'Kurvendiagramm der Messsignale',
-    chartSubtitleDefault:'Jedes Signal besitzt eine eigene Skala. Markierte Signale werden bevorzugt dargestellt.',
+    chartSubtitleDefault:'Jedes Signal besitzt eine eigene Spur und Skala. Markierte Signale sind gelb hervorgehoben.',
     chartChoose:'Signale ausw\u00e4hlen',
     chartReset:'Gesamter Zeitraum',
     chartZoom:'Zeitachse',
     chartZoomAria:'Zeitachse vergr\u00f6\u00dfern oder verkleinern',
     chartEmptyTitle:'Keine numerischen Signale ausgew\u00e4hlt',
-    chartEmptyText:'Markiere in \u201eErfasste Signale\u201c die gew\u00fcnschten Messwerte mit dem Stern oder blende passende Signale ein.',
+    chartEmptyText:'Blende in \u201eErfasste Signale\u201c numerische Signale ein oder hake sie unter \u201eSignale ausw\u00e4hlen\u201c an.',
     footerCopy:'SWS / SDP3 &mdash; Signalerfassung &mdash; Tool &mdash; By <a href="https://reflex.scania.com/profile/dbreue" target="_blank" rel="noopener noreferrer">David Breuer</a>',
     noData:'Keine Daten.',
     noExportData:'Keine Daten zum Exportieren.',
@@ -766,15 +779,23 @@ var I18N={
     timestampJumpTitle:'Zum n\u00e4chsten von {count} Zeitstempeln mit Markerwert ab 1 springen',
     timestampJumpNoTitle:'Im aktuellen Filter ist kein Zeitstempel mit Markerwert ab 1 vorhanden',
     chartCurves:'{count} Kurven \u00b7 eigene Skala je Signal \u00b7 {rows} Messpunkte{suffix}',
-    chartMarkedSuffix:' \u00b7 Auswahl \u00fcber Signalsterne',
-    chartAutoSuffix:' \u00b7 automatische Auswahl sichtbarer Signale',
-    chartSelectHint:'Markiere numerische Signale mit dem Stern oder blende passende Signale ein.',
-    chartToast:'Sterne markieren die Diagramm-Signale. Ohne Sterne werden bis zu 8 sichtbare numerische Signale gezeigt.',
+    chartMarkedSuffix:' \u00b7 eigene Auswahl',
+    chartAutoSuffix:' \u00b7 alle sichtbaren Signale',
+    chartSelectHint:'Blende numerische Signale ein oder hake sie unter \u201eSignale ausw\u00e4hlen\u201c an.',
+    chartToast:'Haken w\u00e4hlen die Kurven, der Stern hebt ein Signal hervor. Weitere Spuren erreichst du \u00fcber die Scrollleiste rechts.',
     markedWord:'markiert',
     range:'bis',
     noValues:'keine Werte',
     outsideFilter:'Diese Markierung liegt au\u00dferhalb des aktuellen Filters. Bitte den Filter zur\u00fccksetzen.',
-    rangeMarkedToast:'Zeitraum markiert. \u00dcber \u201eNotiz hinzuf\u00fcgen\u201c kannst du ihn beschreiben.'
+    rangeMarkedToast:'Zeitraum markiert. \u00dcber \u201eNotiz hinzuf\u00fcgen\u201c kannst du ihn beschreiben.',
+    captureMarker:'Erfassungsmarker',
+    starSignal:'Signal hervorheben',
+    unstarSignal:'Hervorhebung entfernen',
+    overlayLane:'\u00dcberlagert',
+    sharedScaleShort:'gemeinsame Skala',
+    moreSignals:'weitere',
+    chartLimitedSuffix:' \u00b7 {shown} von {total} Signalen gezeigt',
+    chartOverlaySuffix:' \u00b7 {count} \u00fcberlagert'
   },
   en:{
     locale:'en-US',
@@ -830,13 +851,13 @@ var I18N={
     helpTitle:'Help and feature explanations',
     workshopPortals:'Workshop portals',
     chartTitle:'Curve chart of measurement signals',
-    chartSubtitleDefault:'Each signal has its own scale. Marked signals are shown first.',
+    chartSubtitleDefault:'Each signal has its own lane and scale. Starred signals are highlighted in yellow.',
     chartChoose:'Choose signals',
     chartReset:'Full time range',
     chartZoom:'Timeline',
     chartZoomAria:'Zoom the timeline in or out',
     chartEmptyTitle:'No numeric signals selected',
-    chartEmptyText:'Star the desired measurements in "Captured signals" or show suitable signals.',
+    chartEmptyText:'Show numeric signals in "Captured signals" or tick them under "Choose signals".',
     footerCopy:'SWS / SDP3 &mdash; Signal Capture &mdash; Tool &mdash; By <a href="https://reflex.scania.com/profile/dbreue" target="_blank" rel="noopener noreferrer">David Breuer</a>',
     noData:'No data.',
     noExportData:'No data to export.',
@@ -898,18 +919,29 @@ var I18N={
     timestampJumpTitle:'Jump to the next of {count} timestamps with marker value from 1',
     timestampJumpNoTitle:'No timestamp with marker value from 1 in the current filter',
     chartCurves:'{count} curves · own scale per signal · {rows} measurement points{suffix}',
-    chartMarkedSuffix:' · selected by signal stars',
-    chartAutoSuffix:' · automatic selection of visible signals',
-    chartSelectHint:'Star numeric signals or show suitable signals.',
-    chartToast:'Stars mark the chart signals. Without stars, up to 8 visible numeric signals are shown.',
+    chartMarkedSuffix:' · custom selection',
+    chartAutoSuffix:' · all visible signals',
+    chartSelectHint:'Show numeric signals or tick them under "Choose signals".',
+    chartToast:'Ticks choose the curves, the star highlights a signal. Reach further lanes with the scrollbar on the right.',
     markedWord:'marked',
     range:'to',
     noValues:'no values',
     outsideFilter:'This marker is outside the current filter. Please reset the filter.',
-    rangeMarkedToast:'Time range marked. Use "Add note" to describe it.'
+    rangeMarkedToast:'Time range marked. Use "Add note" to describe it.',
+    captureMarker:'Capture marker',
+    starSignal:'Highlight signal',
+    unstarSignal:'Remove highlight',
+    overlayLane:'Overlaid',
+    sharedScaleShort:'shared scale',
+    moreSignals:'more',
+    chartLimitedSuffix:' · {shown} of {total} signals shown',
+    chartOverlaySuffix:' · {count} overlaid'
   }
 };
-function currentLang(){return localStorage.getItem(I18N_STORAGE_KEY)==='en'?'en':'de';}
+/* The language lives in memory: it is read from storage once and only changed by this page's own switch.
+   Other tabs (e.g. the manual) share the stored preference but must not flip half of a running app. */
+var appLang=(function(){try{return localStorage.getItem(I18N_STORAGE_KEY)==='en'?'en':'de';}catch(e){return 'de';}})();
+function currentLang(){return appLang;}
 function t(key,vars){
   var text=(I18N[currentLang()]&&I18N[currentLang()][key])||I18N.de[key]||key;
   if(vars)Object.keys(vars).forEach(function(name){text=text.replace(new RegExp('\\{'+name+'\\}','g'),vars[name]);});
@@ -922,7 +954,8 @@ function setHtml(selector,value){var el=document.querySelector(selector);if(el)e
 function setAttr(selector,attr,value){var el=document.querySelector(selector);if(el)el.setAttribute(attr,value);}
 function applyAppLanguage(lang){
   lang=lang==='en'?'en':'de';
-  localStorage.setItem(I18N_STORAGE_KEY,lang);
+  appLang=lang;
+  try{localStorage.setItem(I18N_STORAGE_KEY,lang);}catch(e){}
   document.documentElement.lang=lang;
   document.title=t('title');
   var desc=document.querySelector('meta[name="description"]');if(desc)desc.content=t('description');
@@ -954,7 +987,6 @@ function applyAppLanguage(lang){
   if(signalButtons[1])signalButtons[1].textContent=t('onlyMarked');
   if(signalButtons[2])signalButtons[2].textContent=t('hideMarked');
   if(signalButtons[3])signalButtons[3].textContent=t('clearMarks');
-  if(signalButtons[4])signalButtons[4].textContent=t('markTimestamps');
   setText('.ctrl-bar .ctrl-label:nth-of-type(1)',t('from'));
   setText('.ctrl-bar .ctrl-label:nth-of-type(2)',t('to'));
   setText('.ctrl-bar .ctrl-label:nth-of-type(3)',t('search'));
@@ -969,9 +1001,12 @@ function applyAppLanguage(lang){
   setHtml('#chart-empty div','<strong>'+t('chartEmptyTitle')+'</strong><span>'+t('chartEmptyText')+'</span>');
   setHtml('.app-footer-copy',t('footerCopy'));
   var footerLinks=document.querySelectorAll('.app-footer-links a');if(footerLinks[0])footerLinks[0].textContent=t('access');if(footerLinks[1])footerLinks[1].textContent=t('imprint');if(footerLinks[2])footerLinks[2].textContent=t('privacy');
-  if(S.files&&S.files.length){refreshSignalMeta();renderSignalPanel();buildTableHead();applyFilter();}
+  if(S.files&&S.files.length){renderTabs();refreshSignalMeta();renderSignalPanel();buildTableHead();applyFilter();}
   if(window.Annotations&&Annotations.sync)Annotations.sync();
   if(window.WorkspaceLayout&&WorkspaceLayout.sync)WorkspaceLayout.sync();
+  if(window.ChartHeight&&ChartHeight.sync)ChartHeight.sync();
+  if(window.ChartSignals&&ChartSignals.sync)ChartSignals.sync();
+  if(typeof syncExportScope==='function')syncExportScope();
   if(window.AppHelp&&AppHelp.rebuild)AppHelp.rebuild();
 }
 document.querySelectorAll('[data-lang-set]').forEach(function(button){button.addEventListener('click',function(){applyAppLanguage(button.dataset.langSet);});});
@@ -1151,7 +1186,8 @@ function parse(text,filename,uploadedAt,options){
   var parsedFile={
     filename:filename,displayFilename:displayFilename,date:date,dateSource:dateSource,sourceFormat:sourceFormat,
     rawText:String(text),signals:signals,rawRows:rows,filtered:rows,
-    filterFrom:rows[0].ts.substring(0,8),filterTo:rows[rows.length-1].ts.substring(0,8),filterSearch:''
+    filterFrom:rows[0].ts.substring(0,8),filterTo:rows[rows.length-1].ts.substring(0,8),filterSearch:'',
+    txtMarkersVisible:true,txtMarkerColor:'',chartSharedScale:false,history:{undo:[],redo:[]}
   };
   S.files.push(parsedFile);
   return parsedFile;
@@ -1182,52 +1218,42 @@ function markerSignal(A){
     return /marker/i.test([s.id,s.displayName,s.desc].join(' '));
   })||signals.find(function(s){return String(s.unit||'').trim().toLowerCase()==='count';})||null;
 }
-function hasActiveMarker(row,signal){
-  if(!row||!signal)return false;
-  var value=String(row.parts[signal.index]||'').trim().replace(',','.');
-  return Number.isFinite(Number(value))&&Number(value)>=1;
-}
-function markerRows(A,rows){
-  var signal=markerSignal(A);
-  return signal?(rows||[]).filter(function(row){return hasActiveMarker(row,signal);}):[];
-}
 function markerValue(row,signal){
   if(!row||!signal)return null;
   var value=Number(String(row.parts[signal.index]||'').trim().replace(',','.'));
   return Number.isFinite(value)?value:null;
 }
+/* The Marker column counts button presses (0, 1, 2, ...) and keeps its last value.
+   A capture marker is therefore the row where the counter changes to a value >= 1. */
 function markerEvents(A,rows){
   var signal=markerSignal(A),events=[],previous=null,allowed=null;
-  if(!signal)return events;
-  if(rows){allowed=new Set(rows.map(function(row){return row.rowId;}));}
-  (A.rawRows||[]).forEach(function(row){
-    var value=markerValue(row,signal);
-    if(value!==null&&value>=1&&value!==previous&&(!allowed||allowed.has(row.rowId))){events.push({row:row,value:value});}
-    if(value!==null)previous=value;
-  });
-  return events;
+  if(!signal||!A||!A.rawRows)return events;
+  if(A._markerEventCache&&A._markerEventCache.signal===signal)events=A._markerEventCache.events;
+  else{
+    A.rawRows.forEach(function(row){
+      var value=markerValue(row,signal);
+      if(value!==null&&value>=1&&value!==previous)events.push({row:row,value:value});
+      if(value!==null)previous=value;
+    });
+    A._markerEventCache={signal:signal,events:events};
+  }
+  if(!rows||rows===A.rawRows)return events.slice();
+  allowed=new Set(rows.map(function(row){return row.rowId;}));
+  return events.filter(function(event){return allowed.has(event.row.rowId);});
 }
+function captureMarkersShown(A){return !!A&&A.txtMarkersVisible!==false;}
+function captureMarkerColor(A){return window.Annotations?Annotations.captureColor(A):'#0b4f8a';}
 function updateTimestampActions(){
   var A=active();
-  var allMatches=markerRows(A,A.rawRows||[]);
-  var visibleMatches=markerRows(A,A.filtered||A.rawRows||[]);
-  var markButton=document.getElementById('mark-timestamps');
+  var visibleEvents=markerEvents(A,A.filtered||A.rawRows||[]);
   var jumpButton=document.getElementById('jump-timestamp');
-  if(markButton){
-    var allMarked=allMatches.length&&allMatches.every(function(row){return row.marked;});
-    markButton.disabled=!allMatches.length;
-    markButton.setAttribute('aria-pressed',String(!!allMarked));
-    markButton.textContent=allMarked?t('unmarkTimestamps'):t('markTimestamps');
-    markButton.title=allMatches.length
-      ?t(allMarked?'timestampUnmarkTitle':'timestampMarkTitle',{count:fmtNumber(allMatches.length)})
-      :t('timestampNoTitle');
-  }
   if(jumpButton){
-    jumpButton.disabled=!visibleMatches.length;
-    jumpButton.title=visibleMatches.length
-      ?t('timestampJumpTitle',{count:fmtNumber(visibleMatches.length)})
+    jumpButton.disabled=!visibleEvents.length;
+    jumpButton.title=visibleEvents.length
+      ?t('timestampJumpTitle',{count:fmtNumber(visibleEvents.length)})
       :t('timestampJumpNoTitle');
   }
+  if(window.Annotations&&Annotations.sync)Annotations.sync();
 }
 function signalStats(A){
   var total=(A.signals||[]).length;
@@ -1316,6 +1342,7 @@ function buildUI(){
   var dur=recordingDuration(A);
   var rate=dur>0?(rows.length/dur).toFixed(1):'—';
   renderTabs();
+  if(typeof syncExportScope==='function')syncExportScope();
   document.getElementById('hdr-fn').textContent=A.filename;
   document.getElementById('hdr-fn').style.display='';
   document.getElementById('hdr-actions').style.display='';
@@ -1392,7 +1419,8 @@ function renderTable(rows){
   nd.style.display='none';tbl.style.display='';
   var A=active(),ROW_H=TABLE_ROW_HEIGHT,BUFFER=18,sig=visibleSignals(A),colCount=sig.length+1;
   var annotationRows=window.Annotations?Annotations.tableColors(active()):new Map();
-  var markerEventValues=new Map(markerEvents(A,rows).map(function(event){return [event.row.rowId,event.value];}));
+  var markerEventValues=captureMarkersShown(A)?new Map(markerEvents(A,rows).map(function(event){return [event.row.rowId,event.value];})):new Map();
+  var captureColor=captureMarkerColor(A);
   var renderedFirst=-1,renderedLast=-1;
   function render(subset,startIdx){
     return subset.map(function(r,i){
@@ -1400,8 +1428,8 @@ function renderTable(rows){
       var cls=(abs%2?' is-even':' is-odd')+(r.marked?' row-marked':'')+(r.rowId===jumpFocusRowId?' row-jump':'');
       var tint=annotationRows.get(r.rowId);
       var markerEvent=markerEventValues.get(r.rowId);
-      var markerBadge=r.marked&&markerEvent!=null?'<span class="time-marker-event" title="Marker '+esc(markerEvent)+'">'+esc(markerEvent)+'</span>':'';
-      return '<tr data-row-id="'+r.rowId+'" class="data-row'+cls+(tint?' row-annotated':'')+'"'+(tint?' style="--annotation-tint:'+tint+'"':'')+'><td><div class="time-cell"><button class="row-mark'+(r.marked?' active':'')+'" title="'+esc(t('markRow'))+'" onclick="toggleRowMarked('+r.rowId+')"></button><span class="time-text">'+esc(r.ts)+'</span>'+markerBadge+'<button class="row-note'+(r.note?' has-note':'')+'" title="'+esc(t('editNote'))+'" aria-label="'+esc(t('noteFor')+r.ts)+'" onclick="Annotations.editRow('+r.rowId+')">&#9998;</button></div></td>'+sig.map(function(s){return '<td'+(s.marked?' class="col-marked"':'')+'>'+esc((r.parts[s.index]||'').trim().replace(/\r/g,''))+'</td>';}).join('')+'</tr>';
+      var markerBadge=markerEvent!=null?'<span class="time-marker-event" style="--capture-color:'+captureColor+'" title="'+esc(t('captureMarker'))+' '+esc(markerEvent)+'">'+esc(markerEvent)+'</span>':'';
+      return '<tr data-row-id="'+r.rowId+'" class="data-row'+cls+(tint?' row-annotated':'')+(markerEvent!=null?' row-capture':'')+'"'+(tint||markerEvent!=null?' style="'+(tint?'--annotation-tint:'+tint+';':'')+(markerEvent!=null?'--capture-color:'+captureColor:'')+'"':'')+'><td><div class="time-cell"><button class="row-mark'+(r.marked?' active':'')+'" title="'+esc(t('markRow'))+'" onclick="toggleRowMarked('+r.rowId+')"></button><span class="time-text">'+esc(r.ts)+'</span>'+markerBadge+'<button class="row-note'+(r.note?' has-note':'')+'" title="'+esc(t('editNote'))+'" aria-label="'+esc(t('noteFor')+r.ts)+'" onclick="Annotations.editRow('+r.rowId+')">&#9998;</button></div></td>'+sig.map(function(s){return '<td'+(s.marked?' class="col-marked"':'')+'>'+esc((r.parts[s.index]||'').trim().replace(/\r/g,''))+'</td>';}).join('')+'</tr>';
     }).join('');
   }
   tableState={rows:rows,sig:sig};
@@ -1445,22 +1473,23 @@ function hideSignalColumn(idx){
 function toggleRowMarked(rowId){
   var A=active();
   var r=A.rawRows[rowId];if(!r)return;
+  if(window.Annotations)Annotations.record(A);else markDirty(A);
   r.marked=!r.marked;
-  markDirty(A);
-  if(window.Annotations){r.markerColor=Annotations.color();Annotations.sync();}
+  if(r.marked&&window.Annotations){r.markerColor=Annotations.color();r.markerWidth=Annotations.width();}
   updateTimestampActions();
   if(S.view==='chart')renderChart();else renderTable(A.filtered||A.rawRows);
 }
-function markMarkerTimestamps(){
-  var A=active();
-  var matches=markerRows(A,A.rawRows||[]);
-  if(!matches.length)return;
-  var unmark=matches.every(function(row){return row.marked;});
-  matches.forEach(function(row){row.marked=!unmark;});
-  markDirty(A);
-  if(window.Annotations)Annotations.sync();
-  updateTimestampActions();
-  if(S.view==='chart')renderChart();else renderTable(A.filtered||A.rawRows);
+function markMarkerTimestamps(){if(window.Annotations)Annotations.toggleCaptureMarkers();}
+function tableRowTop(index){return (document.getElementById('thead').getBoundingClientRect().height||0)+index*TABLE_ROW_HEIGHT;}
+function scrollTableToRow(rowId,smooth){
+  var A=active(),rows=A.filtered||A.rawRows||[],index=rows.findIndex(function(row){return row.rowId===rowId;});
+  if(index<0){showToast(t('outsideFilter'));return false;}
+  var wrap=document.getElementById('table-wrap');
+  jumpFocusRowId=rowId;clearTimeout(jumpFocusTimer);
+  renderTable(rows);
+  wrap.scrollTo({top:Math.max(0,tableRowTop(index)-Math.round(wrap.clientHeight*.3)),behavior:smooth===false?'auto':'smooth'});
+  jumpFocusTimer=setTimeout(function(){if(active()!==A)return;jumpFocusRowId=-1;renderTable(A.filtered||A.rawRows);},1800);
+  return true;
 }
 function jumpToMarkerTimestamp(){
   if(S.view==='chart'){
@@ -1468,32 +1497,16 @@ function jumpToMarkerTimestamp(){
     requestAnimationFrame(jumpToMarkerTimestamp);
     return;
   }
-  var A=active();
-  var rows=A.filtered||A.rawRows||[];
-  var signal=markerSignal(A);
-  if(!signal||!rows.length)return;
+  var A=active(),rows=A.filtered||A.rawRows||[],events=markerEvents(A,rows);
+  if(!events.length)return;
+  if(!captureMarkersShown(A)){A.txtMarkersVisible=true;if(window.Annotations)Annotations.sync();}
   var wrap=document.getElementById('table-wrap');
   var headerHeight=(document.getElementById('thead').getBoundingClientRect().height||0);
-  var currentIndex=wrap.scrollTop<=1?-1:Math.floor(Math.max(0,wrap.scrollTop-headerHeight)/TABLE_ROW_HEIGHT);
-  var targetIndex=-1;
-  for(var i=currentIndex+1;i<rows.length;i++){
-    if(hasActiveMarker(rows[i],signal)){targetIndex=i;break;}
-  }
-  if(targetIndex<0){
-    for(var j=0;j<=currentIndex&&j<rows.length;j++){
-      if(hasActiveMarker(rows[j],signal)){targetIndex=j;break;}
-    }
-  }
-  if(targetIndex<0)return;
-  jumpFocusRowId=rows[targetIndex].rowId;
-  clearTimeout(jumpFocusTimer);
-  renderTable(rows);
-  wrap.scrollTo({top:Math.max(0,headerHeight+targetIndex*TABLE_ROW_HEIGHT),behavior:'smooth'});
-  jumpFocusTimer=setTimeout(function(){
-    if(active()!==A)return;
-    jumpFocusRowId=-1;
-    renderTable(A.filtered||A.rawRows);
-  },1800);
+  var currentIndex=wrap.scrollTop<=1?-1:Math.floor(Math.max(0,wrap.scrollTop+Math.round(wrap.clientHeight*.3)-headerHeight)/TABLE_ROW_HEIGHT);
+  var position=new Map(rows.map(function(row,index){return [row.rowId,index];}));
+  var target=events.find(function(event){return position.get(event.row.rowId)>currentIndex;})||events[0];
+  A.txtMarkerCursor=events.indexOf(target);
+  scrollTableToRow(target.row.rowId);
 }
 function toggleSignalMarked(idx){
   var s=active().signals[idx];if(!s)return;
@@ -1585,13 +1598,34 @@ function isChartSignal(A,signal,rows){
   for(var i=0;i<rows.length;i++)if(numericAt(rows[i],signal.index)!==null)return true;
   return false;
 }
-function chartSignals(A,rows){
-  var visible=visibleSignals(A).filter(function(s){return isChartSignal(A,s,rows);});
-  var marked=visible.filter(function(s){return s.marked;});
-  return (marked.length?marked:visible).slice(0,8);
+var CHART_LANE_MIN_HEIGHT=56;
+var CHART_COLORS=['#0066b3','#e23b3b','#22a35a','#8a49ad','#ef9f00','#00a1a7','#d65c9e','#64748b','#1d3f8f','#b5651d','#6b8e23','#c2185b','#008b8b','#8d6e00','#5b2c83','#37474f','#d35400','#2e86c1','#7d9d0a','#a93226','#117a65','#9b59b6','#b7950b','#1f618d'];
+function chartCandidates(A){return visibleSignals(A).filter(function(s){return isChartSignal(A,s);});}
+/* Every visible numeric signal is a chart curve unless it was unticked in "Choose signals" (signal.chartHidden).
+   Stars only highlight a signal (table column and chart lane). No upper limit: lanes keep a readable
+   minimum height and the chart scrolls vertically. */
+function chartSelection(A){
+  var candidates=chartCandidates(A),shown=candidates.filter(function(s){return !s.chartHidden;});
+  return {signals:shown,available:candidates.length,explicit:shown.length<candidates.length,candidates:candidates};
 }
-function chartColor(index){
-  return ['#0066b3','#e23b3b','#22a35a','#8a49ad','#ef9f00','#00a1a7','#d65c9e','#64748b'][index%8];
+function chartSignals(A,rows){return chartSelection(A).signals;}
+function chartColor(index){return CHART_COLORS[index%CHART_COLORS.length];}
+function chartGeometry(width,height,scale){scale=scale||1;return {left:245*scale,right:26*scale,top:18*scale,bottom:38*scale};}
+/* Signals flagged "overlay" share one taller lane; all others keep their own lane and scale. */
+function chartLanes(A,signals){
+  var overlay=signals.filter(function(s){return !!s.overlay;}),useOverlay=overlay.length>=2,lanes=[];
+  if(useOverlay)lanes.push({signals:overlay,overlay:true,shared:!!(A&&A.chartSharedScale),weight:Math.min(4,1.4+overlay.length*.6)});
+  signals.forEach(function(s){if(!(useOverlay&&s.overlay))lanes.push({signals:[s],overlay:false,shared:false,weight:1});});
+  return lanes;
+}
+function layoutChartLanes(lanes,top,height){
+  var total=lanes.reduce(function(sum,lane){return sum+lane.weight;},0)||1,y=top;
+  lanes.forEach(function(lane){lane.y0=y;lane.y1=y+height*lane.weight/total;y=lane.y1;});
+  return lanes;
+}
+function chartMinHeight(A,signals){
+  var weight=chartLanes(A,signals).reduce(function(sum,lane){return sum+lane.weight;},0);
+  return Math.round(56+weight*CHART_LANE_MIN_HEIGHT);
 }
 function fitCanvasText(ctx,text,maxWidth){
   text=String(text||'');
@@ -1599,21 +1633,22 @@ function fitCanvasText(ctx,text,maxWidth){
   while(text.length>4&&ctx.measureText(text+'…').width>maxWidth)text=text.slice(0,-1);
   return text+'…';
 }
-function chartWindowRows(rows){
+function chartWindowRows(rows,view){
+  view=view||chartState;
   if(!rows.length)return {rows:[],offset:0};
   var firstTime=Number.isFinite(rows[0].elapsedSec)?rows[0].elapsedSec:0;
   var lastTime=Number.isFinite(rows[rows.length-1].elapsedSec)?rows[rows.length-1].elapsedSec:rows.length-1;
   var total=Math.max(0,lastTime-firstTime);
-  if(chartState.start<=0&&chartState.end>=1)return {rows:rows,offset:0,timeStart:firstTime,timeEnd:lastTime,total:total};
-  var startTarget=firstTime+total*chartState.start,endTarget=firstTime+total*chartState.end;
+  if(view.start<=0&&view.end>=1)return {rows:rows,offset:0,timeStart:firstTime,timeEnd:lastTime,total:total};
+  var startTarget=firstTime+total*view.start,endTarget=firstTime+total*view.end;
   var start=0,end=rows.length;
   if(total>0){
     while(start<rows.length-1&&rows[start].elapsedSec<startTarget)start++;
     end=start+1;while(end<rows.length&&rows[end].elapsedSec<=endTarget)end++;
     start=Math.max(0,start-1);
   }else{
-    start=Math.max(0,Math.floor(chartState.start*(rows.length-1)));
-    end=Math.min(rows.length,Math.ceil(chartState.end*(rows.length-1))+1);
+    start=Math.max(0,Math.floor(view.start*(rows.length-1)));
+    end=Math.min(rows.length,Math.ceil(view.end*(rows.length-1))+1);
   }
   if(end-start<2){start=0;end=rows.length;}
   var windowRows=rows.slice(start,end);
@@ -1664,7 +1699,7 @@ function buildChartSegments(rows,signal,windowData,maxBuckets){
 }
 function markedChartRuns(rows){
   var runs=[],start=-1,color='';
-  function validColor(row){return window.Annotations?Annotations.validColor(row&&row.markerColor):'#ffe08a';}
+  function validColor(row){return window.Annotations?Annotations.validColor(row&&row.markerColor,Annotations.defaultMarkerColor):'#e4002b';}
   for(var index=0;index<=rows.length;index++){
     var row=rows[index],nextColor=row&&row.marked?validColor(row):'';
     if(start<0&&nextColor){start=index;color=nextColor;continue;}
@@ -1674,113 +1709,238 @@ function markedChartRuns(rows){
   }
   return runs;
 }
-function drawMarkedChartRuns(ctx,rows,left,top,plotW,height,windowData){
+/* Consecutive marked rows form a translucent band behind the curves; single markers are solid lines on top. */
+function drawMarkedChartRuns(ctx,rows,left,top,plotW,height,windowData,layer,scale){
+  scale=scale||1;
   function xAt(index){return left+rowChartRatio(rows[index],index,windowData)*plotW;}
   markedChartRuns(rows).forEach(function(run){
-    var x1=run.start===0?left:(xAt(run.start-1)+xAt(run.start))/2;
-    var x2=run.end===rows.length-1?left+plotW:(xAt(run.end)+xAt(run.end+1))/2;
     if(run.start===run.end){
-      ctx.globalAlpha=.9;ctx.fillStyle=run.color;ctx.fillRect(xAt(run.start)-1.5,top,3,height);
-    }else{
+      if(layer!=='lines')return;
+      var row=rows[run.start],w=(window.Annotations?Annotations.validWidth(row.markerWidth):3)*scale,x=xAt(run.start);
+      ctx.globalAlpha=1;ctx.fillStyle=run.color;ctx.fillRect(x-w/2,top,w,height);
+      if(window.Annotations&&Annotations.textOn(run.color)!=='#ffffff'){ctx.strokeStyle='rgba(19,38,58,.38)';ctx.lineWidth=1;ctx.strokeRect(x-w/2-.5,top,w+1,height);}
+      ctx.beginPath();ctx.moveTo(x-5*scale,top);ctx.lineTo(x+5*scale,top);ctx.lineTo(x,top+7*scale);ctx.closePath();ctx.fill();
+    }else if(layer!=='lines'){
+      var x1=run.start===0?left:(xAt(run.start-1)+xAt(run.start))/2;
+      var x2=run.end===rows.length-1?left+plotW:(xAt(run.end)+xAt(run.end+1))/2;
       ctx.globalAlpha=.64;ctx.fillStyle=run.color;ctx.fillRect(x1,top,Math.max(2,x2-x1),height);
     }
   });
   ctx.globalAlpha=1;
 }
-function drawChartCanvas(canvas,A,allRows,signals,exportMode){
+function drawCaptureMarkers(ctx,A,rows,left,top,plotW,height,windowData,scale){
+  if(!captureMarkersShown(A)||!rows.length)return;
+  scale=scale||1;
+  var color=captureMarkerColor(A),textColor=window.Annotations?Annotations.textOn(color):'#fff';
+  var position=new Map(rows.map(function(row,index){return [row.rowId,index];}));
+  var items=markerEvents(A,rows).map(function(event){
+    return {event:event,x:left+rowChartRatio(event.row,position.get(event.row.rowId),windowData)*plotW,focus:A.chartFocusRowId===event.row.rowId};
+  });
+  if(!items.length)return;
+  var clusters=[];
+  items.forEach(function(item){
+    var cluster=clusters[clusters.length-1];
+    if(!cluster||item.x-cluster[cluster.length-1].x>=25*scale){cluster=[];clusters.push(cluster);}
+    cluster.push(item);
+    ctx.globalAlpha=item.focus?.95:.6;ctx.strokeStyle=color;ctx.lineWidth=(item.focus?2.6:1.3)*scale;
+    ctx.beginPath();ctx.moveTo(item.x,top);ctx.lineTo(item.x,top+height);ctx.stroke();
+  });
+  ctx.globalAlpha=1;
+  ctx.font='750 '+(9*scale)+'px Segoe UI, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  clusters.forEach(function(cluster){
+    var first=cluster[0],last=cluster[cluster.length-1];
+    var label=cluster.length===1?String(first.event.value):String(first.event.value)+'–'+String(last.event.value);
+    var center=(first.x+last.x)/2,width=Math.max(17*scale,ctx.measureText(label).width+7*scale),x=Math.max(left+width/2,Math.min(left+plotW-width/2,center));
+    ctx.globalAlpha=.92;ctx.fillStyle=color;ctx.fillRect(x-width/2,top+4*scale,width,14*scale);
+    ctx.globalAlpha=1;ctx.fillStyle=textColor;ctx.fillText(label,x,top+11*scale);
+  });
+}
+/* Time window around a row range (used for detail charts in reports). */
+/* Star in the top right corner of every lane (one per curve in an overlay lane): highlights the signal like the table star. */
+function drawStarPath(ctx,cx,cy,outer){
+  ctx.beginPath();
+  for(var i=0;i<10;i++){var r=i%2?outer*.45:outer,a=-Math.PI/2+i*Math.PI/5;ctx[i?'lineTo':'moveTo'](cx+Math.cos(a)*r,cy+Math.sin(a)*r);}
+  ctx.closePath();
+}
+function drawLaneStars(ctx,lanes,colors,cssW,right,scale){
+  var hits=[],x=cssW-right/2,size=7*scale;
+  lanes.forEach(function(lane){
+    lane.signals.forEach(function(signal,k){
+      var y=lane.y0+12*scale+k*18*scale;if(y+size>lane.y1)return;
+      drawStarPath(ctx,x,y,size);
+      if(signal.marked){ctx.fillStyle='#f5a800';ctx.fill();ctx.strokeStyle='#b67900';}
+      else{ctx.fillStyle='#ffffff';ctx.fill();ctx.strokeStyle=lane.overlay?colors.get(signal):'#8aa3bb';}
+      ctx.lineWidth=1.3;ctx.stroke();
+      hits.push({x:x,y:y,r:size+4,signal:signal});
+    });
+  });
+  return hits;
+}
+function chartStarAt(clientX,clientY){
+  var layout=chartState.layout,canvas=document.getElementById('signal-chart');
+  if(!layout||!layout.starHits||S.view!=='chart')return null;
+  var box=canvas.getBoundingClientRect(),x=clientX-box.left,y=clientY-box.top;
+  var hit=layout.starHits.find(function(item){return Math.hypot(item.x-x,item.y-y)<=item.r;});
+  return hit?hit.signal:null;
+}
+function chartExportWindow(rows,range){
+  var startIndex=rows.findIndex(function(row){return row.rowId>=range.start;});if(startIndex<0)startIndex=0;
+  var endIndex=rows.length-1;for(var i=rows.length-1;i>=0;i--){if(rows[i].rowId<=range.end){endIndex=i;break;}}
+  endIndex=Math.max(startIndex,endIndex);
+  var first=rows[startIndex].elapsedSec,last=rows[endIndex].elapsedSec,span=Math.max(0,last-first);
+  var pad=Math.max(span*(range.padding==null?.15:range.padding),range.minPadSec==null?2:range.minPadSec);
+  var timeStart=Math.max(rows[0].elapsedSec,first-pad),timeEnd=Math.min(rows[rows.length-1].elapsedSec,last+pad);
+  var from=startIndex,to=endIndex;
+  while(from>0&&rows[from-1].elapsedSec>=timeStart)from--;
+  while(to<rows.length-1&&rows[to+1].elapsedSec<=timeEnd)to++;
+  from=Math.max(0,from-1);to=Math.min(rows.length-1,to+1);
+  if(timeEnd<=timeStart){timeStart=rows[from].elapsedSec;timeEnd=rows[to].elapsedSec;}
+  return {rows:rows.slice(from,to+1),offset:from,timeStart:timeStart,timeEnd:timeEnd,total:span};
+}
+/* Draws the chart for screen (options false) or export ({export:true,width,height,dpr,scale,window,title,subtitle}).
+   Returns the painted layout so hover and hit tests use exactly what is visible. */
+function drawChartCanvas(canvas,A,allRows,signals,options){
+  if(options===true)options={export:true};
+  options=options||{};
+  var exportMode=!!options.export,scale=options.scale||1;
   var stage=canvas.parentElement;
-  var cssW=exportMode?1600:Math.max(700,stage.clientWidth||1000);
-  var cssH=exportMode?Math.max(760,signals.length*150+80):Math.max(390,stage.clientHeight||520);
-  var dpr=exportMode?1:Math.min(2,window.devicePixelRatio||1);
+  var cssW=exportMode?(options.width||1600):Math.max(700,stage.clientWidth||1000);
+  var cssH=exportMode?(options.height||Math.max(760,signals.length*150+80)):Math.max(390,stage.clientHeight||520);
+  var dpr=exportMode?(options.dpr||1):Math.min(2,window.devicePixelRatio||1);
   canvas.width=Math.round(cssW*dpr);canvas.height=Math.round(cssH*dpr);
   if(!exportMode){canvas.style.width=cssW+'px';canvas.style.height=cssH+'px';}
   var ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.fillStyle='#ffffff';ctx.fillRect(0,0,cssW,cssH);
-  if(!signals.length||!allRows.length)return;
-  var exportStart=allRows.length&&Number.isFinite(allRows[0].elapsedSec)?allRows[0].elapsedSec:0;
-  var exportEnd=allRows.length&&Number.isFinite(allRows[allRows.length-1].elapsedSec)?allRows[allRows.length-1].elapsedSec:Math.max(0,allRows.length-1);
-  var windowData=exportMode?{rows:allRows,offset:0,timeStart:exportStart,timeEnd:exportEnd,total:Math.max(0,exportEnd-exportStart)}:chartWindowRows(allRows);
-  var rows=windowData.rows,offset=windowData.offset;
-  var left=245,right=26,top=18,bottom=38,plotW=cssW-left-right;
-  var laneH=(cssH-top-bottom)/signals.length;
-  if(window.Annotations)Annotations.draw(ctx,A,rows,left,top,plotW,cssH-top-bottom,windowData);
-  drawMarkedChartRuns(ctx,rows,left,top,plotW,cssH-top-bottom,windowData);
+  var titleH=options.title?40*scale:0;
+  if(options.title){
+    ctx.fillStyle='#003d75';ctx.fillRect(0,0,cssW,titleH-6*scale);ctx.fillStyle='#f5a800';ctx.fillRect(0,titleH-6*scale,cssW,3*scale);
+    ctx.fillStyle='#ffffff';ctx.font='800 '+(14*scale)+'px Segoe UI, sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.fillText(fitCanvasText(ctx,options.title,cssW*.6),16*scale,(titleH-6*scale)/2);
+    if(options.subtitle){ctx.font='600 '+(11*scale)+'px Segoe UI, sans-serif';ctx.textAlign='right';ctx.fillStyle='#dbe8f5';ctx.fillText(fitCanvasText(ctx,options.subtitle,cssW*.36),cssW-16*scale,(titleH-6*scale)/2);}
+  }
+  if(!signals.length||!allRows.length)return null;
+  var windowData;
+  if(exportMode&&options.window==='current')windowData=chartWindowRows(allRows,A.chartWindow||chartState);
+  else if(exportMode&&options.window&&typeof options.window.ratioStart==='number')windowData=chartWindowRows(allRows,{start:options.window.ratioStart,end:options.window.ratioEnd});
+  else if(exportMode&&options.window&&typeof options.window==='object')windowData=chartExportWindow(allRows,options.window);
+  else if(exportMode){
+    var exportStart=Number.isFinite(allRows[0].elapsedSec)?allRows[0].elapsedSec:0;
+    var exportEnd=Number.isFinite(allRows[allRows.length-1].elapsedSec)?allRows[allRows.length-1].elapsedSec:Math.max(0,allRows.length-1);
+    windowData={rows:allRows,offset:0,timeStart:exportStart,timeEnd:exportEnd,total:Math.max(0,exportEnd-exportStart)};
+  }else windowData=chartWindowRows(allRows);
+  var rows=windowData.rows;
+  var g=chartGeometry(cssW,cssH,scale),left=g.left,right=g.right,top=g.top+titleH,bottom=g.bottom,plotW=cssW-left-right,plotH=cssH-top-bottom;
+  var colorBase=options.colorSignals||signals;
+  var lanes=layoutChartLanes(chartLanes(A,signals),top,plotH),colors=new Map(signals.map(function(s,i){var k=colorBase.indexOf(s);return [s,chartColor(k>=0?k:i)];}));
+  lanes.forEach(function(lane){
+    if(!lane.signals.some(function(s){return s.marked;}))return;
+    ctx.fillStyle='rgba(255,231,140,.42)';ctx.fillRect(0,lane.y0,cssW,lane.y1-lane.y0);
+    ctx.fillStyle='#f5a800';ctx.fillRect(0,lane.y0,3*scale,lane.y1-lane.y0);
+  });
+  if(window.Annotations)Annotations.draw(ctx,A,rows,left,top,plotW,plotH,windowData);
+  drawMarkedChartRuns(ctx,rows,left,top,plotW,plotH,windowData,'bands',scale);
   ctx.strokeStyle='#b8c9d9';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(left,top);ctx.lineTo(left,cssH-bottom);ctx.stroke();
-  ctx.font='10px Segoe UI, sans-serif';ctx.textBaseline='middle';
+  ctx.font=(10*scale)+'px Segoe UI, sans-serif';ctx.textBaseline='middle';
   for(var gx=0;gx<=6;gx++){
     var gridX=left+plotW*gx/6;
     ctx.strokeStyle='#9db4c8';ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(gridX,cssH-bottom);ctx.lineTo(gridX,cssH-bottom+4);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(gridX,cssH-bottom);ctx.lineTo(gridX,cssH-bottom+4*scale);ctx.stroke();
     var gridRow=nearestRowInWindow(windowData,gx/6),rowIndex=gridRow?rows.indexOf(gridRow):-1;
     ctx.fillStyle='#61758a';ctx.textAlign=gx===0?'left':(gx===6?'right':'center');
-    ctx.fillText(rows[rowIndex]?rows[rowIndex].ts:'',gridX,cssH-17);
+    ctx.fillText(rows[rowIndex]?rows[rowIndex].ts:'',gridX,cssH-17*scale);
   }
-  signals.forEach(function(signal,signalIndex){
-    var y0=top+laneH*signalIndex,y1=y0+laneH,color=chartColor(signalIndex);
-    var reduced=buildChartSegments(rows,signal,windowData,Math.min(900,Math.max(160,Math.round(plotW/2))));
-    var min=reduced.min,max=reduced.max;
+  var buckets=Math.min(1400,Math.max(160,Math.round(plotW*(exportMode?Math.max(1,dpr):1)/2))),labelHits=[];
+  lanes.forEach(function(lane){
+    var y0=lane.y0,y1=lane.y1,laneH=y1-y0,pad=Math.min(10*scale,laneH*.16),usable=Math.max(6,laneH-pad*2),compact=laneH<46*scale;
     ctx.strokeStyle='#dce6ef';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,y1);ctx.lineTo(cssW,y1);ctx.stroke();
-    ctx.fillStyle=color;ctx.fillRect(14,y0+16,18,3);
-    ctx.font='700 11px Segoe UI, sans-serif';ctx.fillStyle='#143b61';ctx.textAlign='left';
-    ctx.fillText(fitCanvasText(ctx,signal.displayName||signal.desc||signal.id,195),40,y0+18);
-    ctx.font='10px Consolas, monospace';ctx.fillStyle='#6b7f92';
-    var rangeText=(signal.unit?'['+signal.unit+']  ':'')+(isFinite(min)?min.toLocaleString(locale())+' '+t('range')+' '+max.toLocaleString(locale()):t('noValues'));
-    ctx.fillText(fitCanvasText(ctx,rangeText,215),14,y0+36);
-    if(!reduced.segments.length)return;
-    var range=max-min;if(range===0)range=Math.max(1,Math.abs(max)*.1);
-    var pad=10,usable=Math.max(10,laneH-pad*2);
-    ctx.strokeStyle=color;ctx.lineWidth=1.7;ctx.lineJoin='round';ctx.lineCap='round';
-    reduced.segments.forEach(function(segment){
-      if(segment.length===1){
-        var only=segment[0],onlyX=left+only.ratio*plotW,onlyY=y1-pad-((only.value-min)/range)*usable;
-        ctx.fillStyle=color;ctx.fillRect(onlyX-1.5,onlyY-1.5,3,3);return;
+    var reduced=lane.signals.map(function(signal){return buildChartSegments(rows,signal,windowData,buckets);});
+    var sharedMin=Infinity,sharedMax=-Infinity;
+    reduced.forEach(function(r){if(isFinite(r.min)){sharedMin=Math.min(sharedMin,r.min);sharedMax=Math.max(sharedMax,r.max);}});
+    function rangeText(signal,r){return (signal.unit?'['+signal.unit+']  ':'')+(isFinite(r.min)?r.min.toLocaleString(locale())+' '+t('range')+' '+r.max.toLocaleString(locale()):t('noValues'));}
+    if(!lane.overlay){
+      var signal=lane.signals[0],name=signal.displayName||signal.desc||signal.id,nameY=compact?y0+laneH/2:y0+18*scale;
+      ctx.fillStyle=colors.get(signal);ctx.fillRect(14*scale,nameY-1.5*scale,18*scale,3*scale);
+      ctx.font='700 '+(Math.min(11,Math.max(8,laneH/scale*.3))*scale)+'px Segoe UI, sans-serif';ctx.fillStyle='#143b61';ctx.textAlign='left';
+      var shown=fitCanvasText(ctx,name,195*scale);ctx.fillText(shown,40*scale,nameY);
+      if(!compact){
+        ctx.font=(10*scale)+'px Consolas, monospace';ctx.fillStyle='#6b7f92';
+        ctx.fillText(fitCanvasText(ctx,rangeText(signal,reduced[0]),215*scale),14*scale,y0+36*scale);
       }
-      ctx.beginPath();
-      segment.forEach(function(point,p){
-        var x=left+point.ratio*plotW,y=y1-pad-((point.value-min)/range)*usable;
-        if(!p)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+      var fullLabel=compact?name+'\n'+rangeText(signal,reduced[0]):name;
+      labelHits.push({x0:0,x1:left,y0:y0,y1:y1,name:fullLabel,truncated:compact||shown!==name});
+    }else{
+      ctx.font='800 '+(9*scale)+'px Segoe UI, sans-serif';ctx.fillStyle='#5b7086';ctx.textAlign='left';
+      ctx.fillText((t('overlayLane')+(lane.shared?' · '+t('sharedScaleShort'):'')).toUpperCase(),14*scale,y0+11*scale);
+      var available=laneH-24*scale,twoLines=available>=lane.signals.length*29*scale,lineH=(twoLines?29:15)*scale;
+      var fit=Math.max(1,Math.floor(available/lineH)),showCount=lane.signals.length>fit?Math.max(1,fit-1):lane.signals.length;
+      lane.signals.slice(0,showCount).forEach(function(signal,k){
+        var y=y0+26*scale+k*lineH,name=signal.displayName||signal.desc||signal.id;
+        ctx.fillStyle=colors.get(signal);ctx.fillRect(14*scale,y-1.5*scale,18*scale,3*scale);
+        ctx.font='700 '+(10.5*scale)+'px Segoe UI, sans-serif';ctx.fillStyle='#143b61';ctx.textAlign='left';
+        var shown=fitCanvasText(ctx,name,195*scale);ctx.fillText(shown,40*scale,y);
+        if(twoLines){ctx.font=(9.5*scale)+'px Consolas, monospace';ctx.fillStyle='#6b7f92';ctx.fillText(fitCanvasText(ctx,rangeText(signal,reduced[k]),200*scale),40*scale,y+13*scale);}
+        labelHits.push({x0:0,x1:left,y0:y-8*scale,y1:y-8*scale+lineH,name:name,truncated:shown!==name});
       });
-      ctx.stroke();
+      if(showCount<lane.signals.length){
+        var hidden=lane.signals.slice(showCount);
+        ctx.font='700 '+(10*scale)+'px Segoe UI, sans-serif';ctx.fillStyle='#5b7086';
+        ctx.fillText('+'+hidden.length+' '+t('moreSignals'),40*scale,y0+26*scale+showCount*lineH);
+        labelHits.push({x0:0,x1:left,y0:y0+18*scale+showCount*lineH,y1:y1,name:hidden.map(function(s){return s.displayName||s.id;}).join('\n'),truncated:true});
+      }
+      if(lane.shared&&isFinite(sharedMin)){
+        var units=Array.from(new Set(lane.signals.map(function(s){return s.unit;}).filter(Boolean))).join(', ');
+        ctx.font=(9*scale)+'px Consolas, monospace';ctx.textAlign='left';ctx.textBaseline='middle';
+        [[sharedMax,y1-pad-usable],[(sharedMin+sharedMax)/2,y1-pad-usable/2],[sharedMin,y1-pad]].forEach(function(tick,i){
+          var label=Number(tick[0].toFixed(3)).toLocaleString(locale())+(i===0&&units?' '+units:''),w=ctx.measureText(label).width+6*scale;
+          ctx.strokeStyle='#9db4c8';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,tick[1]);ctx.lineTo(left+5*scale,tick[1]);ctx.stroke();
+          ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillRect(left+6*scale,tick[1]-6*scale,w,12*scale);
+          ctx.fillStyle='#4b6177';ctx.fillText(label,left+9*scale,tick[1]);
+        });
+      }
+    }
+    lane.signals.forEach(function(signal,k){
+      var r=reduced[k];if(!r.segments.length)return;
+      var min=lane.shared?sharedMin:r.min,max=lane.shared?sharedMax:r.max,range=max-min,color=colors.get(signal);
+      if(range===0)range=Math.max(1,Math.abs(max)*.1);
+      ctx.strokeStyle=color;ctx.lineWidth=1.7*scale;ctx.lineJoin='round';ctx.lineCap='round';
+      r.segments.forEach(function(segment){
+        if(segment.length===1){
+          var only=segment[0],onlyX=left+only.ratio*plotW,onlyY=y1-pad-((only.value-min)/range)*usable;
+          ctx.fillStyle=color;ctx.fillRect(onlyX-1.5*scale,onlyY-1.5*scale,3*scale,3*scale);return;
+        }
+        ctx.beginPath();
+        segment.forEach(function(point,p){
+          var x=left+point.ratio*plotW,y=y1-pad-((point.value-min)/range)*usable;
+          if(!p)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+        });
+        ctx.stroke();
+      });
     });
   });
-  var visibleMarkerEvents=markerEvents(A,rows).filter(function(event){return event.row.marked;}).map(function(event){
-    var index=rows.indexOf(event.row);
-    return {event:event,x:left+rowChartRatio(event.row,index,windowData)*plotW};
-  });
-  if(visibleMarkerEvents.length){
-    var clusters=[];
-    visibleMarkerEvents.forEach(function(item){
-      var cluster=clusters[clusters.length-1];
-      if(!cluster||item.x-cluster[cluster.length-1].x>=25){cluster=[];clusters.push(cluster);}
-      cluster.push(item);
-      ctx.strokeStyle='rgba(0,61,117,.5)';ctx.lineWidth=1;
-      ctx.beginPath();ctx.moveTo(item.x,top);ctx.lineTo(item.x,cssH-bottom);ctx.stroke();
-    });
-    ctx.font='750 9px Segoe UI, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    clusters.forEach(function(cluster){
-      var first=cluster[0],last=cluster[cluster.length-1];
-      var label=cluster.length===1?String(first.event.value):String(first.event.value)+'\u2013'+String(last.event.value);
-      var center=(first.x+last.x)/2,width=Math.max(17,ctx.measureText(label).width+7),x=Math.max(left+width/2,Math.min(left+plotW-width/2,center));
-      ctx.fillStyle='rgba(0,61,117,.78)';ctx.fillRect(x-width/2,top+4,width,14);
-      ctx.fillStyle='#fff';ctx.fillText(label,x,top+11);
-    });
-  }
+  drawMarkedChartRuns(ctx,rows,left,top,plotW,plotH,windowData,'lines',scale);
+  drawCaptureMarkers(ctx,A,rows,left,top,plotW,plotH,windowData,scale);
+  if(window.Annotations&&Annotations.drawLabels)Annotations.drawLabels(ctx,A,rows,left,top,plotW,plotH,windowData,scale);
+  var starHits=exportMode?[]:drawLaneStars(ctx,lanes,colors,cssW,right,scale);
+  return {lanes:lanes,labelHits:labelHits,starHits:starHits,left:left,right:right,top:top,bottom:bottom,plotW:plotW,plotH:plotH,windowData:windowData,colors:colors};
 }
 function renderChart(){
   if(S.view!=='chart')return;
-  if(window.ChartHeight)ChartHeight.layout();
-  var A=active(),rows=A.filtered||A.rawRows||[],signals=chartSignals(A,rows);
+  var A=active(),rows=A.filtered||A.rawRows||[],selection=chartSelection(A),signals=selection.signals;
+  if(window.ChartHeight)ChartHeight.layout(signals.length?chartMinHeight(A,signals):0);
   var empty=document.getElementById('chart-empty');
   empty.classList.toggle('visible',!signals.length||!rows.length);
-  var marked=visibleSignals(A).filter(function(s){return s.marked&&isChartSignal(A,s,rows);}).length;
+  var limited=selection.available>signals.length?t('chartLimitedSuffix',{shown:signals.length,total:selection.available}):'';
+  var overlayCount=signals.filter(function(s){return s.overlay;}).length;
   document.getElementById('chart-subtitle').textContent=signals.length
-    ?t('chartCurves',{count:signals.length,rows:fmtNumber(rows.length),suffix:marked?t('chartMarkedSuffix'):t('chartAutoSuffix')})
+    ?t('chartCurves',{count:signals.length,rows:fmtNumber(rows.length),suffix:(selection.explicit?t('chartMarkedSuffix'):t('chartAutoSuffix'))+(overlayCount>=2?t('chartOverlaySuffix',{count:overlayCount}):'')+limited})
     :t('chartSelectHint');
   syncChartTimelineZoom(rows);
-  drawChartCanvas(document.getElementById('signal-chart'),A,rows,signals,false);
+  chartState.layout=drawChartCanvas(document.getElementById('signal-chart'),A,rows,signals,false);
+  if(window.ChartSignals&&ChartSignals.sync)ChartSignals.sync();
 }
 function selectChartSignals(){
+  if(window.ChartSignals&&ChartSignals.toggle){ChartSignals.toggle();return;}
   if(!sigOpen)toggleSignals();
   showToast(t('chartToast'));
 }
@@ -1812,37 +1972,87 @@ function initChartInteraction(){
     if(tipY+tooltip.offsetHeight>visibleBottom)tipY=Math.max(visibleTop,e.clientY-rect.top-tooltip.offsetHeight-14);
     tooltip.style.left=tipX+'px';tooltip.style.top=tipY+'px';
   }
+  function hideTooltip(){tooltip.classList.remove('visible');chartState.hoverIndex=-1;if(window.Annotations)Annotations.hover(-1);}
   canvas.addEventListener('mousemove',function(e){
     if(window.Annotations&&Annotations.isDragging()){tooltip.classList.remove('visible');Annotations.hover(-1);return;}
-    var A=active(),allRows=A.filtered||A.rawRows||[],windowData=chartWindowRows(allRows),rows=windowData.rows;
-    var rect=canvas.getBoundingClientRect(),left=245,right=26,top=18,bottom=38,plotW=rect.width-left-right;
+    var A=active(),allRows=A.filtered||A.rawRows||[],windowData=chartWindowRows(allRows),rows=windowData.rows,layout=chartState.layout;
+    var rect=canvas.getBoundingClientRect(),g=chartGeometry(rect.width,rect.height),left=g.left,right=g.right,plotW=rect.width-left-right;
     var localX=e.clientX-rect.left,localY=e.clientY-rect.top,signals=chartSignals(A,allRows);
-    if(rows.length&&localX>=0&&localX<left&&localY>=top&&localY<rect.height-bottom&&signals.length){
-      var laneH=(rect.height-top-bottom)/signals.length,signal=signals[Math.min(signals.length-1,Math.floor((localY-top)/laneH))];
-      var name=signal&&(signal.displayName||signal.desc||signal.id)||'',ctx=canvas.getContext('2d');
-      ctx.save();ctx.font='700 11px Segoe UI, sans-serif';var shortened=ctx.measureText(name).width>195;ctx.restore();
-      if(shortened){
-        tooltip.innerHTML='<div class="chart-tooltip-full-name">'+esc(name)+'</div>';
+    var star=chartStarAt(e.clientX,e.clientY);
+    canvas.classList.toggle('chart-star-hover',!!star);
+    if(star){
+      tooltip.innerHTML='<div class="chart-tooltip-full-name">'+esc((star.marked?t('unstarSignal'):t('starSignal'))+': '+(star.displayName||star.id))+'</div>';
+      tooltip.classList.add('visible');positionTooltip(e,rect);chartState.hoverIndex=-1;if(window.Annotations)Annotations.hover(-1);return;
+    }
+    if(rows.length&&layout&&localX>=0&&localX<left){
+      var hit=(layout.labelHits||[]).find(function(item){return localX>=item.x0&&localX<=item.x1&&localY>=item.y0&&localY<=item.y1;});
+      if(hit&&hit.truncated){
+        tooltip.innerHTML='<div class="chart-tooltip-full-name">'+esc(hit.name)+'</div>';
         tooltip.classList.add('visible');positionTooltip(e,rect);chartState.hoverIndex=-1;if(window.Annotations)Annotations.hover(-1);return;
       }
     }
-    if(!rows.length||localX<left||localX>rect.width-right){tooltip.classList.remove('visible');chartState.hoverIndex=-1;if(window.Annotations)Annotations.hover(-1);return;}
-    var ratio=Math.max(0,Math.min(1,(e.clientX-rect.left-left)/plotW));
+    if(!rows.length||localX<left||localX>rect.width-right){hideTooltip();return;}
+    var ratio=Math.max(0,Math.min(1,(localX-left)/plotW));
     var row=nearestRowInWindow(windowData,ratio),local=rows.indexOf(row);chartState.hoverIndex=windowData.offset+local;
-    tooltip.innerHTML='<div class="chart-tooltip-time">'+esc(row.ts)+(row.marked?' · '+esc(t('markedWord')):'')+'</div>'+signals.map(function(s,i){
+    var capture=captureMarkersShown(A)?markerEvents(A).find(function(event){return event.row===row;}):null;
+    var head=esc(row.ts)+(row.marked?' · '+esc(t('markedWord')):'')+(capture?' · '+esc(t('captureMarker'))+' '+esc(capture.value):'');
+    tooltip.innerHTML='<div class="chart-tooltip-time">'+head+'</div>'+signals.map(function(s,i){
       var value=String(row.parts[s.index]||'').trim();
       return '<div class="chart-tooltip-row"><span class="chart-tooltip-dot" style="background:'+chartColor(i)+'"></span><span class="chart-tooltip-name">'+esc(s.displayName||s.id)+'</span><span class="chart-tooltip-value">'+esc(value)+(s.unit?' '+esc(s.unit):'')+'</span></div>';
     }).join('');
     if(window.Annotations){var notes=Annotations.notesAt(A,row.rowId);if(notes)tooltip.innerHTML+='<div class="chart-tooltip-note">'+esc(notes)+'</div>';}
     tooltip.classList.add('visible');positionTooltip(e,rect);if(window.Annotations)Annotations.hover(left+ratio*plotW);
   });
-  canvas.addEventListener('mouseleave',function(){tooltip.classList.remove('visible');chartState.hoverIndex=-1;if(window.Annotations)Annotations.hover(-1);});
+  canvas.addEventListener('mouseleave',hideTooltip);
+  /* Wheel: zoom time axis. Shift+wheel or horizontal trackpad: pan time axis.
+     Ctrl+wheel: lane height (Y). Over the signal names: native vertical scrolling. */
+  /* Value tooltip transparency: hold T and use the mouse wheel or two-finger touchpad scrolling. */
+  var TOOLTIP_ALPHA_KEY='signalerfassung.tooltipAlpha',alphaKeyHeld=false,alphaAccumulated=0,alphaHintTimer=0;
+  var tooltipAlpha=(function(){try{var v=Number(localStorage.getItem(TOOLTIP_ALPHA_KEY));return v>=.1&&v<=1?v:.94;}catch(e){return .94;}})();
+  function applyTooltipAlpha(){tooltip.style.setProperty('--tooltip-alpha',String(tooltipAlpha));}
+  function typingTarget(el){return !!(el&&el.closest&&el.closest('textarea,[contenteditable="true"],input:not([type]),input[type="text"],input[type="search"],input[type="number"]'));}
+  function adjustTooltipAlpha(direction){
+    var next=Math.round(Math.max(.1,Math.min(1,tooltipAlpha+direction*.1))*100)/100;
+    if(next===tooltipAlpha)return;
+    tooltipAlpha=next;applyTooltipAlpha();
+    try{localStorage.setItem(TOOLTIP_ALPHA_KEY,String(tooltipAlpha));}catch(e){}
+    var percent=Math.round(tooltipAlpha*100),label=(currentLang()==='en'?'Value tooltip opacity ':'Deckkraft Werteanzeige ')+percent+' %';
+    var hint=tooltip.querySelector('.chart-tooltip-alpha');
+    if(!hint){hint=document.createElement('div');hint.className='chart-tooltip-alpha';tooltip.appendChild(hint);}
+    hint.textContent=label;tooltip.classList.add('is-adjusting');
+    clearTimeout(alphaHintTimer);alphaHintTimer=setTimeout(function(){tooltip.classList.remove('is-adjusting');var h=tooltip.querySelector('.chart-tooltip-alpha');if(h)h.remove();},1200);
+  }
+  applyTooltipAlpha();
+  document.addEventListener('keydown',function(e){if((e.key==='t'||e.key==='T')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!typingTarget(e.target))alphaKeyHeld=true;});
+  document.addEventListener('keyup',function(e){if(e.key==='t'||e.key==='T'){alphaKeyHeld=false;alphaAccumulated=0;}});
+  window.addEventListener('blur',function(){alphaKeyHeld=false;alphaAccumulated=0;});
+  window.ChartTooltip={alpha:function(){return tooltipAlpha;},adjust:adjustTooltipAlpha};
   canvas.addEventListener('wheel',function(e){
     if(window.Annotations&&Annotations.isDragging()){e.preventDefault();return;}
+    if(alphaKeyHeld){
+      e.preventDefault();
+      var delta=e.deltaY||e.deltaX;if(e.deltaMode===1)delta*=16;
+      /* One mouse wheel notch = 10 %. Touchpads send many small deltas, which add up (about 60 px per step). */
+      if(Math.abs(delta)>=50){alphaAccumulated=0;adjustTooltipAlpha(delta<0?1:-1);}
+      else{alphaAccumulated+=delta;while(Math.abs(alphaAccumulated)>=60){adjustTooltipAlpha(alphaAccumulated<0?1:-1);alphaAccumulated+=alphaAccumulated<0?60:-60;}}
+      return;
+    }
+    var rect=canvas.getBoundingClientRect(),g=chartGeometry(rect.width,rect.height),localX=e.clientX-rect.left;
+    if(e.ctrlKey||e.metaKey){if(window.ChartHeight){e.preventDefault();ChartHeight.nudge(e.deltaY<0?1:-1);}return;}
+    if(localX<g.left&&!e.shiftKey)return;
     var rows=active().filtered||active().rawRows||[];if(rows.length<20)return;
     e.preventDefault();
-    var rect=canvas.getBoundingClientRect(),ratio=Math.max(0,Math.min(1,(e.clientX-rect.left-245)/Math.max(1,rect.width-271)));
-    var span=chartState.end-chartState.start,newSpan=Math.max(20/rows.length,Math.min(1,span*(e.deltaY>0?1.25:.8)));
+    var plotW=Math.max(1,rect.width-g.left-g.right),span=chartState.end-chartState.start,unit=e.deltaMode===1?16:(e.deltaMode===2?plotW:1);
+    var horizontal=e.shiftKey||Math.abs(e.deltaX)>Math.abs(e.deltaY);
+    hideTooltip();
+    if(horizontal){
+      if(span>=1)return;
+      var delta=(Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY)*unit;
+      chartState.start=Math.max(0,Math.min(1-span,chartState.start+delta/plotW*span));chartState.end=chartState.start+span;
+      renderChart();return;
+    }
+    var ratio=Math.max(0,Math.min(1,(localX-g.left)/plotW));
+    var newSpan=Math.max(20/rows.length,Math.min(1,span*(e.deltaY>0?1.25:.8)));
     var anchor=chartState.start+span*ratio;
     chartState.start=Math.max(0,Math.min(1-newSpan,anchor-newSpan*ratio));chartState.end=chartState.start+newSpan;
     renderChart();
@@ -1853,7 +2063,7 @@ initChartInteraction();
 function cloneFileForExport(file){
   var rows=(file.rawRows||[]).map(function(row){return {
     rowId:row.rowId,ts:row.ts,parts:(row.parts||[]).slice(),marked:!!row.marked,
-    markerColor:row.markerColor||'',note:row.note||'',clockSec:row.clockSec,elapsedSec:row.elapsedSec,_numeric:(row._numeric||[]).slice()
+    markerColor:row.markerColor||'',markerWidth:row.markerWidth||0,note:row.note||'',clockSec:row.clockSec,elapsedSec:row.elapsedSec,_numeric:(row._numeric||[]).slice()
   };});
   var byId=new Map(rows.map(function(row){return [row.rowId,row];}));
   return {
@@ -1861,7 +2071,9 @@ function cloneFileForExport(file){
     signals:(file.signals||[]).map(function(signal){return Object.assign({},signal);}),rawRows:rows,
     filtered:(file.filtered||file.rawRows||[]).map(function(row){return byId.get(row.rowId);}).filter(Boolean),
     filterFrom:file.filterFrom||'',filterTo:file.filterTo||'',filterSearch:file.filterSearch||'',
-    ranges:(file.ranges||[]).map(function(range){return Object.assign({},range);})
+    ranges:(file.ranges||[]).map(function(range){return Object.assign({},range);}),
+    txtMarkersVisible:file.txtMarkersVisible!==false,txtMarkerColor:file.txtMarkerColor||'',chartSharedScale:!!file.chartSharedScale,
+    chartWindow:file===active()?{start:chartState.start,end:chartState.end}:{start:0,end:1}
   };
 }
 function captureExportState(selectedFile){
@@ -1877,11 +2089,26 @@ function projectSnapshot(workspace){
     files:workspace.files.map(function(file){return {
       filename:file.filename,date:file.date,dateSource:file.dateSource,sourceFormat:file.sourceFormat,rawText:file.rawText,
       filters:{from:file.filterFrom||'',to:file.filterTo||'',search:file.filterSearch||''},
-      signals:file.signals.map(function(s){return {id:s.id,index:s.index,hidden:!!s.hidden,marked:!!s.marked};}),
+      signals:file.signals.map(function(s){return {id:s.id,index:s.index,hidden:!!s.hidden,marked:!!s.marked,overlay:!!s.overlay,chartHidden:!!s.chartHidden};}),
+      chart:{sharedScale:!!file.chartSharedScale},
       markedRows:file.rawRows.filter(function(row){return row.marked;}).map(function(row){return row.rowId;}),
       annotations:window.Annotations?Annotations.snapshot(file):null
     };})
   };
+}
+/* Before capture markers became their own layer, "Zeitstempel markieren" set row.marked on every row whose
+   counter was >= 1 (everything after the first button press). Such projects are converted on open. */
+function migrateLegacyTimestampMarks(file,annotations){
+  if(annotations&&annotations.version>=2)return;
+  var signal=markerSignal(file);if(!signal)return;
+  var counterRows=file.rawRows.filter(function(row){var value=markerValue(row,signal);return value!==null&&value>=1;});
+  if(!counterRows.length||!counterRows.every(function(row){return row.marked;}))return;
+  var colors=new Map(((annotations&&annotations.rows)||[]).map(function(row){return [row.id,String(row.color||'').toLowerCase()];}));
+  counterRows.forEach(function(row){
+    var color=colors.get(row.rowId);
+    if(!row.note&&(!color||color==='#ffe08a'))row.marked=false;
+  });
+  file.txtMarkersVisible=true;
 }
 function projectBlob(snapshot){return new Blob([JSON.stringify(snapshot||projectSnapshot(),null,2)],{type:'application/json;charset=utf-8'});}
 async function saveProject(){
@@ -1924,10 +2151,12 @@ function loadProjectFile(file){
         var restored=parse(item.rawText,item.filename,data.savedAt?new Date(data.savedAt):new Date(),{allowExactDuplicate:true});
         var states=Object.create(null);
         (item.signals||[]).forEach(function(state){states[state.id+'::'+state.index]=state;});
-        restored.signals.forEach(function(signal){var state=states[signal.id+'::'+signal.index];if(state){signal.hidden=!!state.hidden;signal.marked=!!state.marked;}});
+        restored.signals.forEach(function(signal){var state=states[signal.id+'::'+signal.index];if(state){signal.hidden=!!state.hidden;signal.marked=!!state.marked;signal.overlay=!!state.overlay;signal.chartHidden=!!state.chartHidden;}});
+        restored.chartSharedScale=!!(item.chart&&item.chart.sharedScale);
         var markedRows=new Set(item.markedRows||[]);
         restored.rawRows.forEach(function(row){row.marked=markedRows.has(row.rowId);});
         if(window.Annotations)Annotations.restore(restored,item.annotations);
+        migrateLegacyTimestampMarks(restored,item.annotations);
         restored.date=item.date||restored.date;restored.dateSource=item.dateSource||restored.dateSource;
         restored.filterFrom=item.filters&&item.filters.from!=null?item.filters.from:restored.filterFrom;
         restored.filterTo=item.filters&&item.filters.to!=null?item.filters.to:restored.filterTo;
@@ -2043,8 +2272,8 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
   var en=currentLang()==='en';
   var XL=en?{
     overview:'Overview',signals:'Signals',data:'Measurement data',marks:'Markers',
-    supportExport:'SCANIA Signal Capture - Support Export',
-    subtitle:'Breuer Truck & Trailer - Diagnostic report for escalation / support',
+    supportExport:'Signal Capture – Support export',
+    subtitle:'Diagnostic report for escalation and support · SWS / SDP3',
     summary:'Summary',created:'Export created',period:'Period',samplesExported:'Samples exported',columns:'columns',rows:'rows',
     visibleSignals:'Signals visible',hiddenSignals:'Hidden signals',markers:'Markers',sourceFormat:'Source format',sampleRate:'Sample rate',
     workbookStructure:'Workbook structure',sheet:'Sheet',purpose:'Purpose',note:'Note',supportNote:'Support note',
@@ -2078,8 +2307,8 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
     column:'Column',row:'Row',userMarkedRow:'Measurement row marked by the user',none:'None',noMarkers:'No columns or rows were marked.'
   }:{
     overview:'\u00dcbersicht',signals:'Signale',data:'Messdaten',marks:'Markierungen',
-    supportExport:'SCANIA Signalerfassung - Support Export',
-    subtitle:'Breuer Truck & Trailer - Diagnosebericht f\u00fcr Eskalation / Support',
+    supportExport:'Signalerfassung – Support-Export',
+    subtitle:'Diagnosebericht f\u00fcr Eskalation und Support · SWS / SDP3',
     summary:'Zusammenfassung',created:'Export erstellt',period:'Zeitraum',samplesExported:'Samples exportiert',columns:'Spalten',rows:'Zeilen',
     visibleSignals:'Signale sichtbar',hiddenSignals:'Ausgeblendete Signale',markers:'Markierungen',sourceFormat:'Quellformat',sampleRate:'Abtastrate',
     workbookStructure:'Aufbau der Arbeitsmappe',sheet:'Blatt',purpose:'Zweck',note:'Hinweis',supportNote:'Support-Hinweis',
@@ -2120,7 +2349,8 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
     var text=String(value==null?'':value).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').replace(/\r/g,'').trim();
     return maxLen&&text.length>maxLen?text.substring(0,maxLen):text;
   }
-  function sheetName(name){return (cleanText(name,31).replace(/[\\/?*[\]:]/g,' ')||'Export').substring(0,31);}
+  var sheetPrefix=options.prefix||'';
+  function sheetName(name){return (cleanText(sheetPrefix+name,31).replace(/[\\/?*[\]:]/g,' ')||'Export').substring(0,31);}
   function excelValue(raw){
     var v=cleanText(raw);
     var n=numericValue(v);
@@ -2202,7 +2432,7 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
     cell.fill=fill(isLabel?'#003D75':'#EAF2FA');
     cell.font=font(isLabel?'#FFFFFF':'#1A1A2E',true,11);
     cell.border=border('#C7D6E5');
-    cell.alignment={vertical:'middle',wrapText:true};
+    cell.alignment={vertical:'middle',horizontal:'left',wrapText:true,indent:isLabel?0:1};
   }
   function styleOverviewTableCell(ws,row,fromCol,toCol,value,isHeader,isStrong,bandIndex){
     if(toCol>fromCol)ws.mergeCells(row,fromCol,row,toCol);
@@ -2216,14 +2446,21 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
     }
   }
 
-  var wb=new ExcelJS.Workbook();
-  wb.creator='Breuer Truck & Trailer';
-  wb.created=new Date();
-  wb.modified=new Date();
+  var wb=options.workbook||new ExcelJS.Workbook();
+  if(!options.workbook){
+    wb.creator=en?'Signal Capture Analysis Tool':'Signalerfassung Analyse-Tool';
+    wb.created=new Date();
+    wb.modified=new Date();
+  }
   var fileText=cleanText(A.filename,120);
   var dateText=cleanText(A.date,40)||'-';
   var duration=secToHMS(recordingDuration(A));
   var exportTime=new Date().toLocaleString(locale());
+  var captureEventsAll=markerEvents(A,rows),annotationEntries=window.Annotations?Annotations.entries(A):[];
+  var rowRefs=new Map(),captureRowIds=new Set();
+  function addRowRef(id,label){if(!rowRefs.has(id))rowRefs.set(id,[]);rowRefs.get(id).push(label);}
+  captureEventsAll.forEach(function(event){captureRowIds.add(event.row.rowId);addRowRef(event.row.rowId,(en?'Capture marker ':'Erfassungsmarker ')+event.value);});
+  annotationEntries.forEach(function(entry){for(var id=entry.start;id<=entry.end;id++)addRowRef(id,entry.letter+(id===entry.start&&entry.note?': '+cleanText(entry.note,180).replace(/\s+/g,' '):''));});
 
   var overview=wb.addWorksheet(sheetName(XL.overview),{
     properties:{tabColor:{argb:argb('#003D75')}},
@@ -2238,7 +2475,8 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
     [t('date'),dateText,'',XL.period,t0+' - '+t1,''],
     [t('duration'),duration,'',XL.samplesExported,fmtNumber(rows.length)+' / '+fmtNumber(rows0.length),''],
     [XL.visibleSignals,visibleSig.length+' / '+allSignals.length,'',XL.hiddenSignals,hiddenSignals,''],
-    [XL.markers,markedSignals+' '+XL.columns+' / '+markedRows+' '+XL.rows,'',isSws?XL.sourceFormat:XL.sampleRate,isSws?'SWS ('+(en?'reduced metadata':'reduzierte Metadaten')+')':((rows0.length&&duration)?(en?'see HTML':'siehe HTML'):'-'),'']
+    [XL.markers,markedSignals+' '+XL.columns+' / '+markedRows+' '+XL.rows,'',isSws?XL.sourceFormat:XL.sampleRate,isSws?'SWS ('+(en?'reduced metadata':'reduzierte Metadaten')+')':(recordingDuration(A)>0?(rows0.length/recordingDuration(A)).toFixed(1)+' Hz':'-'),''],
+    [en?'Capture markers':'Erfassungsmarker',captureEventsAll.length,'',en?'Notes & markers':'Notizen & Markierungen',annotationEntries.length,'']
   ];
   overviewRows.forEach(function(row,i){
     var r=6+i;
@@ -2279,14 +2517,15 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
     properties:{tabColor:{argb:argb('#0055A0')}},
     views:[{state:'frozen',ySplit:4,topLeftCell:'A5',showGridLines:false}]
   });
-  sigWs.columns=[{width:18},{width:22},{width:54},{width:12},{width:48},{width:26}];
-  paintBand(sigWs,1,1,6,XL.signalOverview,'#003D75',16);
-  paintBand(sigWs,2,1,6,isSws?XL.swsSignalSubtitle:XL.signalSubtitle,'#0055A0',11);
-  sigWs.getRow(4).values=[XL.status,XL.device,XL.sensor,XL.unit,XL.signalId,XL.dataColumn];
+  sigWs.columns=[{width:18},{width:22},{width:54},{width:12},{width:48},{width:26},{width:14},{width:14},{width:14}];
+  paintBand(sigWs,1,1,9,XL.signalOverview,'#003D75',16);
+  paintBand(sigWs,2,1,9,isSws?XL.swsSignalSubtitle:XL.signalSubtitle,'#0055A0',11);
+  sigWs.getRow(4).values=[XL.status,XL.device,XL.sensor,XL.unit,XL.signalId,XL.dataColumn,'Min','Max',en?'Mean':'Mittelwert'];
   styleHeader(sigWs.getRow(4));
   allSignals.forEach(function(s,i){
     var r=5+i,row=sigWs.getRow(r);
-    row.values=[signalStatus(s),deviceLabel(s),descOf(s),cleanText(s.unit,20)||'-',signalIdLabel(s),s.hidden?XL.hiddenExcel:XL.visibleExcel];
+    var st=window.ReportExport&&isChartSignal(A,s)?ReportExport.signalStats(A,s,rows):{min:null,max:null,mean:null};
+    row.values=[signalStatus(s),deviceLabel(s),descOf(s),cleanText(s.unit,20)||'-',signalIdLabel(s),s.hidden?XL.hiddenExcel:XL.visibleExcel,st.min===null?'-':st.min,st.max===null?'-':st.max,st.mean===null?'-':Math.round(st.mean*1000)/1000];
     row.height=34;
     row.eachCell(function(cell,col){
       cell.border=border('#D7E2EC');
@@ -2295,17 +2534,17 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
       cell.font=font(s.hidden?'#64748B':(col===2||col===3?'#0055A0':'#1E293B'),col===2||col===3,10);
     });
   });
-  if(allSignals.length)sigWs.autoFilter={from:{row:4,column:1},to:{row:4,column:6}};
+  if(allSignals.length)sigWs.autoFilter={from:{row:4,column:1},to:{row:4,column:9}};
 
   var dataWs=wb.addWorksheet(sheetName(XL.data),{
     properties:{tabColor:{argb:argb('#F5A800')}},
     pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0},
     views:[{state:'frozen',xSplit:1,ySplit:4,topLeftCell:'B5',activeCell:'B5',showGridLines:false}]
   });
-  var colCount=dataSignals.length+1;
+  var colCount=dataSignals.length+2;
   var titleCols=Math.max(colCount,6);
   dataWs.mergeCells(1,1,1,titleCols);
-  dataWs.getCell(1,1).value=(en?'SCANIA Signal Capture - ':'SCANIA Signalerfassung - ')+fileText;
+  dataWs.getCell(1,1).value=(en?'Signal Capture – ':'Signalerfassung – ')+fileText;
   dataWs.getCell(1,1).fill=fill('#003D75');
   dataWs.getCell(1,1).font=font('#FFFFFF',true,16);
   dataWs.getCell(1,1).alignment={vertical:'middle',horizontal:'left'};
@@ -2322,9 +2561,9 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
   dataWs.getCell(3,1).alignment={vertical:'middle',wrapText:true};
   dataWs.getRow(3).height=20;
 
-  var header=uniqueHeaders([XL.timestamp].concat(dataSignals.map(function(s){return signalColumnHeader(s);})));
+  var header=uniqueHeaders([XL.timestamp].concat(dataSignals.map(function(s){return signalColumnHeader(s);})).concat([en?'Marking / note':'Markierung / Notiz']));
   var tableRows=rows.map(function(r){
-    return [cleanText(r.ts,24)].concat(dataSignals.map(function(s){return excelValue(r.parts[s.index]||'');}));
+    return [cleanText(r.ts,24)].concat(dataSignals.map(function(s){return excelValue(r.parts[s.index]||'');})).concat([(rowRefs.get(r.rowId)||[]).join(' | ')]);
   });
   dataWs.getRow(4).values=header;
   dataWs.addRows(tableRows);
@@ -2351,6 +2590,9 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
       if(col===1){
         cell.font={name:'Aptos Mono',size:10,color:{argb:argb('#64748B')}};
         cell.alignment={vertical:'middle',horizontal:'center'};
+      }else if(col===colCount){
+        cell.font=font('#0B4F8A',true,10);
+        cell.alignment={vertical:'middle',horizontal:'left',wrapText:false};
       }else{
         var signal=dataSignals[col-2];
         var numeric=isNumericSignal(signal);
@@ -2368,13 +2610,17 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
       if(rr===4)cell.font=font('#4A3410',true,10);
     }
   });
+  var tintByRow=new Map();
+  if(window.Annotations)Annotations.tableColors(A).forEach(function(value,id){tintByRow.set(id,'#'+(value.match(/\d+/g)||[]).map(function(v){return Number(v).toString(16).padStart(2,'0');}).join(''));});
   rows.forEach(function(r,i){
-    if(!r.marked)return;
-    dataWs.getRow(5+i).eachCell(function(cell){
-      cell.fill=fill('#FEE2E2');
-      cell.font=font('#7F1D1D',false,10);
+    var tintHex=tintByRow.get(r.rowId),capture=captureRowIds.has(r.rowId);
+    if(!tintHex&&!capture)return;
+    dataWs.getRow(5+i).eachCell(function(cell,col){
+      cell.fill=fill(tintHex||'#E2EEFA');
+      if(col===1&&capture)cell.font={name:'Aptos Mono',size:10,bold:true,color:{argb:argb('#0B4F8A')}};
     });
   });
+  dataWs.getColumn(colCount).width=34;
   dataWs.autoFilter={from:{row:4,column:1},to:{row:4,column:colCount}};
 
   var markWs=wb.addWorksheet(sheetName(XL.marks),{
@@ -2408,13 +2654,14 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
     });
   }
   markWs.autoFilter={from:{row:4,column:1},to:{row:4,column:5}};
-  if(window.Annotations)Annotations.excel(wb,A);
+  if(window.ReportExport)ReportExport.excelSheets(wb,A,{prefix:sheetPrefix});
+  if(options.workbook)return wb;
 
   try{
     var buffer=await wb.xlsx.writeBuffer();
     var blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     if(options.download!==false){
-      downloadBuffer(buffer,(en?'Scania_Signal_Capture_':'Scania_Signalerfassung_')+exportDate+'.xlsx');
+      downloadBuffer(buffer,(en?'Signal_Capture_':'Signalerfassung_')+exportDate+'.xlsx');
       trackUsage('excel_export');
     }
     return blob;
@@ -2424,196 +2671,45 @@ async function exportStyledXLSX(A,rows0,rows,sig,t0,t1,options){
     alert(t('xlsxFail')+(err&&err.message?err.message:err));return null;
   }
 }
+/* One workbook for several recordings: sheet "Recordings" first, then the usual sheets per file with "1 ", "2 " in front. */
+async function exportAllXLSX(files,options){
+  options=options||{};
+  if(typeof ExcelJS==='undefined')throw new Error(t('xlsxDependency'));
+  var en=currentLang()==='en',wb=new ExcelJS.Workbook();
+  wb.creator=en?'Signal Capture Analysis Tool':'Signalerfassung Analyse-Tool';wb.created=new Date();wb.modified=new Date();
+  var ws=wb.addWorksheet(en?'Recordings':'Messungen',{properties:{tabColor:{argb:'FF003D75'}},views:[{state:'frozen',ySplit:4,showGridLines:false}]});
+  ws.columns=[{width:6},{width:40},{width:13},{width:10},{width:12},{width:14},{width:12},{width:16},{width:18},{width:18}];
+  ws.mergeCells(1,1,1,10);ws.getCell(1,1).value=(en?'Signal Capture \u2013 ':'Signalerfassung \u2013 ')+files.length+(en?' recordings':' Messungen');
+  ws.getCell(1,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF003D75'}};ws.getCell(1,1).font={name:'Aptos',bold:true,size:16,color:{argb:'FFFFFFFF'}};ws.getRow(1).height=30;
+  ws.mergeCells(2,1,2,10);ws.getCell(2,1).value=en?'Every recording has its own group of sheets, numbered like this list (e.g. "1 Measurement data").':'Jede Messung hat eigene Bl\u00e4tter mit der Nummer aus dieser Liste (z. B. \u201e1 Messdaten\u201c).';
+  ws.getCell(2,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0055A0'}};ws.getCell(2,1).font={name:'Aptos',bold:true,size:11,color:{argb:'FFFFFFFF'}};ws.getRow(2).height=22;
+  ws.getRow(4).values=en?['No.','File','Date','Format','Duration','Rows','Signals','Capture markers','Notes & markers','Time range']:['Nr.','Datei','Datum','Format','Dauer','Messzeilen','Signale','Erfassungsmarker','Notizen & Markierungen','Zeitraum'];
+  ws.getRow(4).height=24;ws.getRow(4).eachCell(function(cell){cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF5A800'}};cell.font={name:'Aptos',bold:true,color:{argb:'FFFFFFFF'}};cell.alignment={vertical:'middle',horizontal:'center',wrapText:true};});
+  files.forEach(function(file,i){
+    var rows=file.filtered&&file.filtered.length?file.filtered:file.rawRows;
+    var row=ws.getRow(5+i);
+    row.values=[i+1,file.filename,file.date,file.sourceFormat,secToHMS(recordingDuration(file)),rows.length,visibleSignals(file).length+' / '+file.signals.length,markerEvents(file,rows).length,window.Annotations?Annotations.entries(file).length:0,rows[0].ts+' - '+rows[rows.length-1].ts];
+    row.height=22;row.eachCell(function(cell){cell.alignment={vertical:'middle',horizontal:'left',indent:1};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:i%2?'FFF7FAFC':'FFFFFFFF'}};cell.border={bottom:{style:'thin',color:{argb:'FFD7E2EC'}}};});
+    row.getCell(1).font={name:'Aptos',bold:true,color:{argb:'FF0055A0'}};
+  });
+  for(var i=0;i<files.length;i++){
+    var file=files[i],all=file.rawRows,rows=file.filtered&&file.filtered.length?file.filtered:all;
+    await exportStyledXLSX(file,all,rows,visibleSignals(file),all[0].ts.substring(0,8),all[all.length-1].ts.substring(0,8),{workbook:wb,prefix:(i+1)+' ',download:false});
+  }
+  var buffer=await wb.xlsx.writeBuffer();
+  return new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
 function exportPDF(options){
   options=options||{};
-  var A=options.file||active();
-  if(!A.filtered||!A.filtered.length){alert(t('noData'));return;}
-  var jsPDF=window.jspdf.jsPDF;
-  var rows0=A.rawRows;
-  var sig=visibleSignals(A);
-  var allSignals=A.signals||[];
-  var rows=A.filtered;
-  var isSws=A.sourceFormat==='SWS';
-  var en=currentLang()==='en';
-  var t0=rows0[0]?rows0[0].ts.substring(0,8):'',t1=rows0[rows0.length-1]?rows0[rows0.length-1].ts.substring(0,8):'';
-  var PDF=en?{
-    title:'Support report',headline:'Signal capture diagnostic report',intro:'This PDF report is intended for quick review. Complete measurement data: Excel export, sheet "Measurement data".',
-    file:'File',created:'Export created',date:'Date',period:'Period',duration:'Duration',samples:'Samples exported',visibleSignals:'Signals visible',markers:'Markers',
-    sourceFormat:'Source format',metadata:'Metadata',metadataMissing:'ECU and technical signal ID not included',
-    field:'Field',value:'Value',content:'Content',description:'Description',
-    pdf:'PDF',excel:'Excel',columns:'Columns',columnWord:'columns',rowWord:'rows',
-    pdfMarked:function(count){return count>500?'Contains 500 of '+count+' marked measurement rows as excerpt.':'Contains all '+count+' marked measurement rows as excerpt.';},
-    pdfUnmarked:'Contains a readable excerpt of the first measurement rows.',
-    excelDesc:'Contains complete measurement data, signal overview and markers.',
-    swsColumns:'Measurement data uses the original SWS signal names and units. Missing ECUs and signal IDs are marked.',
-    stdColumns:'Measurement data uses ECU and sensor description instead of short codes.',
-    signalOverview:'Signal overview',timestamp:'Timestamp',
-    rowNoteMarked:function(shown,total){return 'Excerpt: '+shown+' of '+fmtNumber(total)+' marked measurement rows. Complete data is in the Excel export.';},
-    rowNote:function(shown,total){return 'Excerpt: first '+shown+' of '+fmtNumber(total)+' displayed measurement rows. Complete data is in the Excel export.';},
-    dataExcerpt:'Measurement excerpt',page:'Page',supportEscalation:'Support / Escalation'
-  }:{
-    title:'Support-Bericht',headline:'Diagnosebericht Signalerfassung',intro:'Dieser PDF-Bericht ist f\u00fcr schnelle Sichtung gedacht. Vollst\u00e4ndige Messdaten: Excel-Export, Blatt "Messdaten".',
-    file:'Datei',created:'Export erstellt',date:'Datum',period:'Zeitraum',duration:'Dauer',samples:'Samples exportiert',visibleSignals:'Signale sichtbar',markers:'Markierungen',
-    sourceFormat:'Quellformat',metadata:'Metadaten',metadataMissing:'Steuerger\u00e4t und technische Signal-ID nicht enthalten',
-    field:'Feld',value:'Wert',content:'Inhalt',description:'Beschreibung',
-    pdf:'PDF',excel:'Excel',columns:'Spalten',columnWord:'Spalten',rowWord:'Zeilen',
-    pdfMarked:function(count){return count>500?'Enth\u00e4lt 500 von '+count+' markierten Messzeilen als Auszug.':'Enth\u00e4lt alle '+count+' markierten Messzeilen als Auszug.';},
-    pdfUnmarked:'Enth\u00e4lt einen lesbaren Auszug der ersten Messzeilen.',
-    excelDesc:'Enth\u00e4lt die vollst\u00e4ndigen Messdaten, Signal\u00fcbersicht und Markierungen.',
-    swsColumns:'Messdaten verwenden die originalen SWS-Signalbezeichnungen und Einheiten. Fehlende Steuerger\u00e4te und Signal-IDs sind gekennzeichnet.',
-    stdColumns:'Messdaten verwenden Steuerger\u00e4t und Sensorbezeichnung statt Kurzcodes.',
-    signalOverview:'Signal\u00fcbersicht',timestamp:'Zeitstempel',
-    rowNoteMarked:function(shown,total){return 'Auszug: '+shown+' von '+fmtNumber(total)+' markierten Messzeilen. Vollst\u00e4ndig im Excel-Export.';},
-    rowNote:function(shown,total){return 'Auszug: erste '+shown+' von '+fmtNumber(total)+' angezeigten Messzeilen. Vollst\u00e4ndig im Excel-Export.';},
-    dataExcerpt:'Messdaten-Auszug',page:'Seite',supportEscalation:'Support / Eskalation'
-  };
-  function cleanPdf(value,maxLen){
-    var text=String(value==null?'':value).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').replace(/\r/g,'').trim();
-    return maxLen&&text.length>maxLen?text.substring(0,maxLen):text;
-  }
-  function deviceOf(s){
-    var id=cleanPdf(s.id,120),p=id.indexOf('-');
-    return p>0?id.substring(0,p):'';
-  }
-  function descOf(s){return cleanPdf(s.desc||s.displayName||s.id,160);}
-  function isMarkerSignal(s){return /^Marker$/i.test(cleanPdf(s.id,40));}
-  function deviceLabel(s){
-    if(isSws)return isMarkerSignal(s)?'-':t('missingSws');
-    return deviceOf(s)||'-';
-  }
-  function signalIdLabel(s){
-    return cleanPdf(s.technicalId,100)||(isSws&&!isMarkerSignal(s)?t('missingSws'):cleanPdf(s.id,100));
-  }
-  function pdfSignalHeader(s){
-    var unit=cleanPdf(s.unit,20);
-    if(isSws)return cleanPdf(descOf(s)+(unit?'\n['+unit+']':''),78);
-    return cleanPdf((deviceOf(s)||t('signalSingular'))+'\n'+descOf(s)+(unit?'\n['+unit+']':''),78);
-  }
-  function signalStatus(s){return (s.hidden?t('hidden'):t('visible'))+(s.marked?' / '+t('marked'):'');}
-  function pdfValue(raw){return cleanPdf(raw,36);}
-  var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  var W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
-  var reportDate=(A.date&&/\d/.test(A.date))?A.date.replace(/\./g,'-'):'Export';
-  var duration=secToHMS(recordingDuration(A));
-  var markedRows=rows.filter(function(r){return r.marked;});
-  var markedSignals=allSignals.filter(function(s){return s.marked;});
-  function addHeader(title){
-    doc.setFillColor(0,61,117);doc.rect(0,0,W,18,'F');
-    doc.setFillColor(245,168,0);doc.rect(0,18,W,2,'F');
-    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(13);
-    doc.text(en?'SCANIA Signal Capture':'SCANIA Signalerfassung',12,11);
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(226,236,246);
-    doc.text(title,12,16);
-    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(255,255,255);
-    doc.text('BREUER TRUCK & TRAILER',W-12,10,{align:'right'});
-    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(226,236,246);
-    doc.text(PDF.supportEscalation,W-12,15,{align:'right'});
-  }
-  function addFooter(){
-    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(135,145,160);
-    doc.text((en?'Scania Signal Capture':'Scania Signalerfassung')+' | '+cleanPdf(A.filename,70)+' | '+PDF.page+' '+doc.internal.getNumberOfPages(),W/2,H-6,{align:'center'});
-  }
-  function hooks(title){
-    return {didDrawPage:function(){addHeader(title);addFooter();}};
-  }
-
-  addHeader(PDF.title);
-  doc.setTextColor(20,30,45);doc.setFont('helvetica','bold');doc.setFontSize(18);
-  doc.text(PDF.headline,12,34);
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(80,90,105);
-  doc.text(PDF.intro,12,41);
-  var reportOverview=[
-    [PDF.file,cleanPdf(A.filename,80),PDF.created,new Date().toLocaleString(locale())],
-    [PDF.date,cleanPdf(A.date,30)||'-',PDF.period,t0+' - '+t1],
-    [PDF.duration,duration,PDF.samples,fmtNumber(rows.length)+' / '+fmtNumber(rows0.length)],
-    [PDF.visibleSignals,sig.length+' / '+allSignals.length,PDF.markers,markedSignals.length+' '+PDF.columnWord+' / '+markedRows.length+' '+PDF.rowWord]
-  ];
-  if(isSws)reportOverview.push([PDF.sourceFormat,'SWS',PDF.metadata,PDF.metadataMissing]);
-  doc.autoTable({
-    startY:50,
-    margin:{left:12,right:12},
-    theme:'grid',
-    head:[[PDF.field,PDF.value,PDF.field,PDF.value]],
-    body:reportOverview,
-    styles:{font:'helvetica',fontSize:9,cellPadding:3,overflow:'linebreak'},
-    headStyles:{fillColor:[0,61,117],textColor:[255,255,255],fontStyle:'bold'},
-    columnStyles:{0:{fontStyle:'bold',fillColor:[234,242,250],cellWidth:34},1:{cellWidth:92},2:{fontStyle:'bold',fillColor:[234,242,250],cellWidth:38},3:{cellWidth:94}}
-  });
-  doc.autoTable({
-    startY:doc.lastAutoTable.finalY+10,
-    margin:{left:12,right:12},
-    theme:'grid',
-    head:[[PDF.content,PDF.description]],
-    body:[
-      [PDF.pdf,markedRows.length?PDF.pdfMarked(markedRows.length):PDF.pdfUnmarked],
-      [PDF.excel,PDF.excelDesc],
-      [PDF.columns,isSws?PDF.swsColumns:PDF.stdColumns]
-    ],
-    styles:{font:'helvetica',fontSize:9,cellPadding:3,overflow:'linebreak'},
-    headStyles:{fillColor:[245,168,0],textColor:[20,30,45],fontStyle:'bold'},
-    columnStyles:{0:{fontStyle:'bold',cellWidth:52},1:{cellWidth:210}}
-  });
-  addFooter();
-
-  doc.addPage('a4','landscape');
-  doc.autoTable({
-    startY:28,
-    margin:{left:8,right:8,top:28,bottom:12},
-    head:[[en?'Status':'Status',en?'ECU':'Steuerger\u00e4t',en?'Sensor / description':'Sensor / Bezeichnung',en?'Unit':'Einheit','Signal-ID']],
-    body:allSignals.map(function(s){return [signalStatus(s),deviceLabel(s),descOf(s),cleanPdf(s.unit,20)||'-',signalIdLabel(s)];}),
-    styles:{font:'helvetica',fontSize:7.5,cellPadding:2,overflow:'linebreak',valign:'middle'},
-    headStyles:{fillColor:[0,61,117],textColor:[255,255,255],fontStyle:'bold',halign:'center'},
-    alternateRowStyles:{fillColor:[248,250,252]},
-    columnStyles:{0:{cellWidth:34,fontStyle:'bold'},1:{cellWidth:30},2:{cellWidth:92},3:{cellWidth:18,halign:'center'},4:{cellWidth:94}},
-    didParseCell:function(data){
-      if(data.section==='body'&&String(data.row.raw[0]).indexOf(t('marked'))>=0)data.cell.styles.fillColor=[255,241,184];
-      if(data.section==='body'&&String(data.row.raw[0]).indexOf(t('hidden'))>=0)data.cell.styles.textColor=[110,120,135];
-    },
-    didDrawPage:function(){addHeader(PDF.signalOverview);addFooter();}
-  });
-
-  var pdfRows=markedRows.length?markedRows.slice(0,500):rows.slice(0,250);
-  var rowNote=markedRows.length
-    ? PDF.rowNoteMarked(pdfRows.length,markedRows.length)
-    : PDF.rowNote(pdfRows.length,rows.length);
-  var chunkSize=3;
-  var chunks=[];
-  for(var c=0;c<sig.length;c+=chunkSize)chunks.push(sig.slice(c,c+chunkSize));
-  if(!chunks.length)chunks=[[]];
-  chunks.forEach(function(group,idx){
-    doc.addPage('a4','landscape');
-    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(20,30,45);
-    doc.text(rowNote,8,25);
-    doc.autoTable({
-      startY:30,
-      margin:{left:8,right:8,top:30,bottom:12},
-      head:[[PDF.timestamp].concat(group.map(function(s){return pdfSignalHeader(s);}))],
-      body:pdfRows.map(function(r){return [cleanPdf(r.ts,24)].concat(group.map(function(s){return pdfValue((r.parts[s.index]||'').trim());}));}),
-      styles:{font:'courier',fontSize:7,cellPadding:1.8,overflow:'ellipsize',valign:'middle'},
-      headStyles:{fillColor:[0,61,117],textColor:[255,255,255],fontStyle:'bold',halign:'center'},
-      alternateRowStyles:{fillColor:[248,250,252]},
-      columnStyles:{0:{cellWidth:34,halign:'left',textColor:[80,90,105],fontStyle:'bold'}},
-      didParseCell:function(data){
-        if(data.section==='body'&&data.row.raw&&markedRows.length)data.cell.styles.fillColor=[254,226,226];
-      },
-      didDrawPage:function(){addHeader(PDF.dataExcerpt+' '+(idx+1)+' / '+chunks.length);addFooter();}
-    });
-  });
-  if(window.Annotations)Annotations.pdf(doc,A);
-  if(options.download===false)return doc.output('blob');
-  doc.save((en?'Scania_Signal_Capture_':'Scania_Signalerfassung_')+reportDate+'.pdf');
-  trackUsage('pdf_export');return null;
+  if(window.ReportExport)return ReportExport.pdf({file:options.file||(options.files?null:captureExportState(active()).file),files:options.files,download:options.download});
+  alert(t('exportFileFailed'));return null;
 }
 function createChartPng(A){
-  return new Promise(function(resolve){
-    var rows=A.filtered||A.rawRows||[],signals=chartSignals(A,rows);
-    if(!signals.length||!rows.length){resolve(null);return;}
-    var canvas=document.createElement('canvas');
-    drawChartCanvas(canvas,A,rows,signals,true);
-    canvas.toBlob(function(blob){resolve(blob);},'image/png',1);
-  });
+  if(!window.ReportExport)return Promise.resolve(null);
+  var images=ReportExport.chartPngs(A);
+  return images.length?ReportExport.canvasBlob(images[0].canvas,'image/png'):Promise.resolve(null);
 }
-function supportSummary(A){
+function supportSummary(A,files){
   var rows=A.filtered||A.rawRows||[],markedRows=A.rawRows.filter(function(row){return row.marked;}),markedSignals=A.signals.filter(function(signal){return signal.marked;});
   var en=currentLang()==='en';
   var lines=en?[
@@ -2662,6 +2758,13 @@ function supportSummary(A){
   if(en)lines.push('','CONTENT','-------','01_Original_files: unchanged TXT source files of the project','02_Evaluation: PDF and Excel evaluation of the active file','03_Chart: curve chart of filtered and selected signals (when available)','04_Project: fully restorable workspace state','','Privacy: Processing and creation happen locally in the browser.');
   else lines.push('','INHALT','------','01_Originaldateien: unveränderte TXT-Quelldateien des Projekts','02_Auswertung: PDF- und Excel-Auswertung der aktiven Datei','03_Diagramm: Kurvendiagramm der gefilterten und ausgewählten Signale (wenn verfügbar)','04_Projekt: vollständig wiederherstellbarer Arbeitsstand','','Datenschutz: Die Verarbeitung und Erstellung erfolgen lokal im Browser.');
   if(window.Annotations)lines.push('',Annotations.summary(A));
+  if(files&&files.length>1){
+    lines.push('',en?'ALL RECORDINGS IN THIS PACKAGE':'ALLE MESSUNGEN IM PAKET',en?'------------------------------':'-----------------------');
+    files.forEach(function(file,index){
+      var rows=file.filtered&&file.filtered.length?file.filtered:file.rawRows;
+      lines.push(String(index+1).padStart(2,'0')+'  '+file.filename+'  |  '+file.date+'  |  '+fmtNumber(rows.length)+(en?' rows':' Zeilen')+'  |  '+markerEvents(file,rows).length+(en?' capture markers':' Erfassungsmarker')+'  |  '+(window.Annotations?Annotations.entries(file).length:0)+(en?' notes & markers':' Notizen & Markierungen'));
+    });
+  }
   return lines.join('\r\n');
 }
 async function exportSupportZip(options){
@@ -2679,14 +2782,27 @@ async function exportSupportZip(options){
     });
     var rows=A.filtered||A.rawRows,sig=visibleSignals(A),rows0=A.rawRows;
     var t0=rows0[0]?rows0[0].ts.substring(0,8):'',t1=rows0[rows0.length-1]?rows0[rows0.length-1].ts.substring(0,8):'';
-    var xlsxBlob=await exportStyledXLSX(A,rows0,rows,sig,t0,t1,{download:false});
-    var pdfBlob=exportPDF({download:false,file:A});
-    zip.file((en?'02_Evaluation/':'02_Auswertung/')+base+'_'+(en?'Evaluation':'Auswertung')+'.xlsx',xlsxBlob);
-    zip.file((en?'02_Evaluation/':'02_Auswertung/')+base+'_'+(en?'Evaluation':'Auswertung')+'.pdf',pdfBlob);
-    var chartBlob=await createChartPng(A);
-    if(chartBlob)zip.file((en?'03_Chart/':'03_Diagramm/')+base+'_'+(en?'Curve_chart':'Kurvendiagramm')+'.png',chartBlob);
+    var evalDir=en?'02_Evaluation/':'02_Auswertung/',chartDir=en?'03_Chart/':'03_Diagramm/',multiZip=workspace.files.length>1;
+    if(multiZip){
+      /* Several recordings: one combined PDF report plus Excel and chart images per recording */
+      zip.file(evalDir+'00_'+(en?'Report_all_recordings':'Gesamtbericht_alle_Messungen')+'.pdf',exportPDF({download:false,files:workspace.files}));
+    }
+    for(var fi=0;fi<workspace.files.length;fi++){
+      var F=workspace.files[fi];
+      if(!multiZip&&F!==A)continue;
+      var fileBase=safeFileName(F.filename).replace(/\.txt$/i,''),numbered=multiZip?String(fi+1).padStart(2,'0')+'_'+fileBase:fileBase;
+      var F0=F.rawRows,Frows=F.filtered&&F.filtered.length?F.filtered:F0;
+      zip.file(evalDir+numbered+'_'+(en?'Evaluation':'Auswertung')+'.xlsx',await exportStyledXLSX(F,F0,Frows,visibleSignals(F),F0[0].ts.substring(0,8),F0[F0.length-1].ts.substring(0,8),{download:false}));
+      if(!multiZip)zip.file(evalDir+numbered+'_'+(en?'Evaluation':'Auswertung')+'.pdf',exportPDF({download:false,file:F}));
+      var charts=window.ReportExport?ReportExport.chartPngs(F):[];
+      for(var ci=0;ci<charts.length;ci++){
+        var chartBlob=await ReportExport.canvasBlob(charts[ci].canvas,'image/png');
+        var suffix=charts[ci].name==='view'?(en?'_zoomed_view':'_Ausschnitt'):'';
+        if(chartBlob)zip.file(chartDir+numbered+'_'+(en?'Curve_chart':'Kurvendiagramm')+suffix+'.png',chartBlob);
+      }
+    }
     zip.file((en?'04_Project/':'04_Projekt/')+base+'.signalprojekt',projectBlob(projectSnapshot(workspace)));
-    zip.file(en?'README_Support_package.txt':'README_Supportpaket.txt',supportSummary(A));
+    zip.file(en?'README_Support_package.txt':'README_Supportpaket.txt',supportSummary(A,workspace.files));
     var result=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}},function(meta){
       btn.innerHTML=t('zipProgress',{percent:Math.round(meta.percent)});
     });
@@ -2703,10 +2819,12 @@ async function exportSupportZip(options){
 function esc(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function showErr(msg){var e=document.getElementById('upload-error');e.style.display=msg?'block':'none';e.textContent=msg;}
 </script>
-<script src="assets/annotations.js?v=20260930-2"></script>
+<script src="assets/annotations.js?v=20261001-1"></script>
 <script src="assets/workspace-layout.js?v=20260930-3"></script>
-<script src="assets/chart-height.js?v=20260916-1"></script>
-<script src="assets/export-save.js?v=20260916-1"></script>
-<script src="assets/help.js?v=20260930-2"></script>
+<script src="assets/chart-height.js?v=20261001-1"></script>
+<script src="assets/chart-signals.js?v=20261001-1"></script>
+<script src="assets/report-export.js?v=20261001-1"></script>
+<script src="assets/export-save.js?v=20261001-1"></script>
+<script src="assets/help.js?v=20261001-1"></script>
 </body>
 </html>

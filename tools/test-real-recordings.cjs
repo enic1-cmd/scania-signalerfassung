@@ -25,12 +25,24 @@ function expectedShape(file) {
   const isSdp3 = lines[2].split('\t')[0].trim() === 'TimeStamp'
     && lines[3].split('\t')[0].trim() === 'Time';
   const start = isSdp3 ? 4 : 2;
+  const markerIndex = ids.findIndex(id => /^Marker$/i.test(id));
+  const markerEvents = [];
+  let previous = null;
+  if (markerIndex > 0) {
+    lines.slice(start).filter(line => /^\d{2}:\d{2}/.test(line.trim())).forEach(line => {
+      const value = Number(String(line.split('	')[markerIndex] || '').trim().replace(',', '.'));
+      if (String(line.split('	')[markerIndex] || '').trim() === '' || !Number.isFinite(value)) return;
+      if (value >= 1 && value !== previous) markerEvents.push(value);
+      previous = value;
+    });
+  }
   return {
     name: path.basename(file),
     bytes: Buffer.byteLength(text),
     format: isSdp3 ? 'SDP3' : 'SWS',
     signals: ids.slice(1).filter(id => id && id !== 'TimeOffset').length,
     rows: lines.slice(start).filter(line => /^\d{2}:\d{2}/.test(line.trim())).length,
+    markerEvents,
   };
 }
 
@@ -143,35 +155,32 @@ const expected = files.map(expectedShape);
       assert(chart.nonTransparent > 100 && chart.nonWhite > 100, shape.name + ': chart canvas appears blank');
       assert(chart.redCoverage < 0.08, shape.name + ': raw marker values cover the chart in red (' + chart.redCoverage + ')');
 
-      if (shape.name === '2026-08-06 104719.txt') {
-        const marked = await page.evaluate(() => {
-          const count = markerRows(active(), active().rawRows).length;
-          const events = markerEvents(active(), active().rawRows);
-          markMarkerTimestamps();
-          setAnalysisView('table', true);
-          renderTable(active().rawRows.slice(events[0].row.rowId, events[0].row.rowId + 1));
-          return {count,eventCount:events.length,eventValues:events.map(event=>event.value),eventRowIds:events.map(event=>event.row.rowId),marked:active().rawRows.filter(row=>row.marked).length,pressed:document.getElementById('mark-timestamps').getAttribute('aria-pressed')};
-        });
-        assert(marked.count > 0, shape.name + ': expected source marker timestamps');
-        assert.deepEqual(marked.eventValues, [1, 2], shape.name + ': marker transitions were not detected correctly');
-        assert.equal(marked.marked, marked.count, shape.name + ': timestamp action did not mark every source timestamp');
-        assert.equal(marked.pressed, 'true');
-        const markerBadges=[];
-        for(const rowId of marked.eventRowIds){
-          markerBadges.push(await page.evaluate(id=>{
-            renderTable(active().rawRows.slice(id,id+1));
-            return document.querySelector('.time-marker-event')?.textContent||'';
-          },rowId));
-        }
-        assert.deepEqual(markerBadges, ['1', '2'], shape.name + ': numbered marker events are missing in the table');
-        const cleared = await page.evaluate(() => {
-          markMarkerTimestamps();
-          return {marked:active().rawRows.filter(row=>row.marked).length,pressed:document.getElementById('mark-timestamps').getAttribute('aria-pressed')};
-        });
-        assert.equal(cleared.marked, 0, shape.name + ': second timestamp action did not clear marks');
-        assert.equal(cleared.pressed, 'false');
-        assert.equal(await page.locator('.time-marker-event').count(), 0, shape.name + ': marker event badges remained after clearing timestamp marks');
+      // Capture markers are a separate layer: they are detected from the counter and never mark rows.
+      const capture = await page.evaluate(() => {
+        const file = active(), events = markerEvents(file);
+        const before = file.rawRows.filter(row => row.marked).length;
+        const button = document.getElementById('mark-timestamps');
+        const shown = { pressed: button.getAttribute('aria-pressed'), disabled: button.disabled, count: button.querySelector('.tool-count').textContent };
+        markMarkerTimestamps();
+        const hidden = { visible: captureMarkersShown(file), pressed: button.getAttribute('aria-pressed') };
+        markMarkerTimestamps();
+        setAnalysisView('table', true);
+        const badges = events.map(event => { renderTable(file.rawRows.slice(event.row.rowId, event.row.rowId + 1)); return document.querySelector('.time-marker-event')?.textContent || ''; });
+        return { values: events.map(event => event.value), before, after: file.rawRows.filter(row => row.marked).length, shown, hidden, visibleAgain: captureMarkersShown(file), badges };
+      });
+      assert.deepEqual(capture.values, shape.markerEvents, shape.name + ': capture marker presses were not detected correctly');
+      assert.equal(capture.before, 0, shape.name + ': rows must not be marked on import');
+      assert.equal(capture.after, 0, shape.name + ': toggling capture markers must not mark rows');
+      assert.equal(capture.shown.count, String(shape.markerEvents.length), shape.name + ': toolbox count');
+      if (shape.markerEvents.length) {
+        assert.equal(capture.shown.pressed, 'true', shape.name + ': capture markers are shown by default');
+        assert.equal(capture.hidden.visible, false, shape.name + ': capture markers can be hidden');
+        assert.equal(capture.visibleAgain, true, shape.name + ': capture markers can be shown again');
+        assert.deepEqual(capture.badges, shape.markerEvents.map(String), shape.name + ': numbered marker badges are missing in the table');
+      } else {
+        assert.equal(capture.shown.disabled, true, shape.name + ': toggle disabled without markers');
       }
+      await page.evaluate(() => renderTable(active().filtered));
 
       const exports = await page.evaluate(async () => {
         const file = active();

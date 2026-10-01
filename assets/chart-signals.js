@@ -102,7 +102,18 @@ var ChartSignals=(function(){
       :txt('Alle '+sel.signals.length+' sichtbaren numerischen Signale im Diagramm. Haken entfernen blendet eine Kurve aus.','All '+sel.signals.length+' visible numeric signals in the chart. Untick to hide a curve.'))+' '+txt('Der Stern an jeder Spur hebt ein Signal hervor.','The star on each lane highlights a signal.');
     if(!panel.hidden)renderList();
   }
-  function open(){var head=card.querySelector('.chart-head');panel.style.top=((head?head.offsetHeight:52)+6)+'px';panel.hidden=false;button.setAttribute('aria-expanded','true');sync();requestAnimationFrame(function(){var first=listEl.querySelector('input');(first||search).focus();});}
+  /* Keep the whole panel inside the visible part of the chart card; the signal list scrolls instead of being cut off. */
+  function fit(){
+    if(panel.hidden)return;
+    var head=card.querySelector('.chart-head'),top=(head?head.offsetHeight:52)+6;
+    panel.style.top=top+'px';
+    if(window.matchMedia&&window.matchMedia('(max-width:900px)').matches){panel.style.maxHeight='';return;}
+    var box=card.getBoundingClientRect(),bottom=Math.min(box.bottom,window.innerHeight);
+    panel.style.maxHeight=Math.max(240,Math.min(560,Math.floor(bottom-box.top-top-12)))+'px';
+  }
+  function open(){panel.hidden=false;fit();button.setAttribute('aria-expanded','true');sync();requestAnimationFrame(function(){var first=listEl.querySelector('input');(first||search).focus();});}
+  window.addEventListener('resize',fit);
+  if(window.ResizeObserver)new ResizeObserver(fit).observe(card);
   function close(focusButton){if(panel.hidden)return;panel.hidden=true;button.setAttribute('aria-expanded','false');if(focusButton)button.focus();}
   function toggle(){if(panel.hidden)open();else close(false);}
   document.addEventListener('click',function(e){if(!panel.hidden&&!panel.contains(e.target)&&e.target!==button&&!button.contains(e.target))close(false);});

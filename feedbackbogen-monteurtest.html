@@ -697,6 +697,10 @@
                 <label for="role">Funktion und Erfahrung</label>
                 <input id="role" name="role" type="text" maxlength="180" placeholder="z. B. Kfz-Mechatroniker, 8 Jahre Diagnoseerfahrung">
               </div>
+              <div class="field full">
+                <label for="contact-email">E-Mail für Rückfragen (optional)</label>
+                <input id="contact-email" name="contact_email" type="email" autocomplete="email" maxlength="254" placeholder="name@werkstatt.de">
+              </div>
             </div>
           </div>
 
@@ -1073,7 +1077,7 @@
         "Angaben zum Test": "Test information", "Persönliche Angaben können mit einem Klick vollständig weggelassen werden.": "Personal details can be omitted completely with one click.",
         "Anonym ausfüllen": "Complete anonymously", "Name, Werkstatt und Funktion werden dann nicht abgefragt und nicht gespeichert.": "Name, workshop and role will not be requested or stored.",
         "Anonymer Modus aktiv. Es werden keine persönlichen Angaben benötigt.": "Anonymous mode is active. No personal details are required.",
-        "Vor- und Nachname": "First and last name", "Standort / Werkstatt": "Location / workshop", "Funktion und Erfahrung": "Role and experience",
+        "Vor- und Nachname": "First and last name", "Standort / Werkstatt": "Location / workshop", "Funktion und Erfahrung": "Role and experience", "E-Mail für Rückfragen (optional)": "Email for follow-up questions (optional)",
         "Technische Testangaben": "Technical test information", "Testdatum": "Test date", "Testdauer": "Test duration",
         "Gerät / Betriebssystem": "Device / operating system", "Browser": "Browser", "Programmversion oder verwendeter Link": "Application version or link used",
         "Verwendete Messdatei(en)": "Measurement file(s) used", "(optional)": "(optional)",
@@ -1105,7 +1109,7 @@
       };
 
       const placeholderEnglish = {
-        "z. B. Musterstadt": "e.g. Sampletown", "z. B. Kfz-Mechatroniker, 8 Jahre Diagnoseerfahrung": "e.g. vehicle technician, 8 years of diagnostic experience",
+        "z. B. Musterstadt": "e.g. Sampletown", "name@werkstatt.de": "name@workshop.com", "z. B. Kfz-Mechatroniker, 8 Jahre Diagnoseerfahrung": "e.g. vehicle technician, 8 years of diagnostic experience",
         "z. B. 45 Minuten": "e.g. 45 minutes", "z. B. Werkstatt-PC, Windows 11": "e.g. workshop PC, Windows 11", "z. B. Edge 140": "e.g. Edge 140",
         "Versionsnummer oder Link eintragen": "Enter version number or link", "Bitte möglichst konkret beschreiben": "Please describe as specifically as possible",
         "Gesuchte Funktion und erwartete Stelle": "Function searched for and expected location", "Datei, Signal, Zeitpunkt und Beispiel nennen": "Name the file, signal, time and example",
@@ -1637,6 +1641,8 @@
               anonymous: anonymous.checked,
               name: anonymous.checked ? "" : textValue("name"),
               workshop: anonymous.checked ? "" : textValue("workshop"),
+              role: anonymous.checked ? "" : textValue("role"),
+              email: anonymous.checked ? "" : textValue("contact-email"),
               testDate: textValue("test-date"),
               report: buildTextReport(),
               attachments: attachments.map((entry) => ({ filename: entry.name, contentType: entry.type, data: bytesToBase64(entry.data) }))

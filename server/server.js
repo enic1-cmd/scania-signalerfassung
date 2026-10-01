@@ -39,6 +39,14 @@ const ADMIN_PROXY_SECRET = process.env.ADMIN_PROXY_SECRET || '';
 // Projekt-Master reads aggregate numbers with its own token (GET /internal/kpis, local only).
 const PM_KPI_TOKEN = process.env.PM_KPI_TOKEN || '';
 const FEEDBACK_STATS_FILE = process.env.FEEDBACK_STATS_FILE || '/var/www/signalerfassung.com/shared/feedback-stats.ndjson';
+const SHARED_DIR = path.dirname(HTPASSWD_FILE);
+// Account details (name, e-mail, expiry, block state) live next to .htpasswd; nginx only ever sees active accounts.
+const ACCOUNTS_FILE = process.env.ACCOUNTS_FILE || path.join(SHARED_DIR, 'accounts.json');
+const FEEDBACK_FILE = process.env.FEEDBACK_FILE || path.join(SHARED_DIR, 'feedback.json');
+const MESSAGES_FILE = process.env.MESSAGES_FILE || path.join(SHARED_DIR, 'messages.ndjson');
+const ADMIN_LOG_FILE = process.env.ADMIN_LOG_FILE || path.join(SHARED_DIR, 'admin-log.ndjson');
+const FEEDBACK_RETENTION_DAYS = 365;
+const ADMIN_LOG_RETENTION_DAYS = 365;
 
 function safeEqual(left, right) {
   const a = Buffer.from(String(left));
@@ -150,9 +158,12 @@ function validateFeedback(body) {
   });
   if (totalBytes > FEEDBACK_MAX_ATTACHMENT_BYTES) throw new Error('Die Anhänge sind insgesamt größer als 12 MB.');
   const anonymous = Boolean(body.anonymous);
+  const rawEmail = anonymous ? '' : String(body.email || '').trim();
   return {
     language,
     anonymous,
+    email: rawEmail ? validateEmail(rawEmail) : '',
+    role: anonymous ? '' : String(body.role || '').replace(/[<>\r\n\0]/g, '').trim().slice(0, 180),
     name: anonymous ? '' : String(body.name || '').replace(/[<>\r\n\0]/g, '').trim().slice(0, 100),
     workshop: anonymous ? '' : String(body.workshop || '').replace(/[<>\r\n\0]/g, '').trim().slice(0, 120),
     testDate: /^\d{4}-\d{2}-\d{2}$/.test(String(body.testDate || '')) ? body.testDate : '',
@@ -305,7 +316,8 @@ function createAccessRequest(name, email, language) {
 
 function hashPassword(password) {
   return new Promise((resolve, reject) => {
-    const child = spawn('/usr/bin/openssl', ['passwd', '-6', '-stdin'], {
+    // OPENSSL_BIN only exists for the local admin demo on Windows; production uses the system binary.
+    const child = spawn(process.env.OPENSSL_BIN || '/usr/bin/openssl', ['passwd', '-6', '-stdin'], {
       stdio: ['pipe', 'pipe', 'pipe']
     });
     let output = '';
@@ -338,7 +350,15 @@ async function upsertUser(username, password, createOnly) {
   return serializePasswordMutation(() => {
     const lines = readPasswordLines();
     const index = lines.findIndex((line) => line.startsWith(`${username}:`));
-    if (createOnly && index >= 0) throw new Error('Dieser Benutzer existiert bereits.');
+    const accounts = readAccounts();
+    const disabled = accounts[username] && accounts[username].disabledHash;
+    if (createOnly && (index >= 0 || disabled)) throw new Error('Dieser Benutzer existiert bereits.');
+    if (!createOnly && index < 0 && disabled) {
+      // Blocked or expired: keep it disabled, the new password applies when the account is enabled again.
+      accounts[username] = { ...accounts[username], disabledHash: hash };
+      writeJsonFile(ACCOUNTS_FILE, accounts);
+      return;
+    }
     if (!createOnly && index < 0) throw new Error('Dieser Benutzer wurde nicht gefunden.');
     const entry = `${username}:${hash}`;
     if (index >= 0) lines[index] = entry;
@@ -352,8 +372,261 @@ function removeUser(username) {
     if (ADMIN_USERS.has(username)) throw new Error('Ein Administratorkonto kann hier nicht gelöscht werden.');
     const lines = readPasswordLines();
     const filtered = lines.filter((line) => !line.startsWith(`${username}:`));
-    if (filtered.length === lines.length) throw new Error('Dieser Benutzer wurde nicht gefunden.');
-    writePasswordLines(filtered);
+    const accounts = readAccounts();
+    const disabled = accounts[username] && accounts[username].disabledHash;
+    if (filtered.length === lines.length && !disabled) throw new Error('Dieser Benutzer wurde nicht gefunden.');
+    if (filtered.length !== lines.length) writePasswordLines(filtered);
+    if (accounts[username]) {
+      delete accounts[username];
+      writeJsonFile(ACCOUNTS_FILE, accounts);
+    }
+  });
+}
+
+/* ---------- Accounts: details, expiry and blocking ---------- */
+function readJsonFile(file, fallback) {
+  if (!fs.existsSync(file)) return fallback;
+  try { return JSON.parse(fs.readFileSync(file, 'utf8') || 'null') || fallback; } catch { return fallback; }
+}
+
+function writeJsonFile(file, data) {
+  const directory = path.dirname(file);
+  fs.mkdirSync(directory, { recursive: true });
+  const temporary = path.join(directory, `.${path.basename(file)}.${process.pid}.${Date.now()}.tmp`);
+  fs.writeFileSync(temporary, `${JSON.stringify(data, null, 2)}\n`, { mode: 0o640 });
+  fs.renameSync(temporary, file);
+  fs.chmodSync(file, 0o640);
+}
+
+function readAccounts() {
+  const data = readJsonFile(ACCOUNTS_FILE, {});
+  return data && typeof data === 'object' && !Array.isArray(data) ? data : {};
+}
+
+function appendLine(file, record) {
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.appendFileSync(file, `${JSON.stringify(record)}\n`, { mode: 0o640 });
+  } catch (error) {
+    console.error(`Could not write ${path.basename(file)}:`, error.message);
+  }
+}
+
+function readLines(file) {
+  if (!fs.existsSync(file)) return [];
+  return fs.readFileSync(file, 'utf8').split(/\r?\n/).filter(Boolean).flatMap((line) => {
+    try { return [JSON.parse(line)]; } catch { return []; }
+  });
+}
+
+// The release check (deploy/verify-release.sh) creates and deletes this account on every deployment.
+const RELEASE_CHECK_USER = 'codex-release-check';
+
+function auditLog(admin, action, target, detail) {
+  if (target === RELEASE_CHECK_USER) return;
+  appendLine(ADMIN_LOG_FILE, { at: new Date().toISOString(), admin, action, target: cleanEventValue(target, 120), detail: cleanEventValue(detail || '', 240) });
+}
+
+function validateLanguage(value) {
+  return value === 'en' ? 'en' : 'de';
+}
+
+function validateExpiry(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const text = String(value).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) throw new Error('Bitte ein gültiges Ablaufdatum wählen.');
+  const date = new Date(`${text}T23:59:59`);
+  if (!Number.isFinite(date.getTime())) throw new Error('Bitte ein gültiges Ablaufdatum wählen.');
+  return date.toISOString();
+}
+
+function validateOptionalName(value) {
+  const name = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!name) return '';
+  return validateRequestName(name);
+}
+
+function validateOptionalEmail(value) {
+  const email = String(value || '').trim();
+  return email ? validateEmail(email) : '';
+}
+
+/** One list for the hub: active accounts from .htpasswd plus blocked or expired ones from accounts.json. */
+function accountList() {
+  const accounts = readAccounts();
+  const active = new Set(parseUsers());
+  const requests = readAccessRequests().filter((entry) => entry.status === 'approved' && entry.username);
+  const names = new Set([...active, ...Object.keys(accounts).filter((username) => accounts[username].disabledHash)]);
+  return Array.from(names).sort((a, b) => a.localeCompare(b, 'de')).map((username) => {
+    const meta = accounts[username] || {};
+    const request = requests.find((entry) => entry.username === username);
+    const status = active.has(username) ? 'active' : (meta.status === 'expired' ? 'expired' : 'blocked');
+    return {
+      username,
+      name: meta.name || (request && request.name) || '',
+      email: meta.email || (request && request.email) || '',
+      language: meta.language || (request && request.language) || 'de',
+      status,
+      isAdmin: ADMIN_USERS.has(username),
+      expiresAt: meta.expiresAt || null,
+      createdAt: meta.createdAt || (request && (request.approvedAt || request.updatedAt)) || null,
+      source: meta.source || (request ? 'request' : 'manual'),
+      requestId: meta.requestId || (request && request.id) || null,
+      blockedAt: status === 'blocked' ? meta.blockedAt || null : null,
+      blockReason: status === 'blocked' ? meta.blockReason || '' : ''
+    };
+  });
+}
+
+function findAccount(username) {
+  const account = accountList().find((entry) => entry.username === username);
+  if (!account) throw new Error('Dieser Benutzer wurde nicht gefunden.');
+  return account;
+}
+
+/* Moves the htpasswd line into accounts.json (status blocked/expired) or back again. Runs in the password queue. */
+function disableAccountUnsafe(username, status, admin, reason) {
+  if (ADMIN_USERS.has(username)) throw new Error('Ein Administratorkonto kann nicht gesperrt werden.');
+  const lines = readPasswordLines();
+  const index = lines.findIndex((line) => line.startsWith(`${username}:`));
+  const accounts = readAccounts();
+  const meta = accounts[username] || {};
+  if (index < 0) {
+    if (!meta.disabledHash) throw new Error('Dieser Benutzer wurde nicht gefunden.');
+    accounts[username] = { ...meta, status, blockedAt: status === 'blocked' ? new Date().toISOString() : meta.blockedAt, blockedBy: status === 'blocked' ? admin : meta.blockedBy, blockReason: status === 'blocked' ? reason || '' : meta.blockReason };
+    writeJsonFile(ACCOUNTS_FILE, accounts);
+    return;
+  }
+  const hash = lines[index].slice(username.length + 1);
+  accounts[username] = { ...meta, status, disabledHash: hash, blockedAt: new Date().toISOString(), blockedBy: admin, blockReason: reason || '' };
+  writeJsonFile(ACCOUNTS_FILE, accounts);
+  lines.splice(index, 1);
+  writePasswordLines(lines);
+}
+
+function enableAccountUnsafe(username) {
+  const accounts = readAccounts();
+  const meta = accounts[username];
+  if (!meta || !meta.disabledHash) return;
+  if (meta.expiresAt && Date.parse(meta.expiresAt) <= Date.now()) throw new Error('Der Zugang ist abgelaufen. Bitte zuerst die Befristung verlängern oder aufheben.');
+  const lines = readPasswordLines().filter((line) => !line.startsWith(`${username}:`));
+  lines.push(`${username}:${meta.disabledHash}`);
+  writePasswordLines(lines);
+  accounts[username] = { ...meta, status: 'active', disabledHash: undefined, blockedAt: undefined, blockedBy: undefined, blockReason: undefined };
+  writeJsonFile(ACCOUNTS_FILE, accounts);
+}
+
+function setAccountBlocked(username, blocked, admin, reason) {
+  return serializePasswordMutation(() => {
+    if (blocked) disableAccountUnsafe(username, 'blocked', admin, cleanEventValue(reason, 200));
+    else enableAccountUnsafe(username);
+  });
+}
+
+function updateAccount(username, changes, admin) {
+  return serializePasswordMutation(() => {
+    const exists = parseUsers().includes(username) || Boolean((readAccounts()[username] || {}).disabledHash);
+    if (!exists) throw new Error('Dieser Benutzer wurde nicht gefunden.');
+    const accounts = readAccounts();
+    const meta = { ...(accounts[username] || {}) };
+    if ('name' in changes) meta.name = validateOptionalName(changes.name);
+    if ('email' in changes) meta.email = validateOptionalEmail(changes.email);
+    if ('language' in changes) meta.language = validateLanguage(changes.language);
+    if ('expiresAt' in changes) {
+      if (ADMIN_USERS.has(username) && changes.expiresAt) throw new Error('Ein Administratorkonto kann nicht befristet werden.');
+      meta.expiresAt = validateExpiry(changes.expiresAt);
+    }
+    accounts[username] = meta;
+    writeJsonFile(ACCOUNTS_FILE, accounts);
+    // A new expiry in the future revives an expired account; a past date disables it right away.
+    if ('expiresAt' in changes) {
+      if (meta.status === 'expired' && (!meta.expiresAt || Date.parse(meta.expiresAt) > Date.now())) enableAccountUnsafe(username);
+      else if (meta.expiresAt && Date.parse(meta.expiresAt) <= Date.now() && parseUsers().includes(username)) disableAccountUnsafe(username, 'expired', admin, '');
+    }
+  });
+}
+
+function saveAccountDetails(username, details) {
+  const accounts = readAccounts();
+  accounts[username] = { ...(accounts[username] || {}), ...details };
+  writeJsonFile(ACCOUNTS_FILE, accounts);
+}
+
+/** Disables accounts whose expiry date has passed (checked every minute and before every admin read). */
+function sweepExpiredAccounts() {
+  return serializePasswordMutation(() => {
+    const accounts = readAccounts();
+    const active = new Set(parseUsers());
+    Object.keys(accounts).forEach((username) => {
+      const meta = accounts[username];
+      if (meta.expiresAt && Date.parse(meta.expiresAt) <= Date.now() && active.has(username) && !ADMIN_USERS.has(username)) {
+        disableAccountUnsafe(username, 'expired', 'system', '');
+        auditLog('system', 'account_expired', username, meta.expiresAt);
+      }
+    });
+  }).catch((error) => console.error('Expiry check failed:', error.message));
+}
+
+/* ---------- Feedback forms (stored for the hub; attachments stay in the e-mail only) ---------- */
+function readFeedbackEntries() {
+  const data = readJsonFile(FEEDBACK_FILE, []);
+  return Array.isArray(data) ? data : [];
+}
+
+let feedbackMutation = Promise.resolve();
+function serializeFeedbackMutation(operation) {
+  const result = feedbackMutation.then(operation, operation);
+  feedbackMutation = result.catch(() => {});
+  return result;
+}
+
+function storeFeedback(feedback, mailOk) {
+  return serializeFeedbackMutation(() => {
+    const entries = readFeedbackEntries();
+    entries.unshift({
+      id: crypto.randomUUID(), receivedAt: new Date().toISOString(), language: feedback.language, anonymous: feedback.anonymous,
+      name: feedback.name, email: feedback.email, workshop: feedback.workshop, role: feedback.role, testDate: feedback.testDate,
+      report: feedback.report, attachments: feedback.attachments.map((item) => ({ filename: item.filename, size: item.content.length })),
+      mailOk, status: 'new', replies: []
+    });
+    writeJsonFile(FEEDBACK_FILE, entries);
+  }).catch((error) => console.error('Feedback not stored:', error.message));
+}
+
+function updateFeedback(id, update) {
+  return serializeFeedbackMutation(() => {
+    const entries = readFeedbackEntries();
+    const index = entries.findIndex((entry) => entry.id === id);
+    if (index < 0) throw new Error('Dieser Feedbackbogen wurde nicht gefunden.');
+    entries[index] = typeof update === 'function' ? update(entries[index]) : { ...entries[index], ...update };
+    writeJsonFile(FEEDBACK_FILE, entries);
+    return entries[index];
+  });
+}
+
+function deleteFeedback(id) {
+  return serializeFeedbackMutation(() => {
+    const entries = readFeedbackEntries();
+    const kept = entries.filter((entry) => entry.id !== id);
+    if (kept.length === entries.length) throw new Error('Dieser Feedbackbogen wurde nicht gefunden.');
+    writeJsonFile(FEEDBACK_FILE, kept);
+  });
+}
+
+function pruneAdminData() {
+  const feedbackCutoff = Date.now() - FEEDBACK_RETENTION_DAYS * 86400000;
+  serializeFeedbackMutation(() => {
+    const entries = readFeedbackEntries();
+    const kept = entries.filter((entry) => Date.parse(entry.receivedAt) >= feedbackCutoff);
+    if (kept.length !== entries.length) writeJsonFile(FEEDBACK_FILE, kept);
+  }).catch(() => {});
+  const logCutoff = Date.now() - ADMIN_LOG_RETENTION_DAYS * 86400000;
+  [ADMIN_LOG_FILE, MESSAGES_FILE].forEach((file) => {
+    if (!fs.existsSync(file)) return;
+    const kept = readLines(file).filter((entry) => Date.parse(entry.at) >= logCutoff);
+    const temporary = `${file}.${process.pid}.tmp`;
+    fs.writeFileSync(temporary, kept.map((entry) => JSON.stringify(entry)).join('\n') + (kept.length ? '\n' : ''), { mode: 0o640 });
+    fs.renameSync(temporary, file);
   });
 }
 
@@ -387,7 +660,8 @@ function readUsageRecords() {
 function statsFor(days) {
   const now = Date.now();
   const periodMs = days * 86400000;
-  const accountNames = parseUsers();
+  const accounts = accountList();
+  const accountNames = accounts.map((account) => account.username);
   const accountSet = new Set(accountNames);
   const allEvents = readUsageRecords().filter((entry) => accountSet.has(entry.user));
   const events = allEvents.filter((entry) => Date.parse(entry.at) >= now - periodMs);
@@ -437,7 +711,16 @@ function statsFor(days) {
     exports: 0,
     totalActions: 0,
     lastSeen: null
-  }).map((user) => ({ ...user, lastSeen: lastSeenByUser.get(user.username) || null }));
+  }).map((user) => ({ ...user, ...accounts.find((account) => account.username === user.username), lastSeen: lastSeenByUser.get(user.username) || null }));
+  // Weekday x hour usage (Monday first) and the analysis funnel for the evaluation charts.
+  const heatmap = Array.from({ length: 7 }, () => new Array(24).fill(0));
+  for (const entry of events) {
+    const date = new Date(entry.at);
+    heatmap[(date.getDay() + 6) % 7][date.getHours()] += 1;
+  }
+  const exportsByType = { pdf: events.filter((entry) => entry.event === 'pdf_export').length, excel: events.filter((entry) => entry.event === 'excel_export').length };
+  const feedbackEntries = readFeedbackEntries();
+  const soon = now + 14 * 86400000;
   function eventTotals(source) {
     const active = new Set();
     const totals = { pageViews: 0, appOpens: 0, uploads: 0, exports: 0, totalActions: 0, activeUsers: 0 };
@@ -459,9 +742,16 @@ function statsFor(days) {
     days,
     totals: {
       users: users.length,
+      activeAccounts: accounts.filter((account) => account.status === 'active').length,
+      blockedAccounts: accounts.filter((account) => account.status !== 'active').length,
+      expiringSoon: accounts.filter((account) => account.status === 'active' && account.expiresAt && Date.parse(account.expiresAt) <= soon).length,
       pendingRequests: accessRequests.filter((entry) => entry.status === 'pending').length,
+      feedback: feedbackEntries.filter((entry) => Date.parse(entry.receivedAt) >= now - periodMs).length,
+      newFeedback: feedbackEntries.filter((entry) => entry.status === 'new').length,
       ...currentTotals
     },
+    heatmap,
+    exportsByType,
     previous: previousTotals,
     users,
     daily: Array.from(daily.values()).sort((a, b) => a.date.localeCompare(b.date)),
@@ -562,6 +852,49 @@ function pruneAccessRequests() {
   writeAccessRequests(requests);
 }
 
+/** Reply to a feedback form: recipient, name and default language always come from the stored feedback. */
+function validateFeedbackReply(body, entry) {
+  const subject = String(body.subject || '').replace(/[\r\n\0]/g, ' ').trim();
+  const message = String(body.message || '').replace(/\0/g, '').replace(/\r\n/g, '\n').trim();
+  if (subject.length < 2 || subject.length > 160) throw new Error('Bitte einen Betreff mit 2 bis 160 Zeichen eingeben.');
+  if (message.length < 2 || message.length > 8000) throw new Error('Bitte eine Nachricht mit 2 bis 8000 Zeichen eingeben.');
+  return { email: entry.email, name: entry.name || '', language: validateLanguage(body.language || entry.language), subject, message };
+}
+
+/** Everything the hub shows about one account: details, activity over the retention period, mails and feedback. */
+function userDetail(username) {
+  const account = findAccount(username);
+  const now = Date.now();
+  const events = readUsageRecords().filter((entry) => entry.user === username).sort((a, b) => b.at.localeCompare(a.at));
+  const totals = { pageViews: 0, appOpens: 0, uploads: 0, exports: 0, totalActions: events.length };
+  const daily = new Map();
+  for (const entry of events) {
+    if (entry.event === 'page_view') totals.pageViews += 1;
+    if (entry.event === 'app_open') totals.appOpens += 1;
+    if (entry.event === 'file_upload') totals.uploads += 1;
+    if (entry.event === 'excel_export' || entry.event === 'pdf_export') totals.exports += 1;
+    const day = entry.at.slice(0, 10);
+    daily.set(day, (daily.get(day) || 0) + 1);
+  }
+  const request = account.requestId ? readAccessRequests().find((entry) => entry.id === account.requestId) : null;
+  const email = account.email;
+  return {
+    account,
+    totals,
+    firstSeen: events.length ? events[events.length - 1].at : null,
+    lastSeen: events.length ? events[0].at : null,
+    activeDays: daily.size,
+    daily: Array.from(daily, ([date, count]) => ({ date, count })).sort((a, b) => a.date.localeCompare(b.date)),
+    recent: events.slice(0, 40),
+    request: request ? publicRequest(request) : null,
+    messages: email ? readLines(MESSAGES_FILE).filter((entry) => entry.to === email).sort((a, b) => b.at.localeCompare(a.at)) : [],
+    feedback: email ? readFeedbackEntries().filter((entry) => entry.email === email).map((entry) => ({ id: entry.id, receivedAt: entry.receivedAt, status: entry.status })) : [],
+    audit: readLines(ADMIN_LOG_FILE).filter((entry) => entry.target === username || (email && entry.target === email)).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 30),
+    retentionDays: RETENTION_DAYS,
+    generatedAt: new Date(now).toISOString()
+  };
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');
@@ -614,9 +947,11 @@ const server = http.createServer(async (req, res) => {
         await mailer.sendFeedback(feedback);
       } catch (error) {
         recordFeedback(feedback, false);
+        await storeFeedback(feedback, false);
         throw error;
       }
       recordFeedback(feedback, true);
+      await storeFeedback(feedback, true);
       sendJson(res, 202, { ok: true });
       return;
     }
@@ -639,6 +974,7 @@ const server = http.createServer(async (req, res) => {
     }
     const admin = requireAdmin(req, res);
     if (!admin) return;
+    await sweepExpiredAccounts();
     if (req.method === 'GET' && url.pathname === '/admin/api/session') {
       sendJson(res, 200, { username: admin });
       return;
@@ -679,6 +1015,12 @@ const server = http.createServer(async (req, res) => {
         status: 'approved', approvedAt: new Date().toISOString(), approvedBy: admin,
         username, mailStatus: 'sent', lastError: null
       });
+      const expiresAt = validateExpiry(body.expiresAt);
+      await serializePasswordMutation(() => saveAccountDetails(username, {
+        name: request.name, email: request.email, language: request.language, createdAt: new Date().toISOString(), createdBy: admin,
+        source: 'request', requestId: id, expiresAt
+      }));
+      auditLog(admin, 'request_approved', username, `${request.name} <${request.email}>${expiresAt ? `, befristet bis ${expiresAt.slice(0, 10)}` : ''}`);
       sendJson(res, 201, { ok: true, request: publicRequest(approved), username });
       return;
     }
@@ -689,6 +1031,7 @@ const server = http.createServer(async (req, res) => {
       const rejected = await transitionAccessRequest(id, 'pending', {
         status: 'rejected', rejectedAt: new Date().toISOString(), rejectedBy: admin, lastError: null
       });
+      auditLog(admin, 'request_rejected', rejected.email, rejected.name);
       sendJson(res, 200, { ok: true, request: publicRequest(rejected) });
       return;
     }
@@ -719,8 +1062,21 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       const username = validateUsername(body.username);
       const password = validatePassword(body.password);
+      const details = { name: validateOptionalName(body.name), email: validateOptionalEmail(body.email), language: validateLanguage(body.language), expiresAt: validateExpiry(body.expiresAt) };
+      if (body.sendMail && !details.email) throw new Error('Für die Zugangsmail wird eine E-Mail-Adresse benötigt.');
+      if (body.sendMail && !mailer.configured()) throw new Error('Der E-Mail-Versand ist noch nicht konfiguriert. Das Konto wurde nicht angelegt.');
       await upsertUser(username, password, true);
-      sendJson(res, 201, { ok: true, username });
+      await serializePasswordMutation(() => saveAccountDetails(username, { ...details, createdAt: new Date().toISOString(), createdBy: admin, source: 'manual' }));
+      if (body.sendMail) {
+        try {
+          await mailer.sendWelcomeEmail({ name: details.name || username, email: details.email, username, password, language: details.language });
+        } catch (error) {
+          await removeUser(username).catch(() => {});
+          throw new Error('Die Zugangsmail konnte nicht versendet werden. Das Konto wurde deshalb nicht angelegt.');
+        }
+      }
+      auditLog(admin, 'user_created', username, details.email + (body.sendMail ? ', Zugangsmail gesendet' : ''));
+      sendJson(res, 201, { ok: true, username, mailed: Boolean(body.sendMail) });
       return;
     }
     const passwordMatch = url.pathname.match(/^\/admin\/api\/users\/([^/]+)\/password$/);
@@ -729,8 +1085,86 @@ const server = http.createServer(async (req, res) => {
       const username = validateUsername(decodeURIComponent(passwordMatch[1]));
       const body = await readBody(req);
       const password = validatePassword(body.password);
+      const account = findAccount(username);
+      if (body.sendMail && !account.email) throw new Error('Für diesen Benutzer ist keine E-Mail-Adresse hinterlegt.');
       await upsertUser(username, password, false);
-      sendJson(res, 200, { ok: true, username });
+      if (body.sendMail) await mailer.sendPasswordEmail({ name: account.name || username, email: account.email, username, password, language: account.language });
+      auditLog(admin, 'password_changed', username, body.sendMail ? 'per E-Mail gesendet' : '');
+      sendJson(res, 200, { ok: true, username, mailed: Boolean(body.sendMail) });
+      return;
+    }
+    const userMatch = url.pathname.match(/^\/admin\/api\/users\/([^/]+)$/);
+    if (req.method === 'GET' && userMatch) {
+      const username = validateUsername(decodeURIComponent(userMatch[1]));
+      sendJson(res, 200, userDetail(username));
+      return;
+    }
+    if (req.method === 'PATCH' && userMatch) {
+      if (!verifyMutation(req, res)) return;
+      const username = validateUsername(decodeURIComponent(userMatch[1]));
+      const body = await readBody(req);
+      const changes = {};
+      ['name', 'email', 'language', 'expiresAt'].forEach((key) => { if (key in body) changes[key] = body[key]; });
+      await updateAccount(username, changes, admin);
+      auditLog(admin, 'user_updated', username, Object.keys(changes).map((key) => `${key}=${changes[key] || '-'}`).join(', '));
+      sendJson(res, 200, { ok: true, account: findAccount(username) });
+      return;
+    }
+    const blockMatch = url.pathname.match(/^\/admin\/api\/users\/([^/]+)\/(block|unblock)$/);
+    if (req.method === 'POST' && blockMatch) {
+      if (!verifyMutation(req, res)) return;
+      const username = validateUsername(decodeURIComponent(blockMatch[1]));
+      const body = await readBody(req);
+      await setAccountBlocked(username, blockMatch[2] === 'block', admin, body.reason);
+      auditLog(admin, blockMatch[2] === 'block' ? 'user_blocked' : 'user_unblocked', username, body.reason || '');
+      sendJson(res, 200, { ok: true, account: findAccount(username) });
+      return;
+    }
+    if (req.method === 'GET' && url.pathname === '/admin/api/feedback') {
+      sendJson(res, 200, { feedback: readFeedbackEntries() });
+      return;
+    }
+    const feedbackMatch = url.pathname.match(/^\/admin\/api\/feedback\/([^/]+)$/);
+    if (req.method === 'PATCH' && feedbackMatch) {
+      if (!verifyMutation(req, res)) return;
+      const body = await readBody(req);
+      const status = ['new', 'read', 'done'].includes(body.status) ? body.status : 'read';
+      const entry = await updateFeedback(decodeURIComponent(feedbackMatch[1]), { status });
+      sendJson(res, 200, { ok: true, feedback: entry });
+      return;
+    }
+    if (req.method === 'DELETE' && feedbackMatch) {
+      if (!verifyMutation(req, res)) return;
+      await deleteFeedback(decodeURIComponent(feedbackMatch[1]));
+      auditLog(admin, 'feedback_deleted', decodeURIComponent(feedbackMatch[1]), '');
+      sendJson(res, 200, { ok: true });
+      return;
+    }
+    const replyMatch = url.pathname.match(/^\/admin\/api\/feedback\/([^/]+)\/(reply|reply-preview)$/);
+    if (req.method === 'POST' && replyMatch) {
+      if (!verifyMutation(req, res)) return;
+      const id = decodeURIComponent(replyMatch[1]);
+      const entry = readFeedbackEntries().find((item) => item.id === id);
+      if (!entry) throw new Error('Dieser Feedbackbogen wurde nicht gefunden.');
+      if (!entry.email) throw new Error('Zu diesem Feedback wurde keine E-Mail-Adresse angegeben.');
+      const body = await readBody(req, 64 * 1024);
+      const message = validateFeedbackReply(body, entry);
+      if (replyMatch[2] === 'reply-preview') {
+        sendJson(res, 200, { html: mailer.previewHtml(mailer.buildAdminMessage(message).html) });
+        return;
+      }
+      if (!mailer.configured()) throw new Error('Der E-Mail-Versand ist noch nicht konfiguriert.');
+      await mailer.sendAdminMessage(message);
+      const record = { id: crypto.randomUUID(), at: new Date().toISOString(), by: admin, to: entry.email, name: entry.name, subject: message.subject, context: { type: 'feedback', id } };
+      appendLine(MESSAGES_FILE, record);
+      auditLog(admin, 'feedback_reply', entry.email, message.subject);
+      const updated = await updateFeedback(id, (item) => ({ ...item, status: 'done', replies: [...(item.replies || []), { at: record.at, subject: message.subject, by: admin }] }));
+      sendJson(res, 201, { ok: true, feedback: updated });
+      return;
+    }
+    if (req.method === 'GET' && url.pathname === '/admin/api/audit') {
+      const limit = Math.min(500, Math.max(1, Number(url.searchParams.get('limit')) || 150));
+      sendJson(res, 200, { entries: readLines(ADMIN_LOG_FILE).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit), messages: readLines(MESSAGES_FILE).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit) });
       return;
     }
     const deleteMatch = url.pathname.match(/^\/admin\/api\/users\/([^/]+)$/);
@@ -738,6 +1172,7 @@ const server = http.createServer(async (req, res) => {
       if (!verifyMutation(req, res)) return;
       const username = validateUsername(decodeURIComponent(deleteMatch[1]));
       await removeUser(username);
+      auditLog(admin, 'user_deleted', username, '');
       sendJson(res, 200, { ok: true, username });
       return;
     }
@@ -750,8 +1185,12 @@ const server = http.createServer(async (req, res) => {
 
 pruneUsage();
 pruneAccessRequests();
+pruneAdminData();
+sweepExpiredAccounts();
 setInterval(pruneUsage, 24 * 60 * 60 * 1000).unref();
 setInterval(pruneAccessRequests, 24 * 60 * 60 * 1000).unref();
+setInterval(pruneAdminData, 24 * 60 * 60 * 1000).unref();
+setInterval(sweepExpiredAccounts, 60 * 1000).unref();
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`Signalerfassung admin service listening on 127.0.0.1:${PORT}`);
 });

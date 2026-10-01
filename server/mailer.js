@@ -15,6 +15,9 @@ const FEEDBACK_NOTIFY_TO = String(process.env.FEEDBACK_NOTIFY_TO || 'contact.bre
 const PUBLIC_URL = String(process.env.PUBLIC_URL || 'https://signalerfassung.com').replace(/\/$/, '');
 const FEEDBACK_URL = String(process.env.FEEDBACK_URL || 'https://feedback.signalerfassung.com').replace(/\/$/, '');
 const LOGO_FILE = path.join(__dirname, '..', 'assets', 'signalerfassung-wordmark.png');
+// Replies to personal messages from the Admin Hub go to the administrator, not to the sending mailbox.
+const ADMIN_REPLY_TO = String(process.env.ADMIN_REPLY_TO || REQUEST_NOTIFY_TO).trim();
+const ADMIN_SIGNATURE_NAME = String(process.env.ADMIN_SIGNATURE_NAME || 'David Breuer').trim();
 
 function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, (character) => ({
@@ -53,11 +56,15 @@ function logoAttachment() {
   }];
 }
 
-function layout(title, intro, content, action, language = 'de') {
+function layout(title, intro, content, action, language = 'de', personal = false) {
   const actionHtml = action ? `<p style="margin:30px 0 8px"><a href="${escapeHtml(action.href)}" style="display:inline-block;padding:14px 22px;border-radius:12px;background:#ffb400;color:#061b34;text-decoration:none;font-weight:800">${escapeHtml(action.label)}</a></p>` : '';
-  const footer = language === 'en'
-    ? 'Signal Capture Analysis Tool &middot; David Breuer Apps<br>This message was sent automatically.'
-    : 'Signalerfassung Analyse-Tool &middot; David Breuer Apps<br>Diese Nachricht wurde automatisch versendet.';
+  const footer = personal
+    ? (language === 'en'
+      ? `Signal Capture Analysis Tool &middot; David Breuer Apps<br>Personal message from ${escapeHtml(ADMIN_SIGNATURE_NAME)}. Simply reply to this email.`
+      : `Signalerfassung Analyse-Tool &middot; David Breuer Apps<br>Persönliche Nachricht von ${escapeHtml(ADMIN_SIGNATURE_NAME)}. Antworten Sie einfach auf diese E-Mail.`)
+    : (language === 'en'
+      ? 'Signal Capture Analysis Tool &middot; David Breuer Apps<br>This message was sent automatically.'
+      : 'Signalerfassung Analyse-Tool &middot; David Breuer Apps<br>Diese Nachricht wurde automatisch versendet.');
   return `<!doctype html><html lang="${language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head><body style="margin:0;background:#edf4f9;color:#10243f;font-family:Arial,sans-serif"><div style="max-width:680px;margin:0 auto;padding:30px 14px"><div style="overflow:hidden;border-radius:18px;background:#fff;box-shadow:0 12px 36px rgba(4,48,88,.12)"><div style="padding:24px 30px;background:linear-gradient(120deg,#073d70,#0867ad)"><img src="cid:signalerfassung-logo" alt="Signalerfassung" style="display:block;max-width:310px;width:78%;height:auto"></div><div style="padding:32px 30px"><div style="width:42px;height:4px;margin-bottom:20px;border-radius:4px;background:#ffb400"></div><h1 style="margin:0 0 12px;font-size:28px;line-height:1.2;color:#071d38">${escapeHtml(title)}</h1><p style="margin:0 0 22px;color:#5b7089;font-size:16px;line-height:1.6">${escapeHtml(intro)}</p>${content}${actionHtml}</div><div style="padding:18px 30px;background:#f3f7fa;color:#708197;font-size:12px;line-height:1.55">${footer}</div></div></div></body></html>`;
 }
 
@@ -187,12 +194,79 @@ async function sendFeedback(feedback) {
   return sendMail(buildFeedbackEmail(feedback));
 }
 
+/** Free text from the Admin Hub, wrapped in the same design as all other mails. Empty lines start a new paragraph. */
+function messageParagraphs(message) {
+  return String(message || '').split(/\n{2,}/).map((block) => block.trim()).filter(Boolean)
+    .map((block) => `<p style="margin:0 0 16px;font-size:15px;line-height:1.65">${escapeHtml(block).replace(/\n/g, '<br>')}</p>`).join('');
+}
+
+function buildAdminMessage({ email, name, language: requestedLanguage, subject, message }) {
+  const language = languageOf({ language: requestedLanguage });
+  const english = language === 'en';
+  return {
+    to: name ? `"${String(name).replace(/["\\]/g, '')}" <${email}>` : email,
+    replyTo: ADMIN_REPLY_TO,
+    subject,
+    headers: { 'Content-Language': language },
+    text: message,
+    html: layout(
+      subject,
+      english ? 'A personal message about the Signal Capture Analysis Tool.' : 'Eine persönliche Nachricht zum Signalerfassung Analyse-Tool.',
+      messageParagraphs(message),
+      { href: `${PUBLIC_URL}/signalerfassung-analyse-tool.html`, label: english ? 'Open analysis app' : 'Analyse-App öffnen' },
+      language,
+      true
+    )
+  };
+}
+
+async function sendAdminMessage(message) {
+  return sendMail(buildAdminMessage(message));
+}
+
+function buildPasswordEmail({ name, email, username, password, language: requestedLanguage }) {
+  const language = languageOf({ language: requestedLanguage });
+  const english = language === 'en';
+  const box = (label, value) => `<div style="margin-bottom:10px;color:#687c93;font-size:12px;text-transform:uppercase;letter-spacing:.08em">${label}</div><div style="margin-bottom:18px;font-family:Consolas,monospace;font-size:18px;font-weight:800;color:#075ba7;word-break:break-all">${escapeHtml(value)}</div>`;
+  const content = `<p style="margin:0 0 18px;font-size:15px;line-height:1.65">${english ? 'Hello' : 'Hallo'} ${escapeHtml(name)},</p><p style="margin:0 0 20px;font-size:15px;line-height:1.65">${english ? 'a new password has been set for your access to the Signal Capture Analysis App:' : 'für deinen Zugang zur Signalerfassung Analyse-App wurde ein neues Passwort festgelegt:'}</p><div style="padding:20px 20px 2px;border:1px solid #d6e4ef;border-radius:14px;background:#f5f9fc">${box(english ? 'Username' : 'Benutzername', username)}${box(english ? 'New password' : 'Neues Passwort', password)}</div><p style="margin:20px 0 0;color:#60748b;font-size:13px;line-height:1.55">${english ? 'The previous password no longer works. Please keep these credentials secure.' : 'Das bisherige Passwort gilt nicht mehr. Bitte bewahre die Zugangsdaten sicher auf.'}</p>`;
+  return {
+    to: email,
+    replyTo: ADMIN_REPLY_TO,
+    subject: english ? 'Your new password for the Signal Capture Analysis Tool' : 'Dein neues Passwort für das Signalerfassung Analyse-Tool',
+    headers: { 'Content-Language': language },
+    text: english
+      ? `Hello ${name},\n\na new password has been set for your access.\n\nUsername: ${username}\nNew password: ${password}\nApp: ${PUBLIC_URL}/signalerfassung-analyse-tool.html`
+      : `Hallo ${name},\n\nfür deinen Zugang wurde ein neues Passwort festgelegt.\n\nBenutzername: ${username}\nNeues Passwort: ${password}\nApp: ${PUBLIC_URL}/signalerfassung-analyse-tool.html`,
+    html: layout(
+      english ? 'Your new password' : 'Dein neues Passwort',
+      english ? 'Your access data has been updated.' : 'Deine Zugangsdaten wurden aktualisiert.',
+      content,
+      { href: `${PUBLIC_URL}/signalerfassung-analyse-tool.html`, label: english ? 'Open analysis app' : 'Analyse-App öffnen' },
+      language
+    )
+  };
+}
+
+async function sendPasswordEmail(credentials) {
+  return sendMail(buildPasswordEmail(credentials));
+}
+
+/** Mail HTML for an in-browser preview: the inline logo reference becomes the public logo file. */
+function previewHtml(html) {
+  return String(html).replace(/cid:signalerfassung-logo/g, '/assets/signalerfassung-wordmark.png');
+}
+
 module.exports = {
   configured,
   buildAccessRequestNotification,
   buildAccessRequestConfirmation,
   buildWelcomeEmail,
   buildFeedbackEmail,
+  buildAdminMessage,
+  buildPasswordEmail,
+  previewHtml,
+  sendAdminMessage,
+  sendPasswordEmail,
   sendAccessRequestNotification,
   sendAccessRequestConfirmation,
   sendWelcomeEmail,

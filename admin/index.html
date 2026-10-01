@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>Admin Hub | Signalerfassung Analyse-Tool</title>
 <link rel="icon" type="image/png" href="../assets/signalerfassung-app-icon.png">
-<link rel="stylesheet" href="../assets/admin.css?v=20260916-1">
+<link rel="stylesheet" href="../assets/admin.css?v=20261001-1">
 </head>
 <body>
 <svg class="icon-sprite" aria-hidden="true">
@@ -20,12 +20,20 @@
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></symbol>
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.5-2"/></symbol>
   <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M15 8l3 3M18 5l3 3"/></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v6M14 11v6"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
   <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+  <symbol id="i-reply" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/><path d="M8.5 11h7M8.5 14.5h4"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="m21 11-8.5 8.5a5 5 0 0 1-7-7l9-9a3.3 3.3 0 0 1 4.7 4.7l-9 9a1.7 1.7 0 0 1-2.4-2.4l8.3-8.3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
 </svg>
 <header class="topbar">
   <nav class="shell nav" aria-label="Admin-Navigation">
@@ -35,82 +43,166 @@
   </nav>
 </header>
 <main class="shell">
-  <section class="hero">
-    <div class="hero-copy"><div class="eyebrow"><span></span>Zugriff, Nutzung und Systemstatus</div><h1>Admin Hub</h1><p>Benutzerzugänge sicher verwalten, Nutzung einordnen und den Zustand des Analyse-Tools im Blick behalten.</p></div>
-    <div class="hero-actions">
-      <label class="range">Zeitraum<select id="range"><option value="7">7 Tage</option><option value="30" selected>30 Tage</option><option value="90">90 Tage</option><option value="180">180 Tage</option></select></label>
-      <button class="btn btn-soft" id="refresh" type="button"><svg><use href="#i-refresh"/></svg>Aktualisieren</button>
+  <section class="page-head">
+    <div><h1>Admin Hub</h1><p>Zugänge, Anfragen, Feedback und Nutzung des Analyse-Tools.</p></div>
+    <div class="page-actions">
+      <label class="select-field" title="Zeitraum für Kennzahlen und Auswertung"><svg><use href="#i-calendar"/></svg><select id="range" aria-label="Zeitraum"><option value="7">7 Tage</option><option value="30" selected>30 Tage</option><option value="90">90 Tage</option><option value="180">180 Tage</option></select></label>
+      <button class="btn btn-soft icon-only" id="refresh" type="button" title="Aktualisieren" aria-label="Aktualisieren"><svg><use href="#i-refresh"/></svg></button>
       <button class="btn btn-soft" id="export-csv" type="button"><svg><use href="#i-download"/></svg>CSV</button>
-      <button class="btn btn-primary" id="add-user" type="button"><svg><use href="#i-plus"/></svg>Benutzer anlegen</button>
     </div>
   </section>
-  <section class="metrics" aria-label="Kennzahlen">
-    <article class="metric metric-users"><div class="metric-icon"><svg><use href="#i-users"/></svg></div><div><span>Benutzer</span><strong id="metric-users">–</strong><small>eingerichtete Zugänge</small></div></article>
-    <article class="metric metric-active"><div class="metric-icon"><svg><use href="#i-activity"/></svg></div><div><span>Aktive Nutzer</span><strong id="metric-active">–</strong><small id="trend-active">im Zeitraum</small></div></article>
-    <article class="metric"><div class="metric-icon"><svg><use href="#i-eye"/></svg></div><div><span>Seitenaufrufe</span><strong id="metric-views">–</strong><small id="trend-views">gegenüber vorher</small></div></article>
-    <article class="metric"><div class="metric-icon"><svg><use href="#i-file"/></svg></div><div><span>Datei-Auswertungen</span><strong id="metric-uploads">–</strong><small id="trend-uploads">gegenüber vorher</small></div></article>
-    <article class="metric"><div class="metric-icon"><svg><use href="#i-export"/></svg></div><div><span>Exporte</span><strong id="metric-exports">–</strong><small id="trend-exports">gegenüber vorher</small></div></article>
-    <article class="metric metric-requests"><div class="metric-icon"><svg><use href="#i-mail"/></svg></div><div><span>Zugangsanfragen</span><strong id="metric-requests">–</strong><small>offen zur Prüfung</small></div></article>
+
+  <section class="kpis" aria-label="Kennzahlen">
+    <article class="kpi"><span>Benutzer</span><strong id="kpi-users">–</strong><small id="kpi-users-sub">–</small></article>
+    <article class="kpi"><span>Aktive Nutzer</span><strong id="kpi-active">–</strong><small id="kpi-active-sub">–</small></article>
+    <article class="kpi"><span>Datei-Auswertungen</span><strong id="kpi-uploads">–</strong><small id="kpi-uploads-sub">–</small></article>
+    <article class="kpi"><span>Exporte</span><strong id="kpi-exports">–</strong><small id="kpi-exports-sub">–</small></article>
+    <article class="kpi kpi-attention" data-goto="requests"><span>Offene Anfragen</span><strong id="kpi-requests">–</strong><small>zur Freigabe</small></article>
+    <article class="kpi kpi-attention" data-goto="feedback"><span>Neues Feedback</span><strong id="kpi-feedback">–</strong><small id="kpi-feedback-sub">–</small></article>
   </section>
-  <section class="panel requests-panel" id="access-requests-panel">
-    <div class="panel-head"><div><span class="panel-kicker">Freigabe-Postfach</span><h2>Zugangsanfragen</h2><p>Anfragen prüfen, Zugangsdaten festlegen und die Freigabemail automatisch versenden.</p></div><div class="request-head-actions"><span class="mail-pill" id="mail-status">E-Mail wird geprüft</span><a class="btn btn-soft btn-small" href="/zugang-anfragen.html" target="_blank">Formular öffnen</a></div></div>
-    <div class="request-filters" role="group" aria-label="Zugangsanfragen filtern"><button class="active" type="button" data-request-filter="pending">Offen <span id="pending-count">0</span></button><button type="button" data-request-filter="approved">Freigegeben</button><button type="button" data-request-filter="rejected">Abgelehnt</button><button type="button" data-request-filter="all">Alle</button></div>
-    <div class="request-list" id="request-list"><div class="empty-state"><span class="loader"></span>Anfragen werden geladen…</div></div>
+
+  <nav class="tabs" role="tablist" aria-label="Bereiche">
+    <button type="button" role="tab" data-tab="overview" aria-selected="true">Übersicht</button>
+    <button type="button" role="tab" data-tab="requests" aria-selected="false">Anfragen <span class="tab-count" id="tab-count-requests">0</span></button>
+    <button type="button" role="tab" data-tab="users" aria-selected="false">Benutzer <span class="tab-count muted" id="tab-count-users">0</span></button>
+    <button type="button" role="tab" data-tab="feedback" aria-selected="false">Feedback <span class="tab-count" id="tab-count-feedback">0</span></button>
+    <button type="button" role="tab" data-tab="log" aria-selected="false">Protokoll</button>
+  </nav>
+
+  <!-- Übersicht -->
+  <section class="tab-panel" id="panel-overview" role="tabpanel">
+    <div class="overview-grid">
+      <article class="card card-wide">
+        <div class="card-head"><h2>Nutzung</h2><div class="legend" id="usage-legend"></div></div>
+        <div class="usage-chart" id="usage-chart" aria-label="Nutzung pro Tag"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h2>Handlungsbedarf</h2></div>
+        <ul class="todo-list" id="todo-list"></ul>
+      </article>
+      <article class="card">
+        <div class="card-head"><h2>Auswertung</h2><span class="card-note" id="analysis-note"></span></div>
+        <div class="funnel" id="funnel"></div>
+        <div class="split" id="export-split"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h2>Nutzungszeiten</h2><span class="card-note">Wochentag × Uhrzeit</span></div>
+        <div class="heatmap" id="heatmap"></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h2>Aktivste Nutzer</h2><span class="card-note">Aktionen im Zeitraum</span></div>
+        <ol class="top-users" id="top-users"></ol>
+      </article>
+    </div>
+    <div class="system-strip" id="system-strip"></div>
   </section>
-  <div class="dashboard-grid">
-    <section class="panel users-panel">
-      <div class="panel-head"><div><span class="panel-kicker">Zugriffsverwaltung</span><h2>Benutzerkonten</h2><p>Konten berechtigen zur geschützten Analyse-App. Die Landingpage bleibt öffentlich.</p></div><span class="result-count" id="result-count">– Konten</span></div>
-      <div class="user-toolbar"><label class="search-field"><svg><use href="#i-search"/></svg><input id="user-search" type="search" placeholder="Benutzer suchen" aria-label="Benutzer suchen"></label><label class="compact-select">Sortierung<select id="user-sort"><option value="name">Name</option><option value="recent">Zuletzt aktiv</option><option value="activity">Meiste Aktivität</option></select></label></div>
-      <div class="user-table-head"><span>Benutzer</span><span>Status</span><span>Aufrufe</span><span>Dateien</span><span>Exporte</span><span>Zuletzt aktiv</span><span></span></div>
-      <div class="user-list" id="user-list"><div class="empty-state"><span class="loader"></span>Daten werden geladen…</div></div>
-    </section>
-    <aside class="side-stack">
-      <section class="panel activity-panel">
-        <div class="panel-head compact"><div><span class="panel-kicker">Nutzungsverlauf</span><h2>Aktivität</h2></div><label class="series-select">Anzeige<select id="chart-series"><option value="total">Alle Aktionen</option><option value="pageViews">Seitenaufrufe</option><option value="uploads">Dateien</option><option value="exports">Exporte</option></select></label></div>
-        <div class="activity-chart-wrap"><div class="chart" id="chart" aria-label="Aktivitätsdiagramm"></div><div class="chart-axis"><span id="chart-start">–</span><span>heute</span></div></div>
-        <div class="breakdown" id="breakdown"></div>
-      </section>
-      <section class="panel system-panel">
-        <div class="panel-head compact"><div><span class="panel-kicker">Betriebszustand</span><h2>System</h2></div><span class="status-pill"><span></span>Online</span></div>
-        <dl class="system-list"><div><dt>Admin-API</dt><dd><svg><use href="#i-check"/></svg>Erreichbar</dd></div><div><dt>E-Mail-Versand</dt><dd id="system-mail">–</dd></div><div><dt>Datenspeicherung</dt><dd id="system-storage">–</dd></div><div><dt>Aufbewahrung</dt><dd id="system-retention">–</dd></div><div><dt>Aktualisiert</dt><dd id="system-updated">–</dd></div></dl>
-        <p class="privacy-note"><svg><use href="#i-lock"/></svg><span>Keine Messwerte, Dateinamen oder IP-Adressen in dieser Statistik.</span></p>
-      </section>
-    </aside>
-  </div>
-  <section class="panel recent-panel">
-    <div class="panel-head"><div><span class="panel-kicker">Protokoll</span><h2>Letzte Aktivitäten</h2><p>Die jüngsten Nutzungsereignisse im gewählten Zeitraum.</p></div><span class="privacy-tag">automatische Löschung nach 180 Tagen</span></div>
-    <div class="recent-list" id="recent-list"><div class="empty-state">Daten werden geladen…</div></div>
+
+  <!-- Anfragen -->
+  <section class="tab-panel" id="panel-requests" role="tabpanel" hidden>
+    <article class="card">
+      <div class="card-head">
+        <div class="pill-group" role="group" aria-label="Anfragen filtern"><button class="active" type="button" data-request-filter="pending">Offen</button><button type="button" data-request-filter="approved">Freigegeben</button><button type="button" data-request-filter="rejected">Abgelehnt</button><button type="button" data-request-filter="all">Alle</button></div>
+        <div class="head-actions"><span class="mail-pill" id="mail-status">E-Mail wird geprüft</span><a class="btn btn-soft btn-small" href="/zugang-anfragen.html" target="_blank" rel="noopener">Formular öffnen</a></div>
+      </div>
+      <div class="table" id="request-table"></div>
+    </article>
+  </section>
+
+  <!-- Benutzer -->
+  <section class="tab-panel" id="panel-users" role="tabpanel" hidden>
+    <article class="card">
+      <div class="card-head toolbar">
+        <label class="search-field"><svg><use href="#i-search"/></svg><input id="user-search" type="search" placeholder="Name, E-Mail oder Benutzer" aria-label="Benutzer suchen"></label>
+        <div class="pill-group" role="group" aria-label="Status filtern"><button class="active" type="button" data-user-filter="all">Alle</button><button type="button" data-user-filter="active">Aktiv</button><button type="button" data-user-filter="limited">Befristet</button><button type="button" data-user-filter="disabled">Gesperrt / abgelaufen</button></div>
+        <label class="select-field compact"><select id="user-sort" aria-label="Sortierung"><option value="name">Name</option><option value="recent">Zuletzt aktiv</option><option value="activity">Meiste Aktivität</option></select></label>
+        <button class="btn btn-primary" id="add-user" type="button"><svg><use href="#i-plus"/></svg>Benutzer anlegen</button>
+      </div>
+      <div class="table users-table" id="user-table"></div>
+    </article>
+  </section>
+
+  <!-- Feedback -->
+  <section class="tab-panel" id="panel-feedback" role="tabpanel" hidden>
+    <div class="feedback-layout">
+      <article class="card feedback-list-card">
+        <div class="card-head"><div class="pill-group" role="group" aria-label="Feedback filtern"><button class="active" type="button" data-feedback-filter="open">Offen</button><button type="button" data-feedback-filter="done">Beantwortet</button><button type="button" data-feedback-filter="all">Alle</button></div></div>
+        <div class="feedback-list" id="feedback-list"></div>
+      </article>
+      <article class="card feedback-reader" id="feedback-reader"><div class="empty-state">Feedback in der Liste auswählen.</div></article>
+    </div>
+  </section>
+
+  <!-- Protokoll -->
+  <section class="tab-panel" id="panel-log" role="tabpanel" hidden>
+    <div class="log-grid">
+      <article class="card"><div class="card-head"><h2>Admin-Aktionen</h2><span class="card-note">Freigaben, Sperren, Passwörter, Antworten</span></div><ul class="log-list" id="audit-list"></ul></article>
+      <article class="card"><div class="card-head"><h2>Letzte Nutzung</h2><span class="card-note">automatische Löschung nach 180 Tagen</span></div><ul class="log-list" id="recent-list"></ul></article>
+    </div>
   </section>
 </main>
-<footer>Signalerfassung Analyse-Tool · Geschützter Administrationsbereich</footer>
+<footer>Signalerfassung Analyse-Tool · Geschützter Administrationsbereich · Keine Messwerte, Dateinamen oder IP-Adressen in der Statistik</footer>
+
+<!-- Detailansicht Benutzer -->
+<div class="drawer-layer" id="drawer-layer" hidden>
+  <button class="drawer-backdrop" type="button" aria-label="Detailansicht schließen"></button>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" id="user-drawer"></aside>
+</div>
+
 <dialog id="user-dialog">
   <form id="user-form">
-    <div class="modal-head"><div><span class="modal-icon"><svg><use href="#i-key"/></svg></span><div><h2 id="dialog-title">Benutzer anlegen</h2><p id="dialog-subtitle">Neuen Zugang zur Analyse-App einrichten.</p></div></div><button class="icon-button" type="button" data-close-user aria-label="Dialog schließen">×</button></div>
+    <div class="modal-head"><div><span class="modal-icon"><svg><use href="#i-key"/></svg></span><div><h2 id="dialog-title">Benutzer anlegen</h2><p id="dialog-subtitle">Neuen Zugang zur Analyse-App einrichten.</p></div></div><button class="icon-button" type="button" data-close aria-label="Dialog schließen"><svg><use href="#i-x"/></svg></button></div>
     <div class="modal-body">
-      <label class="field" id="username-field">Benutzername<input id="username" name="username" autocomplete="off" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]+" required><small>3–32 Zeichen: Buchstaben, Zahlen, Punkt, Unterstrich oder Bindestrich.</small></label>
-      <label class="field">Neues Passwort<div class="password-input"><input id="password" name="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required><button type="button" id="toggle-password">Anzeigen</button></div></label>
+      <div class="create-only field-grid">
+        <label class="field">Benutzername<input id="username" autocomplete="off" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]+"><small>3–32 Zeichen: Buchstaben, Zahlen, Punkt, Unterstrich, Bindestrich.</small></label>
+        <label class="field">Name<input id="create-name" maxlength="100" placeholder="Vor- und Nachname"></label>
+        <label class="field">E-Mail<input id="create-email" type="email" maxlength="254" placeholder="name@werkstatt.de"></label>
+        <label class="field">Sprache der Mails<select id="create-language"><option value="de">Deutsch</option><option value="en">English</option></select></label>
+        <label class="field">Befristet bis <span class="optional">(optional)</span><input id="create-expiry" type="date"></label>
+      </div>
+      <label class="field">Passwort<div class="password-input"><input id="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required><button type="button" id="toggle-password">Anzeigen</button></div></label>
       <div class="password-tools"><button class="btn btn-soft btn-small" id="generate-password" type="button">Sicheres Passwort erzeugen</button><button class="btn btn-soft btn-small" id="copy-password" type="button"><svg><use href="#i-copy"/></svg>Kopieren</button></div>
-      <label class="field">Passwort wiederholen<input id="password-confirm" type="password" autocomplete="new-password" minlength="10" maxlength="128" required></label>
       <div class="password-strength"><span id="strength-bar"></span></div><p class="strength-label" id="strength-label">Mindestens 10 Zeichen verwenden.</p>
-      <div class="modal-actions"><button class="btn btn-soft" type="button" data-close-user>Abbrechen</button><button class="btn btn-primary" type="submit" id="save-user">Speichern</button></div>
+      <label class="check-field" id="send-mail-field"><input type="checkbox" id="send-mail"><span id="send-mail-label">Zugangsdaten per E-Mail senden</span></label>
+      <div class="modal-actions"><button class="btn btn-soft" type="button" data-close>Abbrechen</button><button class="btn btn-primary" type="submit" id="save-user">Speichern</button></div>
     </div>
   </form>
 </dialog>
+
 <dialog id="approve-dialog">
   <form id="approve-form">
-    <div class="modal-head"><div><span class="modal-icon"><svg><use href="#i-mail"/></svg></span><div><h2>Zugang freigeben</h2><p id="approve-recipient">Zugangsdaten festlegen und per E-Mail senden.</p></div></div><button class="icon-button" type="button" data-close-approve aria-label="Dialog schließen">×</button></div>
+    <div class="modal-head"><div><span class="modal-icon"><svg><use href="#i-mail"/></svg></span><div><h2>Zugang freigeben</h2><p>Zugangsdaten festlegen und per E-Mail senden.</p></div></div><button class="icon-button" type="button" data-close aria-label="Dialog schließen"><svg><use href="#i-x"/></svg></button></div>
     <div class="modal-body">
       <div class="recipient-card"><span id="approve-name">–</span><strong id="approve-email">–</strong></div>
       <label class="field">Benutzername<input id="approve-username" autocomplete="off" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]+" required><small>Der Vorschlag kann vor der Freigabe geändert werden.</small></label>
       <label class="field">Startpasswort<div class="password-input"><input id="approve-password" type="text" autocomplete="new-password" minlength="10" maxlength="128" required><button type="button" id="copy-approve-password">Kopieren</button></div><small>Das Passwort wird einmalig in der Zugangsmail übermittelt.</small></label>
       <div class="password-tools"><button class="btn btn-soft btn-small" id="generate-approve-password" type="button">Neues Passwort erzeugen</button></div>
-      <div class="modal-actions"><button class="btn btn-soft" type="button" data-close-approve>Abbrechen</button><button class="btn btn-primary" type="submit" id="approve-submit">Konto anlegen & E-Mail senden</button></div>
+      <label class="field">Befristet bis <span class="optional">(optional)</span><input id="approve-expiry" type="date"><small>Danach wird der Zugang automatisch gesperrt. Lässt sich später ändern.</small></label>
+      <div class="modal-actions"><button class="btn btn-soft" type="button" data-close>Abbrechen</button><button class="btn btn-primary" type="submit" id="approve-submit">Konto anlegen &amp; E-Mail senden</button></div>
     </div>
   </form>
 </dialog>
-<dialog id="reject-dialog" class="confirm-dialog"><div class="confirm-content"><span class="danger-icon"><svg><use href="#i-mail"/></svg></span><h2>Anfrage ablehnen?</h2><p id="reject-copy">Die Anfrage wird als abgelehnt archiviert. Es wird kein Konto angelegt.</p><div class="modal-actions"><button class="btn btn-soft" type="button" id="cancel-reject">Abbrechen</button><button class="btn btn-danger" type="button" id="confirm-reject">Anfrage ablehnen</button></div></div></dialog>
-<dialog id="delete-dialog" class="confirm-dialog"><div class="confirm-content"><span class="danger-icon"><svg><use href="#i-trash"/></svg></span><h2>Benutzer löschen?</h2><p id="delete-copy"></p><div class="modal-actions"><button class="btn btn-soft" type="button" id="cancel-delete">Abbrechen</button><button class="btn btn-danger" type="button" id="confirm-delete">Zugang löschen</button></div></div></dialog>
+
+<dialog id="reply-dialog" class="wide-dialog">
+  <form id="reply-form">
+    <div class="modal-head"><div><span class="modal-icon"><svg><use href="#i-reply"/></svg></span><div><h2>Auf Feedback antworten</h2><p id="reply-recipient">–</p></div></div><button class="icon-button" type="button" data-close aria-label="Dialog schließen"><svg><use href="#i-x"/></svg></button></div>
+    <div class="modal-body reply-body">
+      <div class="reply-compose">
+        <div class="field-grid two">
+          <label class="field">Vorlage<select id="reply-template"><option value="">Eigener Text</option><option value="thanks">Danke für das Feedback</option><option value="question">Rückfrage</option><option value="done">Wunsch umgesetzt</option></select></label>
+          <label class="field">Sprache<select id="reply-language"><option value="de">Deutsch</option><option value="en">English</option></select></label>
+        </div>
+        <label class="field">Betreff<input id="reply-subject" maxlength="160" required></label>
+        <label class="field">Nachricht<textarea id="reply-message" rows="12" maxlength="8000" required></textarea><small>Leerzeile = neuer Absatz. Logo, Farben und Fußzeile kommen automatisch aus der Mail-Vorlage. Antworten gehen an deine Adresse.</small></label>
+      </div>
+      <div class="reply-preview"><div class="preview-head"><span>Vorschau</span><button class="btn btn-soft btn-small" type="button" id="reply-refresh-preview"><svg><use href="#i-refresh"/></svg>Aktualisieren</button></div><iframe id="reply-preview" title="Vorschau der E-Mail" sandbox=""></iframe></div>
+    </div>
+    <div class="modal-actions sticky-actions"><button class="btn btn-soft" type="button" data-close>Abbrechen</button><button class="btn btn-primary" type="submit" id="reply-send"><svg><use href="#i-mail"/></svg>Antwort senden</button></div>
+  </form>
+</dialog>
+
+<dialog id="confirm-dialog" class="confirm-dialog"><form method="dialog" class="confirm-content" id="confirm-form"><span class="danger-icon" id="confirm-icon"><svg><use href="#i-alert"/></svg></span><h2 id="confirm-title">Bestätigen</h2><p id="confirm-copy"></p><label class="field" id="confirm-reason-field" hidden>Grund <span class="optional">(optional, nur intern)</span><input id="confirm-reason" maxlength="200"></label><div class="modal-actions"><button class="btn btn-soft" type="button" data-close>Abbrechen</button><button class="btn btn-danger" type="submit" id="confirm-ok">Bestätigen</button></div></form></dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="../assets/admin.js?v=20260916-2"></script>
+<script src="../assets/admin.js?v=20261001-1"></script>
 </body>
 </html>

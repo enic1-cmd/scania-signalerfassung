@@ -121,10 +121,37 @@ async function waitForServer(){
     assert.equal((await api(`/admin/api/feedback/${anon.id}/reply`,{method:'POST',body:JSON.stringify({subject:'Hallo',message:'Test'})})).status,400);
     result.feedbackReply='PASS';
 
+    /* Feedback that only arrived by e-mail can be added from the report file and answered */
+    const report=['TECHNICIAN TEST FEEDBACK','Signal Capture Analysis Tool','Created: 01/10/2026, 17:48:47','','TEST INFORMATION','================','Anonymous: No','Name: Jane Tester','Location / workshop: Example Workshop Leeds','Role / experience: Technical Support','Test date: 2026-10-01','Application version / link: No answer','','ERRORS AND IMPROVEMENT ITEMS','1. Show the curve chart in the PDF'].join('\n');
+    await page.locator('#import-feedback').click();
+    await page.locator('#import-files').setInputFiles([{name:'Feedbackbericht-2026-10-01.txt',mimeType:'text/plain',buffer:Buffer.from(report)},{name:'1-recording.txt',mimeType:'text/plain',buffer:Buffer.from('x'.repeat(2048))}]);
+    await page.waitForFunction(()=>document.getElementById('import-name').value==='Jane Tester');
+    assert.equal(await page.locator('#import-workshop').inputValue(),'Example Workshop Leeds');
+    assert.equal(await page.locator('#import-role').inputValue(),'Technical Support');
+    assert.equal(await page.locator('#import-language').inputValue(),'en');
+    assert.equal(await page.locator('#import-test-date').inputValue(),'2026-10-01');
+    assert.equal(await page.locator('#import-received').inputValue(),'2026-10-01T17:48');
+    assert.equal(await page.locator('#import-attachments').textContent(),'1-recording.txt');
+    await page.locator('#import-submit').click();
+    assert.equal(await page.locator('#import-dialog').evaluate(d=>d.open),true,'E-mail is required for the reply');
+    await page.locator('#import-email').fill('jane@example.com');await page.locator('#import-submit').click();
+    await page.waitForFunction(()=>!document.getElementById('import-dialog').open);
+    assert.match(await page.locator('#feedback-reader').textContent(),/Jane Tester[\s\S]*Nachgetragen am/);
+    const imported=(await api('/admin/api/feedback')).body.feedback.find(f=>f.email==='jane@example.com');
+    assert.equal(imported.name,'Jane Tester');assert.equal(imported.importedBy,'david');assert.equal(imported.attachments[0].filename,'1-recording.txt');
+    await page.locator('[data-reply]').click();
+    await page.waitForFunction(()=>document.getElementById('reply-preview').srcdoc.includes('Jane'));
+    assert.equal(await page.locator('#reply-language').inputValue(),'en','Reply uses the language of the report');
+    await page.locator('#reply-send').click();
+    await page.waitForFunction(()=>!document.getElementById('reply-dialog').open);
+    assert.equal((await api('/admin/api/feedback')).body.feedback.find(f=>f.email==='jane@example.com').status,'done');
+    assert.equal((await api('/admin/api/feedback',{method:'POST',body:JSON.stringify({report:'Ein Bericht ohne Adresse'})})).status,400,'Import needs an e-mail address');
+    result.feedbackImport='PASS';
+
     /* Log lists the admin actions */
     await page.locator('[data-tab="log"]').click();
     const log=await page.locator('#audit-list').textContent();
-    for(const label of ['Zugang freigegeben','Zugang gesperrt','Zugang entsperrt','Passwort geändert','Benutzer angelegt','Feedback beantwortet'])assert(log.includes(label),'Audit shows '+label);
+    for(const label of ['Zugang freigegeben','Zugang gesperrt','Zugang entsperrt','Passwort geändert','Benutzer angelegt','Feedback beantwortet','Feedback nachgetragen'])assert(log.includes(label),'Audit shows '+label);
     result.audit='PASS';
 
     /* CSV */

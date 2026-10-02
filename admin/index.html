@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>Admin Hub | Signalerfassung Analyse-Tool</title>
 <link rel="icon" type="image/png" href="../assets/signalerfassung-app-icon.png">
-<link rel="stylesheet" href="../assets/admin.css?v=20261002-2">
+<link rel="stylesheet" href="../assets/admin.css?v=20261002-3">
 </head>
 <body>
 <svg class="icon-sprite" aria-hidden="true">
@@ -125,7 +125,7 @@
   <section class="tab-panel" id="panel-feedback" role="tabpanel" hidden>
     <div class="feedback-layout">
       <article class="card feedback-list-card">
-        <div class="card-head"><div class="pill-group" role="group" aria-label="Feedback filtern"><button class="active" type="button" data-feedback-filter="open">Offen</button><button type="button" data-feedback-filter="done">Beantwortet</button><button type="button" data-feedback-filter="all">Alle</button></div></div>
+        <div class="card-head"><div class="pill-group" role="group" aria-label="Feedback filtern"><button class="active" type="button" data-feedback-filter="open">Offen</button><button type="button" data-feedback-filter="done">Beantwortet</button><button type="button" data-feedback-filter="all">Alle</button></div><button class="btn btn-soft btn-small" type="button" id="import-feedback" title="Feedback, das nur per E-Mail ankam, im Hub erfassen"><svg><use href="#i-plus"/></svg>Nachtragen</button></div>
         <div class="feedback-list" id="feedback-list"></div>
       </article>
       <article class="card feedback-reader" id="feedback-reader"><div class="empty-state">Feedback in der Liste auswählen.</div></article>
@@ -200,9 +200,30 @@
   </form>
 </dialog>
 
+<dialog id="import-dialog" class="wide-dialog">
+  <form id="import-form">
+    <div class="modal-head"><div><span class="modal-icon"><svg><use href="#i-chat"/></svg></span><div><h2>Feedback nachtragen</h2><p>Für Feedback, das nur per E-Mail ankam. Danach kannst du wie gewohnt antworten.</p></div></div><button class="icon-button" type="button" data-close aria-label="Dialog schließen"><svg><use href="#i-x"/></svg></button></div>
+    <div class="modal-body">
+      <label class="field">Dateien aus der Feedback-Mail<input id="import-files" type="file" accept=".txt,text/plain,image/png,image/jpeg" multiple><small>Feedbackbericht (.txt) auswählen, gern auch die Anhänge. Name, Werkstatt, Rolle, Testdatum und Sprache werden aus dem Bericht übernommen. Anhänge werden nur als Liste vermerkt.</small></label>
+      <div class="field-grid">
+        <label class="field">Name<input id="import-name" maxlength="100"></label>
+        <label class="field">E-Mail für die Antwort<input id="import-email" type="email" maxlength="254" required placeholder="name@werkstatt.de"></label>
+        <label class="field">Werkstatt / Standort<input id="import-workshop" maxlength="120"></label>
+        <label class="field">Rolle / Erfahrung<input id="import-role" maxlength="180"></label>
+        <label class="field">Sprache<select id="import-language"><option value="de">Deutsch</option><option value="en">English</option></select></label>
+        <label class="field">Testdatum<input id="import-test-date" type="date"></label>
+        <label class="field">Eingang<input id="import-received" type="datetime-local" required></label>
+        <div class="field">Anhänge<span class="muted" id="import-attachments">keine</span></div>
+      </div>
+      <label class="field">Feedbackbericht<textarea id="import-report" rows="10" maxlength="120000" required placeholder="Bericht hochladen oder hier einfügen"></textarea></label>
+      <div class="modal-actions"><button class="btn btn-soft" type="button" data-close>Abbrechen</button><button class="btn btn-primary" type="submit" id="import-submit"><svg><use href="#i-check"/></svg>Feedback speichern</button></div>
+    </div>
+  </form>
+</dialog>
+
 <dialog id="confirm-dialog" class="confirm-dialog"><form method="dialog" class="confirm-content" id="confirm-form"><span class="danger-icon" id="confirm-icon"><svg><use href="#i-alert"/></svg></span><h2 id="confirm-title">Bestätigen</h2><p id="confirm-copy"></p><label class="field" id="confirm-reason-field" hidden>Grund <span class="optional">(optional, nur intern)</span><input id="confirm-reason" maxlength="200"></label><div class="modal-actions"><button class="btn btn-soft" type="button" data-close>Abbrechen</button><button class="btn btn-danger" type="submit" id="confirm-ok">Bestätigen</button></div></form></dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="../assets/admin.js?v=20261002-2"></script>
+<script src="../assets/admin.js?v=20261002-3"></script>
 </body>
 </html>

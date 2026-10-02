@@ -605,6 +605,35 @@ function storeFeedback(feedback, mailOk) {
   }).catch((error) => console.error('Feedback not stored:', error.message));
 }
 
+/** A feedback form that only arrived by e-mail (e.g. before the hub stored feedback), entered by an admin. */
+function validateImportedFeedback(body) {
+  const report = String(body.report || '').replace(/\0/g, '').replace(/\r\n/g, '\n').trim();
+  if (report.length < 10 || report.length > 120000) throw new Error('Bitte den Feedbackbericht einfügen oder hochladen.');
+  const received = body.receivedAt ? Date.parse(body.receivedAt) : Date.now();
+  if (!Number.isFinite(received) || received > Date.now() + 60000) throw new Error('Bitte ein gültiges Eingangsdatum wählen.');
+  const line = (value, max) => String(value || '').replace(/[<>\r\n\0]/g, '').trim().slice(0, max);
+  const attachments = (Array.isArray(body.attachments) ? body.attachments : []).slice(0, FEEDBACK_MAX_ATTACHMENTS)
+    .map((item) => ({ filename: path.basename(line(item.filename, 160)), size: Math.max(0, Math.min(Number(item.size) || 0, FEEDBACK_MAX_ATTACHMENT_BYTES)) }))
+    .filter((item) => item.filename);
+  return {
+    language: validateLanguage(body.language), anonymous: false, email: validateEmail(body.email), name: line(body.name, 100),
+    workshop: line(body.workshop, 120), role: line(body.role, 180),
+    testDate: /^\d{4}-\d{2}-\d{2}$/.test(String(body.testDate || '')) ? body.testDate : '',
+    receivedAt: new Date(received).toISOString(), report, attachments
+  };
+}
+
+function importFeedback(feedback, admin) {
+  return serializeFeedbackMutation(() => {
+    const entries = readFeedbackEntries();
+    const entry = { id: crypto.randomUUID(), ...feedback, mailOk: true, status: 'read', replies: [], importedBy: admin, importedAt: new Date().toISOString() };
+    entries.push(entry);
+    entries.sort((a, b) => String(b.receivedAt).localeCompare(String(a.receivedAt)));
+    writeJsonFile(FEEDBACK_FILE, entries);
+    return entry;
+  });
+}
+
 function updateFeedback(id, update) {
   return serializeFeedbackMutation(() => {
     const entries = readFeedbackEntries();
@@ -1146,6 +1175,13 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'GET' && url.pathname === '/admin/api/feedback') {
       sendJson(res, 200, { feedback: readFeedbackEntries() });
+      return;
+    }
+    if (req.method === 'POST' && url.pathname === '/admin/api/feedback') {
+      if (!verifyMutation(req, res)) return;
+      const entry = await importFeedback(validateImportedFeedback(await readBody(req, 256 * 1024)), admin);
+      auditLog(admin, 'feedback_imported', entry.email, entry.name || '');
+      sendJson(res, 201, { ok: true, feedback: entry });
       return;
     }
     const feedbackMatch = url.pathname.match(/^\/admin\/api\/feedback\/([^/]+)$/);

@@ -7,7 +7,7 @@
   const $=id=>document.getElementById(id);
   const toast=$('toast');
   const EVENTS={page_view:['Seite aufgerufen','i-eye'],app_open:['Analyse-App geöffnet','i-activity'],file_upload:['Datei ausgewertet','i-file'],excel_export:['Excel exportiert','i-export'],pdf_export:['PDF exportiert','i-export']};
-  const AUDIT={request_approved:['Zugang freigegeben','i-check'],request_rejected:['Anfrage abgelehnt','i-x'],user_created:['Benutzer angelegt','i-plus'],password_changed:['Passwort geändert','i-key'],user_updated:['Benutzerdaten geändert','i-users'],user_blocked:['Zugang gesperrt','i-lock'],user_unblocked:['Zugang entsperrt','i-unlock'],user_deleted:['Benutzer gelöscht','i-trash'],account_expired:['Zugang abgelaufen','i-clock'],feedback_reply:['Feedback beantwortet','i-reply'],feedback_deleted:['Feedback gelöscht','i-trash']};
+  const AUDIT={request_approved:['Zugang freigegeben','i-check'],request_rejected:['Anfrage abgelehnt','i-x'],user_created:['Benutzer angelegt','i-plus'],password_changed:['Passwort geändert','i-key'],user_updated:['Benutzerdaten geändert','i-users'],user_blocked:['Zugang gesperrt','i-lock'],user_unblocked:['Zugang entsperrt','i-unlock'],user_deleted:['Benutzer gelöscht','i-trash'],account_expired:['Zugang abgelaufen','i-clock'],feedback_reply:['Feedback beantwortet','i-reply'],feedback_deleted:['Feedback gelöscht','i-trash'],feedback_imported:['Feedback nachgetragen','i-plus']};
   const SERIES=[['pageViews','Aufrufe','#9cc3e4'],['uploads','Dateien','#075ba7'],['exports','Exporte','#f5ad16']];
 
   async function api(url,options={}){
@@ -266,6 +266,7 @@
       <div class="reader-body">
         <div class="reader-actions" style="justify-content:flex-start"><button class="btn btn-primary" type="button" data-reply ${f.email?'':'disabled'}>${icon('i-reply')}Antworten</button>${f.status==='done'?'<button class="btn btn-soft" type="button" data-feedback-status="read">Wieder öffnen</button>':'<button class="btn btn-soft" type="button" data-feedback-status="done">Als erledigt markieren</button>'}<button class="btn btn-danger-soft" type="button" data-feedback-delete>${icon('i-trash')}Löschen</button></div>
         ${f.email?'':`<p class="reader-note">${f.anonymous?'Anonym abgegeben':'Ohne E-Mail-Adresse abgegeben'}: eine Antwort ist nicht möglich.</p>`}
+        ${f.importedBy?`<p class="reader-note">Nachgetragen am ${esc(dateLabel(f.importedAt))} von ${esc(f.importedBy)} – kam ursprünglich nur per E-Mail.</p>`:''}
         ${f.mailOk===false?'<p class="reader-note">Die Benachrichtigungsmail zu diesem Feedback konnte nicht versendet werden. Der Bericht liegt nur hier vor.</p>':''}
         ${(f.replies||[]).length?`<div class="replies">${f.replies.map(r=>`<div class="reply-item">${icon('i-reply')}<span>Beantwortet am ${esc(dateLabel(r.at))}: <b>${esc(r.subject)}</b></span></div>`).join('')}</div>`:''}
         ${(f.attachments||[]).length?`<div class="chips">${f.attachments.map(a=>`<span class="chip">${icon('i-paperclip')}${esc(a.filename)} · ${fmt.format(Math.max(1,Math.round(a.size/1024)))} KB</span>`).join('')}<span class="chip">Dateien liegen der Feedback-Mail bei</span></div>`:''}
@@ -310,7 +311,7 @@
     state.replyId=f.id;
     $('reply-recipient').textContent=`An ${f.name?f.name+' ':''}<${f.email}>`;
     $('reply-language').value=f.language==='en'?'en':'de';$('reply-template').value='thanks';applyTemplate();
-    $('reply-dialog').showModal();setTimeout(()=>$('reply-message').focus(),40);
+    $('reply-dialog').showModal();focusField('reply-message');
   }
   function schedulePreview(delay=450){clearTimeout(previewTimer);previewTimer=setTimeout(updatePreview,delay);}
   async function updatePreview(){
@@ -330,6 +331,60 @@
       const r=await api(`/admin/api/feedback/${encodeURIComponent(state.replyId)}/reply`,{method:'POST',body:JSON.stringify({subject:$('reply-subject').value,message:$('reply-message').value,language:$('reply-language').value})});
       const f=state.feedback.find(x=>x.id===state.replyId);if(f)Object.assign(f,r.feedback);
       $('reply-dialog').close();renderAllFeedback();showToast('Antwort wurde gesendet.');loadAudit();
+    }catch(error){showToast(error.message,true);}finally{button.disabled=false;}
+  });
+
+  /* ---------- Add feedback that only arrived by e-mail ---------- */
+  const IMPORT_LABELS={
+    name:['Name'],
+    email:['E-Mail','E-mail','Email','Kontakt-E-Mail','Contact e-mail'],
+    workshop:['Location / workshop','Ort / Werkstatt','Standort / Werkstatt','Werkstatt / Standort','Werkstatt','Workshop'],
+    role:['Role / experience','Rolle / Erfahrung','Rolle','Role'],
+    testDate:['Test date','Testdatum'],
+    created:['Created','Erstellt']
+  };
+  function reportField(text,labels){
+    for(const label of labels){
+      const match=text.match(new RegExp('^'+label.replace(/[.*+?^${}()|[\]\\/]/g,'\\$&')+':[ \\t]*(.+)$','mi'));
+      if(match&&!/^(no answer|keine angabe|nicht angegeben)$/i.test(match[1].trim()))return match[1].trim();
+    }
+    return '';
+  }
+  /* "01/10/2026, 17:48:47" or "01.10.2026, 17:48:47" -> value for datetime-local */
+  function reportCreated(text){
+    const m=reportField(text,IMPORT_LABELS.created).match(/(\d{1,2})[./](\d{1,2})[./](\d{4}),?\s+(\d{1,2}):(\d{2})/);
+    return m?`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}T${m[4].padStart(2,'0')}:${m[5]}`:'';
+  }
+  function fillFromReport(text){
+    $('import-report').value=text.trim();
+    $('import-language').value=/^\s*TECHNICIAN TEST FEEDBACK/i.test(text)?'en':'de';
+    [['import-name','name'],['import-email','email'],['import-workshop','workshop'],['import-role','role']].forEach(([id,key])=>{const value=reportField(text,IMPORT_LABELS[key]);if(value)$(id).value=value;});
+    const testDate=reportField(text,IMPORT_LABELS.testDate);if(/^\d{4}-\d{2}-\d{2}$/.test(testDate))$('import-test-date').value=testDate;
+    const created=reportCreated(text);if(created)$('import-received').value=created;
+  }
+  function localInput(date){return `${inputDate(date.toISOString())}T${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;}
+  $('import-feedback').addEventListener('click',()=>{
+    $('import-form').reset();state.importAttachments=[];$('import-attachments').textContent='keine';
+    $('import-received').value=localInput(new Date());
+    $('import-dialog').showModal();
+  });
+  $('import-files').addEventListener('change',async()=>{
+    const files=Array.from($('import-files').files||[]);
+    const report=files.find(f=>/feedback/i.test(f.name)&&/\.txt$/i.test(f.name))||(files.length===1&&/\.txt$/i.test(files[0].name)?files[0]:null);
+    state.importAttachments=files.filter(f=>f!==report).map(f=>({filename:f.name,size:f.size}));
+    $('import-attachments').textContent=state.importAttachments.length?state.importAttachments.map(a=>a.filename).join(', '):'keine';
+    if(report){try{fillFromReport(await report.text());}catch{showToast('Der Bericht konnte nicht gelesen werden.',true);}}
+    else if(files.length)showToast('Kein Feedbackbericht (.txt) erkannt – Bericht bitte einfügen.',true);
+  });
+  $('import-form').addEventListener('submit',async event=>{
+    event.preventDefault();const button=$('import-submit');button.disabled=true;
+    try{
+      const received=new Date($('import-received').value);
+      const r=await api('/admin/api/feedback',{method:'POST',body:JSON.stringify({name:$('import-name').value,email:$('import-email').value,workshop:$('import-workshop').value,role:$('import-role').value,language:$('import-language').value,testDate:$('import-test-date').value,receivedAt:Number.isFinite(received.getTime())?received.toISOString():'',report:$('import-report').value,attachments:state.importAttachments||[]})});
+      $('import-dialog').close();
+      state.feedback.unshift(r.feedback);state.feedback.sort((a,b)=>String(b.receivedAt).localeCompare(String(a.receivedAt)));
+      state.feedbackFilter='open';syncPills('feedback-filter','open');renderAllFeedback();selectFeedback(r.feedback.id,false);showFeedbackReader(true);loadAudit();
+      showToast('Feedback wurde nachgetragen. Du kannst jetzt antworten.');
     }catch(error){showToast(error.message,true);}finally{button.disabled=false;}
   });
 
@@ -360,6 +415,8 @@
     dialog.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>dialog.close()));
     dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
   });
+  /* Focus right away (a delayed focus could move typing into another field); on touch screens no keyboard pops up unasked. */
+  function focusField(id){if(matchMedia('(hover:hover)').matches)$(id).focus();}
   function confirmAction({title,copy,ok,reason=false,danger=true}){
     return new Promise(resolve=>{
       const dialog=$('confirm-dialog');$('confirm-title').textContent=title;$('confirm-copy').textContent=copy;$('confirm-ok').textContent=ok;
@@ -396,7 +453,7 @@
     $('dialog-subtitle').textContent=mode==='create'?'Neuen Zugang zur Analyse-App einrichten.':`Neues Passwort für ${account.name||account.username} festlegen.`;
     document.querySelector('.create-only').hidden=mode!=='create';$('username').required=mode==='create';
     $('password').type='password';$('toggle-password').textContent='Anzeigen';syncSendMail();
-    $('user-dialog').showModal();setTimeout(()=>$(mode==='create'?'username':'password').focus(),40);
+    $('user-dialog').showModal();focusField(mode==='create'?'username':'password');
   }
   $('add-user').addEventListener('click',()=>openUserDialog('create'));
   $('create-email').addEventListener('input',syncSendMail);
@@ -431,7 +488,7 @@
       const r=state.requests.find(x=>x.id===approve.dataset.approve);if(!r)return;
       if(!state.mail||!state.mail.configured){showToast('Zuerst den E-Mail-Versand konfigurieren. Es wurde kein Konto angelegt.',true);return;}
       state.approveId=r.id;$('approve-name').textContent=r.name;$('approve-email').textContent=r.email;$('approve-username').value=usernameSuggestion(r);$('approve-password').value=securePassword();$('approve-expiry').value='';
-      $('approve-dialog').showModal();setTimeout(()=>$('approve-username').focus(),40);return;
+      $('approve-dialog').showModal();focusField('approve-username');return;
     }
     const reject=event.target.closest('[data-reject]');
     if(reject){

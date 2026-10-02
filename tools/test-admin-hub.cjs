@@ -115,6 +115,8 @@ async function waitForServer(){
     await page.waitForFunction(()=>!document.getElementById('reply-dialog').open);
     const replied=(await api('/admin/api/feedback')).body.feedback.find(f=>f.email==='stefan@example.com');
     assert.equal(replied.status,'done');assert.equal(replied.replies[0].subject,'Danke für dein Feedback, Stefan');
+    assert.match(replied.replies[0].message,/Hallo Stefan/,'The reply text is stored with the feedback');assert.equal(replied.replies[0].copyTo,'david.breuer@breuer-trucks.de','Admin gets a blind copy');
+    await page.waitForFunction(()=>/Hallo Stefan/.test(document.querySelector('#feedback-reader .reply-text')?.textContent||''));
     await page.locator('[data-feedback-filter="all"]').click();
     await page.locator('.feedback-item',{hasText:'Anonymes Feedback'}).click();
     assert.equal(await page.locator('[data-reply]').isDisabled(),true,'Anonymous feedback cannot be answered');

@@ -1218,7 +1218,7 @@ const server = http.createServer(async (req, res) => {
       const record = { id: crypto.randomUUID(), at: new Date().toISOString(), by: admin, to: entry.email, name: entry.name, subject: message.subject, context: { type: 'feedback', id } };
       appendLine(MESSAGES_FILE, record);
       auditLog(admin, 'feedback_reply', entry.email, message.subject);
-      const updated = await updateFeedback(id, (item) => ({ ...item, status: 'done', replies: [...(item.replies || []), { at: record.at, subject: message.subject, by: admin }] }));
+      const updated = await updateFeedback(id, (item) => ({ ...item, status: 'done', replies: [...(item.replies || []), { at: record.at, subject: message.subject, by: admin, language: message.language, message: message.message, copyTo: mailer.status().copyTo || '' }] }));
       sendJson(res, 201, { ok: true, feedback: updated });
       return;
     }

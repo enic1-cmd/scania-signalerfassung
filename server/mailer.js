@@ -17,6 +17,8 @@ const FEEDBACK_URL = String(process.env.FEEDBACK_URL || 'https://feedback.signal
 const LOGO_FILE = path.join(__dirname, '..', 'assets', 'signalerfassung-wordmark.png');
 // Replies to personal messages from the Admin Hub go to the administrator, not to the sending mailbox.
 const ADMIN_REPLY_TO = String(process.env.ADMIN_REPLY_TO || REQUEST_NOTIFY_TO).trim();
+/* Every personal message from the hub also goes to the admin as a blind copy, so it shows up in the own mailbox. */
+const ADMIN_COPY_TO = String(process.env.ADMIN_COPY_TO ?? ADMIN_REPLY_TO).trim();
 const ADMIN_SIGNATURE_NAME = String(process.env.ADMIN_SIGNATURE_NAME || 'David Breuer').trim();
 
 function escapeHtml(value) {
@@ -205,6 +207,7 @@ function buildAdminMessage({ email, name, language: requestedLanguage, subject, 
   const english = language === 'en';
   return {
     to: name ? `"${String(name).replace(/["\\]/g, '')}" <${email}>` : email,
+    ...(ADMIN_COPY_TO && ADMIN_COPY_TO.toLowerCase() !== String(email).toLowerCase() ? { bcc: ADMIN_COPY_TO } : {}),
     replyTo: ADMIN_REPLY_TO,
     subject,
     headers: { 'Content-Language': language },
@@ -271,5 +274,5 @@ module.exports = {
   sendAccessRequestConfirmation,
   sendWelcomeEmail,
   sendFeedback,
-  status: () => ({ configured: configured(), sender: SMTP_USER || null, notifyTo: REQUEST_NOTIFY_TO, feedbackTo: FEEDBACK_NOTIFY_TO })
+  status: () => ({ configured: configured(), sender: SMTP_USER || null, copyTo: ADMIN_COPY_TO || null, notifyTo: REQUEST_NOTIFY_TO, feedbackTo: FEEDBACK_NOTIFY_TO })
 };

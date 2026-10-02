@@ -182,7 +182,11 @@ main{padding:20px 0 36px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;background:#eef3f8;color:#4d6279;font-size:11.5px}
 .replies{display:grid;gap:6px}
-.reply-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;background:var(--green-soft);color:#0f5e35;font-size:12px}
+.reply-item{padding:8px 10px;border-radius:9px;background:var(--green-soft);color:#0f5e35;font-size:12px}
+.reply-item summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none}
+.reply-item summary::-webkit-details-marker{display:none}
+.reply-item small{display:block;margin-top:6px;color:#3d6b52}
+.reply-text{margin:8px 0 0;padding:10px 12px;border-radius:8px;background:#fff;color:#1d3350;white-space:pre-wrap;overflow-wrap:anywhere;font:12.5px/1.55 "Segoe UI",system-ui,sans-serif}
 /* Log */
 .log-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .log-list{list-style:none;margin:0;padding:4px 0;max-height:62vh;overflow:auto}

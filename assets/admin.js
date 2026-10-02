@@ -268,7 +268,7 @@
         ${f.email?'':`<p class="reader-note">${f.anonymous?'Anonym abgegeben':'Ohne E-Mail-Adresse abgegeben'}: eine Antwort ist nicht möglich.</p>`}
         ${f.importedBy?`<p class="reader-note">Nachgetragen am ${esc(dateLabel(f.importedAt))} von ${esc(f.importedBy)} – kam ursprünglich nur per E-Mail.</p>`:''}
         ${f.mailOk===false?'<p class="reader-note">Die Benachrichtigungsmail zu diesem Feedback konnte nicht versendet werden. Der Bericht liegt nur hier vor.</p>':''}
-        ${(f.replies||[]).length?`<div class="replies">${f.replies.map(r=>`<div class="reply-item">${icon('i-reply')}<span>Beantwortet am ${esc(dateLabel(r.at))}: <b>${esc(r.subject)}</b></span></div>`).join('')}</div>`:''}
+        ${(f.replies||[]).length?`<div class="replies">${f.replies.map((r,i)=>`<details class="reply-item"${i===f.replies.length-1?' open':''}><summary>${icon('i-reply')}<span>Antwort vom ${esc(dateLabel(r.at))}${r.by?` · ${esc(r.by)}`:''}: <b>${esc(r.subject)}</b></span></summary>${r.message?`<pre class="reply-text">${esc(r.message)}</pre>${r.copyTo?`<small>Kopie an ${esc(r.copyTo)}</small>`:''}`:'<small>Der Text dieser Antwort wurde vor dem Update nicht gespeichert. Eine Kopie liegt im Gmail-Konto unter „Gesendet“.</small>'}</details>`).join('')}</div>`:''}
         ${(f.attachments||[]).length?`<div class="chips">${f.attachments.map(a=>`<span class="chip">${icon('i-paperclip')}${esc(a.filename)} · ${fmt.format(Math.max(1,Math.round(a.size/1024)))} KB</span>`).join('')}<span class="chip">Dateien liegen der Feedback-Mail bei</span></div>`:''}
         <pre class="reader-report">${esc(f.report)}</pre>
       </div>`;

@@ -6,7 +6,7 @@ const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const samples=path.join(root,'samples');
 const browserTests=[
-  'test-pan-export','test-annotations','test-toolbox','test-chart-height','test-workspace-layout','test-help',
+  'test-pan-export','test-annotations','test-toolbox','test-analysis-tools','test-chart-height','test-workspace-layout','test-help',
   'test-export-report','test-export-multi','test-access-request','test-admin-hub','test-public-legal','test-landing-language-layout','test-email-localization'
 ];
 const runs=[{name:'server',cmd:process.execPath,args:['--test'],cwd:path.join(root,'server')}];

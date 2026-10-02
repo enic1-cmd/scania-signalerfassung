@@ -465,6 +465,7 @@ th.signal-th{position:relative;padding-right:42px}
 <link rel="stylesheet" href="assets/chart-height.css?v=20261001-1">
 <link rel="stylesheet" href="assets/chart-signals.css?v=20261001-1">
 <link rel="stylesheet" href="assets/help.css?v=20261001-1">
+<link rel="stylesheet" href="assets/chart-tools.css?v=20261002-1">
 </head>
 <body>
 <header>
@@ -489,7 +490,7 @@ th.signal-th{position:relative;padding-right:42px}
             <button type="button" data-export-scope="active" aria-pressed="false">Nur diese Datei</button>
           </div>
         </div>
-        <button class="export-option btn-pdf" type="button" onclick="closeExportMenu();saveExport('pdf')">
+        <button class="export-option btn-pdf" type="button" onclick="closeExportMenu();if(window.PdfOptions)PdfOptions.open();else saveExport('pdf')">
           <span class="export-icon" aria-hidden="true"><img src="assets/vendor/file-icons/acrobat.svg" alt="" width="30" height="30"></span>
           <span class="export-copy">PDF-Auswertung<small>Druckfertiger Bericht</small></span>
         </button>
@@ -1008,6 +1009,8 @@ function applyAppLanguage(lang){
   if(window.WorkspaceLayout&&WorkspaceLayout.sync)WorkspaceLayout.sync();
   if(window.ChartHeight&&ChartHeight.sync)ChartHeight.sync();
   if(window.ChartSignals&&ChartSignals.sync)ChartSignals.sync();
+  ['ChartHighlight','ChartMeasure','ChartPairs','PdfOptions'].forEach(function(name){if(window[name]&&window[name].sync)window[name].sync();});
+  if(S.files&&S.files.length&&S.view==='chart')renderChart();
   if(typeof syncExportScope==='function')syncExportScope();
   if(window.AppHelp&&AppHelp.rebuild)AppHelp.rebuild();
 }
@@ -1613,11 +1616,18 @@ function chartSelection(A){
 function chartSignals(A,rows){return chartSelection(A).signals;}
 function chartColor(index){return CHART_COLORS[index%CHART_COLORS.length];}
 function chartGeometry(width,height,scale){scale=scale||1;return {left:245*scale,right:26*scale,top:18*scale,bottom:38*scale};}
-/* Signals flagged "overlay" share one taller lane; all others keep their own lane and scale. */
+/* Signals flagged "overlay" share one taller lane; all others keep their own lane and scale.
+   Active set/actual pairs (ChartPairs) get their own lane with a shared scale, placed where their first signal is. */
 function chartLanes(A,signals){
-  var overlay=signals.filter(function(s){return !!s.overlay;}),useOverlay=overlay.length>=2,lanes=[];
+  var pairs=window.ChartPairs&&A?ChartPairs.lanePairs(A,signals):[],pairOf=new Map();
+  pairs.forEach(function(pair){pairOf.set(pair.set,pair);pairOf.set(pair.act,pair);});
+  var overlay=signals.filter(function(s){return !!s.overlay&&!pairOf.has(s);}),useOverlay=overlay.length>=2,lanes=[],placed=new Set();
   if(useOverlay)lanes.push({signals:overlay,overlay:true,shared:!!(A&&A.chartSharedScale),weight:Math.min(4,1.4+overlay.length*.6)});
-  signals.forEach(function(s){if(!(useOverlay&&s.overlay))lanes.push({signals:[s],overlay:false,shared:false,weight:1});});
+  signals.forEach(function(s){
+    var pair=pairOf.get(s);
+    if(pair){if(!placed.has(pair)){placed.add(pair);lanes.push({signals:[pair.set,pair.act],overlay:true,shared:true,pair:pair,weight:2.2});}return;}
+    if(!(useOverlay&&s.overlay))lanes.push({signals:[s],overlay:false,shared:false,weight:1});
+  });
   return lanes;
 }
 function layoutChartLanes(lanes,top,height){
@@ -1851,6 +1861,9 @@ function drawChartCanvas(canvas,A,allRows,signals,options){
     ctx.fillText(rows[rowIndex]?rows[rowIndex].ts:'',gridX,cssH-17*scale);
   }
   var buckets=Math.min(1400,Math.max(160,Math.round(plotW*(exportMode?Math.max(1,dpr):1)/2))),labelHits=[],starSpots=[];
+  /* Highlight (screen only): one curve stays strong, the others fade. Exports are never affected. */
+  var highlighted=!exportMode&&window.ChartHighlight?ChartHighlight.current(A,signals):null;
+  function nameColor(signal){return highlighted&&signal!==highlighted?'#a7b6c6':'#143b61';}
   var starX=left-CHART_STAR_INSET*scale,nameW=(exportMode?195:180)*scale;
   lanes.forEach(function(lane){
     var y0=lane.y0,y1=lane.y1,laneH=y1-y0,pad=Math.min(10*scale,laneH*.16),usable=Math.max(6,laneH-pad*2),compact=laneH<46*scale;
@@ -1861,8 +1874,8 @@ function drawChartCanvas(canvas,A,allRows,signals,options){
     function rangeText(signal,r){return (signal.unit?'['+signal.unit+']  ':'')+(isFinite(r.min)?r.min.toLocaleString(locale())+' '+t('range')+' '+r.max.toLocaleString(locale()):t('noValues'));}
     if(!lane.overlay){
       var signal=lane.signals[0],name=signal.displayName||signal.desc||signal.id,nameY=compact?y0+laneH/2:y0+18*scale;
-      ctx.fillStyle=colors.get(signal);ctx.fillRect(14*scale,nameY-1.5*scale,18*scale,3*scale);
-      ctx.font='700 '+(Math.min(11,Math.max(8,laneH/scale*.3))*scale)+'px Segoe UI, sans-serif';ctx.fillStyle='#143b61';ctx.textAlign='left';
+      ctx.fillStyle=colors.get(signal);ctx.globalAlpha=highlighted&&signal!==highlighted?.3:1;ctx.fillRect(14*scale,nameY-1.5*scale,18*scale,3*scale);ctx.globalAlpha=1;
+      ctx.font='700 '+(Math.min(11,Math.max(8,laneH/scale*.3))*scale)+'px Segoe UI, sans-serif';ctx.fillStyle=nameColor(signal);ctx.textAlign='left';
       var shown=fitCanvasText(ctx,name,nameW);ctx.fillText(shown,40*scale,nameY);
       starSpots.push({x:starX,y:nameY,signal:signal,overlay:false});
       if(!compact){
@@ -1870,20 +1883,21 @@ function drawChartCanvas(canvas,A,allRows,signals,options){
         ctx.fillText(fitCanvasText(ctx,rangeText(signal,reduced[0]),215*scale),14*scale,y0+36*scale);
       }
       var fullLabel=compact?name+'\n'+rangeText(signal,reduced[0]):name;
-      labelHits.push({x0:0,x1:left,y0:y0,y1:y1,name:fullLabel,truncated:compact||shown!==name});
+      labelHits.push({x0:0,x1:left,y0:y0,y1:y1,name:fullLabel,truncated:compact||shown!==name,signal:signal});
     }else{
       ctx.font='800 '+(9*scale)+'px Segoe UI, sans-serif';ctx.fillStyle='#5b7086';ctx.textAlign='left';
-      ctx.fillText((t('overlayLane')+(lane.shared?' · '+t('sharedScaleShort'):'')).toUpperCase(),14*scale,y0+11*scale);
+      if(lane.pair&&window.ChartPairs){ChartPairs.drawLaneLabel(ctx,14*scale,y0+11*scale,scale);ctx.font='800 '+(9*scale)+'px Segoe UI, sans-serif';ctx.fillStyle='#5b7086';ctx.textAlign='left';}
+      else ctx.fillText((t('overlayLane')+(lane.shared?' · '+t('sharedScaleShort'):'')).toUpperCase(),14*scale,y0+11*scale);
       var available=laneH-24*scale,twoLines=available>=lane.signals.length*29*scale,lineH=(twoLines?29:15)*scale;
       var fit=Math.max(1,Math.floor(available/lineH)),showCount=lane.signals.length>fit?Math.max(1,fit-1):lane.signals.length;
       lane.signals.slice(0,showCount).forEach(function(signal,k){
         var y=y0+26*scale+k*lineH,name=signal.displayName||signal.desc||signal.id;
-        ctx.fillStyle=colors.get(signal);ctx.fillRect(14*scale,y-1.5*scale,18*scale,3*scale);
-        ctx.font='700 '+(10.5*scale)+'px Segoe UI, sans-serif';ctx.fillStyle='#143b61';ctx.textAlign='left';
+        ctx.fillStyle=colors.get(signal);ctx.globalAlpha=highlighted&&signal!==highlighted?.3:1;ctx.fillRect(14*scale,y-1.5*scale,18*scale,3*scale);ctx.globalAlpha=1;
+        ctx.font='700 '+(10.5*scale)+'px Segoe UI, sans-serif';ctx.fillStyle=nameColor(signal);ctx.textAlign='left';
         var shown=fitCanvasText(ctx,name,nameW);ctx.fillText(shown,40*scale,y);
         starSpots.push({x:starX,y:y,signal:signal,overlay:true});
         if(twoLines){ctx.font=(9.5*scale)+'px Consolas, monospace';ctx.fillStyle='#6b7f92';ctx.fillText(fitCanvasText(ctx,rangeText(signal,reduced[k]),200*scale),40*scale,y+13*scale);}
-        labelHits.push({x0:0,x1:left,y0:y-8*scale,y1:y-8*scale+lineH,name:name,truncated:shown!==name});
+        labelHits.push({x0:0,x1:left,y0:y-8*scale,y1:y-8*scale+lineH,name:name,truncated:shown!==name,signal:signal});
       });
       if(showCount<lane.signals.length){
         var hidden=lane.signals.slice(showCount);
@@ -1902,11 +1916,17 @@ function drawChartCanvas(canvas,A,allRows,signals,options){
         });
       }
     }
-    lane.signals.forEach(function(signal,k){
-      var r=reduced[k];if(!r.segments.length)return;
+    if(lane.pair&&window.ChartPairs)ChartPairs.drawDeviations(ctx,A,lane.pair,allRows,windowData,left,plotW,y0,y1,scale);
+    /* The highlighted curve is drawn last so it stays on top of an overlay lane. */
+    var order=lane.signals.map(function(signal,k){return k;});
+    if(highlighted)order.sort(function(a,b){return (lane.signals[a]===highlighted)-(lane.signals[b]===highlighted);});
+    order.forEach(function(k){
+      var signal=lane.signals[k],r=reduced[k];if(!r.segments.length)return;
       var min=lane.shared?sharedMin:r.min,max=lane.shared?sharedMax:r.max,range=max-min,color=colors.get(signal);
       if(range===0)range=Math.max(1,Math.abs(max)*.1);
-      ctx.strokeStyle=color;ctx.lineWidth=1.7*scale;ctx.lineJoin='round';ctx.lineCap='round';
+      var faded=highlighted&&signal!==highlighted;
+      ctx.globalAlpha=faded?.16:1;
+      ctx.strokeStyle=color;ctx.lineWidth=(highlighted===signal?2.8:1.7)*scale;ctx.lineJoin='round';ctx.lineCap='round';
       r.segments.forEach(function(segment){
         if(segment.length===1){
           var only=segment[0],onlyX=left+only.ratio*plotW,onlyY=y1-pad-((only.value-min)/range)*usable;
@@ -1919,11 +1939,13 @@ function drawChartCanvas(canvas,A,allRows,signals,options){
         });
         ctx.stroke();
       });
+      ctx.globalAlpha=1;
     });
   });
   drawMarkedChartRuns(ctx,rows,left,top,plotW,plotH,windowData,'lines',scale);
   drawCaptureMarkers(ctx,A,rows,left,top,plotW,plotH,windowData,scale);
   if(window.Annotations&&Annotations.drawLabels)Annotations.drawLabels(ctx,A,rows,left,top,plotW,plotH,windowData,scale);
+  if(!exportMode&&window.ChartMeasure)ChartMeasure.draw(ctx,A,rows,left,top,plotW,plotH,windowData,scale);
   var starHits=exportMode?[]:drawLaneStars(ctx,starSpots,colors,scale);
   return {lanes:lanes,labelHits:labelHits,starHits:starHits,left:left,right:right,top:top,bottom:bottom,plotW:plotW,plotH:plotH,windowData:windowData,colors:colors};
 }
@@ -2076,6 +2098,7 @@ function cloneFileForExport(file){
     filterFrom:file.filterFrom||'',filterTo:file.filterTo||'',filterSearch:file.filterSearch||'',
     ranges:(file.ranges||[]).map(function(range){return Object.assign({},range);}),
     txtMarkersVisible:file.txtMarkersVisible!==false,txtMarkerColor:file.txtMarkerColor||'',chartSharedScale:!!file.chartSharedScale,
+    chartPairs:(file.chartPairs||[]).map(function(pair){return Object.assign({},pair);}),
     chartWindow:file===active()?{start:chartState.start,end:chartState.end}:{start:0,end:1}
   };
 }
@@ -2093,7 +2116,7 @@ function projectSnapshot(workspace){
       filename:file.filename,date:file.date,dateSource:file.dateSource,sourceFormat:file.sourceFormat,rawText:file.rawText,
       filters:{from:file.filterFrom||'',to:file.filterTo||'',search:file.filterSearch||''},
       signals:file.signals.map(function(s){return {id:s.id,index:s.index,hidden:!!s.hidden,marked:!!s.marked,overlay:!!s.overlay,chartHidden:!!s.chartHidden};}),
-      chart:{sharedScale:!!file.chartSharedScale},
+      chart:{sharedScale:!!file.chartSharedScale,pairs:window.ChartPairs?ChartPairs.snapshot(file):[]},
       markedRows:file.rawRows.filter(function(row){return row.marked;}).map(function(row){return row.rowId;}),
       annotations:window.Annotations?Annotations.snapshot(file):null
     };})
@@ -2156,6 +2179,7 @@ function loadProjectFile(file){
         (item.signals||[]).forEach(function(state){states[state.id+'::'+state.index]=state;});
         restored.signals.forEach(function(signal){var state=states[signal.id+'::'+signal.index];if(state){signal.hidden=!!state.hidden;signal.marked=!!state.marked;signal.overlay=!!state.overlay;signal.chartHidden=!!state.chartHidden;}});
         restored.chartSharedScale=!!(item.chart&&item.chart.sharedScale);
+        if(window.ChartPairs)ChartPairs.restore(restored,item.chart&&item.chart.pairs);
         var markedRows=new Set(item.markedRows||[]);
         restored.rawRows.forEach(function(row){row.marked=markedRows.has(row.rowId);});
         if(window.Annotations)Annotations.restore(restored,item.annotations);
@@ -2709,7 +2733,7 @@ async function exportAllXLSX(files,options){
 }
 function exportPDF(options){
   options=options||{};
-  if(window.ReportExport)return ReportExport.pdf({file:options.file||(options.files?null:captureExportState(active()).file),files:options.files,download:options.download});
+  if(window.ReportExport)return ReportExport.pdf({file:options.file||(options.files?null:captureExportState(active()).file),files:options.files,download:options.download,sections:options.sections});
   alert(t('exportFileFailed'));return null;
 }
 function createChartPng(A){
@@ -2831,8 +2855,12 @@ function showErr(msg){var e=document.getElementById('upload-error');e.style.disp
 <script src="assets/workspace-layout.js?v=20260930-3"></script>
 <script src="assets/chart-height.js?v=20261001-1"></script>
 <script src="assets/chart-signals.js?v=20261001-1"></script>
+<script src="assets/chart-highlight.js?v=20261002-1"></script>
+<script src="assets/chart-measure.js?v=20261002-1"></script>
+<script src="assets/chart-pairs.js?v=20261002-1"></script>
 <script src="assets/report-export.js?v=20261001-1"></script>
 <script src="assets/export-save.js?v=20261001-1"></script>
+<script src="assets/pdf-options.js?v=20261002-1"></script>
 <script src="assets/help.js?v=20261001-1"></script>
 </body>
 </html>

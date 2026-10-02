@@ -90,6 +90,7 @@ for(const file of ['annotations.js','export-save.js'])new Function(fs.readFileSy
     for(const kind of ['pdf','xlsx','support']){
       await page.locator('#export-menu summary').click();
       await page.locator('.btn-'+kind).click();
+      if(kind==='pdf')await page.locator('.pdf-options-create').click();
       await page.waitForFunction(()=>!exportSaveBusy,{},{timeout:120000});
     }
     const exports=await page.evaluate(()=>({saved,picks}));
@@ -102,17 +103,17 @@ for(const file of ['annotations.js','export-save.js'])new Function(fs.readFileSy
     assert(exports.saved.map(f=>f.name).join('|').includes('.zip'));
     assert.deepEqual(downloads,[],'Native saves must not trigger browser downloads');
     await page.evaluate(()=>{window.showSaveFilePicker=async()=>{throw new DOMException('Cancelled','AbortError');};});
-    await page.locator('#export-menu summary').click();await page.locator('.btn-pdf').click();
+    await page.locator('#export-menu summary').click();await page.locator('.btn-pdf').click();await page.locator('.pdf-options-create').click();
     await page.waitForFunction(()=>!exportSaveBusy);
     assert.equal(await page.evaluate(()=>saved.length),3,'Cancelling does not write a file');
     assert.deepEqual(alerts,[],'No error on cancellation');
     await page.evaluate(()=>{window.showSaveFilePicker=async()=>({createWritable:async()=>{throw new Error('Test: disk unavailable');}});});
-    await page.locator('#export-menu summary').click();await page.locator('.btn-pdf').click();
+    await page.locator('#export-menu summary').click();await page.locator('.btn-pdf').click();await page.locator('.pdf-options-create').click();
     await page.waitForFunction(()=>!exportSaveBusy);
     assert(alerts.pop().includes('disk unavailable'),'Write errors are reported');
     assert.deepEqual(downloads,[],'Write errors never silently download elsewhere');
     await page.evaluate(()=>{window.showSaveFilePicker=undefined;});
-    await page.locator('#export-menu summary').click();await page.locator('.btn-pdf').click();
+    await page.locator('#export-menu summary').click();await page.locator('.btn-pdf').click();await page.locator('.pdf-options-create').click();
     await page.waitForFunction(()=>!exportSaveBusy);
     assert(alerts.pop().includes('Browser-Download'),'Unsupported browsers explicitly ask before fallback');
     assert.deepEqual(downloads,[],'Declined fallback does not download');

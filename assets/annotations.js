@@ -15,6 +15,7 @@ var Annotations=(function(){
     inspect:svg('<path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/>'),
     marker:svg('<path d="M8 21V3"/><path d="M8 4h10l-3 4 3 4H8"/>'),
     range:svg('<path d="M5 4v16M19 4v16"/><rect x="5" y="7" width="14" height="10" rx="1" fill="currentColor" fill-opacity=".22" stroke="none"/><path d="M5 12h14"/>'),
+    measure:svg('<path d="M3.5 16.5 16.5 3.5l4 4-13 13z"/><path d="M7.5 12.5l2 2M10.5 9.5l1.5 1.5M13.5 6.5l2 2"/>'),
     txt:svg('<path d="M5 21V4"/><path d="M5 4h11l-2.5 3.5L16 11H5"/><path d="M19 15v6M16 18h6"/>'),
     prev:svg('<path d="M15 6l-6 6 6 6"/>'),next:svg('<path d="M9 6l6 6-6 6"/>'),
     undo:svg('<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/>'),
@@ -31,6 +32,7 @@ var Annotations=(function(){
       '<button type="button" data-mode="inspect" aria-pressed="true">'+ICONS.inspect+'<span class="tool-text"></span></button>'+
       '<button type="button" data-mode="marker" aria-pressed="false">'+ICONS.marker+'<span class="tool-text"></span></button>'+
       '<button type="button" data-mode="range" aria-pressed="false">'+ICONS.range+'<span class="tool-text"></span></button>'+
+      '<button type="button" data-mode="measure" aria-pressed="false">'+ICONS.measure+'<span class="tool-text"></span></button>'+
     '</div>'+
     '<div class="tool-group tool-style" role="group">'+
       '<span class="tool-label" data-label="color"></span>'+
@@ -210,11 +212,13 @@ var Annotations=(function(){
       inspect:txt('Navigieren','Navigate'),marker:txt('Marker','Marker'),range:txt('Zeitraum','Time range'),
       inspectTitle:txt('Ziehen verschiebt den Zeitstrahl, Klick wählt einen Messpunkt','Drag pans the timeline, click selects a measurement point'),
       markerTitle:txt('Marker im Zeitstrahl setzen oder entfernen','Set or remove a timeline marker'),
-      rangeTitle:txt('Zeitraum mit gedrückter Maustaste markieren','Mark a time range by dragging')
+      rangeTitle:txt('Zeitraum mit gedrückter Maustaste markieren','Mark a time range by dragging'),
+      measure:txt('Messen','Measure'),
+      measureTitle:txt('Zwei Cursor A und B setzen: Zeitdifferenz und Werte aller Kurven vergleichen','Set two cursors A and B: compare time difference and values of all curves')
     };
     tools.setAttribute('aria-label',txt('Werkzeuge','Tools'));
     tools.querySelector('.tool-modes').setAttribute('aria-label',txt('Werkzeug','Tool'));
-    ['inspect','marker','range'].forEach(function(key){var b=tools.querySelector('[data-mode="'+key+'"]');b.querySelector('.tool-text').textContent=labels[key];b.title=labels[key+'Title'];});
+    ['inspect','marker','range','measure'].forEach(function(key){var b=tools.querySelector('[data-mode="'+key+'"]');b.querySelector('.tool-text').textContent=labels[key];b.title=labels[key+'Title'];});
     tools.querySelector('[data-label="color"]').textContent=txt('Farbe','Color');
     tools.querySelector('[data-label="width"]').textContent=txt('Dicke','Width');
     tools.querySelector('.tool-style').setAttribute('aria-label',txt('Farbe und Dicke','Color and width'));
@@ -244,7 +248,7 @@ var Annotations=(function(){
     dialog.querySelector('button[type="button"]').textContent=txt('Abbrechen','Cancel');
     dialog.querySelector('button[type="submit"]').textContent=txt('Notiz speichern','Save note');
     var item=file.rawRows?target():null,all=file.rawRows?entries(file):[];
-    var hint=mode==='marker'?txt('Klick setzt einen Marker, Klick auf einen Marker entfernt ihn.','Click sets a marker, clicking a marker removes it.'):mode==='range'?txt('Gedrückt halten und Zeitbereich ziehen.','Hold and drag a time range.'):txt('Ziehen verschiebt, Klick wählt einen Messpunkt.','Drag to pan, click selects a point.');
+    var hint=mode==='measure'?txt('Klick setzt Cursor A, zweiter Klick Cursor B. Cursor lassen sich ziehen, Esc entfernt sie.','Click sets cursor A, a second click cursor B. Drag cursors to move them, Esc removes them.'):mode==='marker'?txt('Klick setzt einen Marker, Klick auf einen Marker entfernt ihn.','Click sets a marker, clicking a marker removes it.'):mode==='range'?txt('Gedrückt halten und Zeitbereich ziehen.','Hold and drag a time range.'):txt('Ziehen verschiebt, Klick wählt einen Messpunkt.','Drag to pan, click selects a point.');
     if(item){hint+=' '+txt('Auswahl: ','Selection: ')+(selection.type==='range'?timeLabel(file,item):item.ts);}
     var hintEl=tools.querySelector('.annotation-hint');hintEl.textContent=hint;hintEl.title=hint;
     var noteButton=tools.querySelector('.annotation-note');noteButton.disabled=!item;noteButton.querySelector('.tool-text').textContent=item&&item.note?txt('Notiz bearbeiten','Edit note'):txt('Notiz hinzufügen','Add note');
@@ -329,6 +333,7 @@ var Annotations=(function(){
   function start(e,source){
     if(e.button!==0||e.target.closest('button'))return;
     if(source==='chart'&&typeof chartStarAt==='function'){var star=chartStarAt(e.clientX,e.clientY);if(star){e.preventDefault();toggleSignalMarked(active().signals.indexOf(star));return;}}
+    if(mode==='measure'){if(source==='chart'&&window.ChartMeasure&&ChartMeasure.pointerDown(e))e.preventDefault();return;}
     var row=source==='chart'?chartRow(e,false):tableRow(e);if(!row)return;
     if(source==='chart'&&mode==='inspect'){
       e.preventDefault();drag={file:active(),source:'pan',el:canvas,pointerId:e.pointerId,x:e.clientX,y:e.clientY,start:chartState.start,end:chartState.end,rowId:row.rowId,moved:false};
@@ -389,7 +394,7 @@ var Annotations=(function(){
     return !!input&&/^(text|search|number|email|password|url|tel|time|date|datetime-local)$/i.test(input.type||'text');
   }
   document.addEventListener('keydown',function(e){
-    if(e.key==='Escape'&&!dialog.open){cancelDrag();setMode('inspect');refresh();return;}
+    if(e.key==='Escape'&&!dialog.open){cancelDrag();if(window.ChartMeasure)ChartMeasure.clear();setMode('inspect');refresh();return;}
     var appVisible=document.getElementById('app-view').style.display==='flex';
     if(!appVisible||dialog.open||document.querySelector('dialog[open]')||editableTarget(e.target)||e.altKey)return;
     if(!(e.ctrlKey||e.metaKey))return;
@@ -461,6 +466,13 @@ var Annotations=(function(){
     data.ranges.forEach(function(r){if(!r||!validId(r.start)||!validId(r.end)||r.start>r.end)throw new Error(txt('Ungültiger markierter Zeitraum.','Invalid marked time range.'));file.ranges.push({id:crypto.randomUUID(),start:r.start,end:r.end,color:validColor(r.color),note:typeof r.note==='string'?r.note.slice(0,4000):''});});
     if(data.captureMarkers){file.txtMarkersVisible=data.captureMarkers.visible!==false;file.txtMarkerColor=validColor(data.captureMarkers.color,TXT_DEFAULT);}
   }
+  function addRange(start,end,note,color){
+    var file=active();if(!file||!file.rawRows)return null;
+    record(file);
+    var range={id:crypto.randomUUID(),start:Math.max(0,Math.min(start,end)),end:Math.min(file.rawRows.length-1,Math.max(start,end)),color:validColor(color||toolColor.range),note:String(note||'').slice(0,4000)};
+    ranges(file).push(range);selection={file:file,type:'range',id:range.id};refresh();
+    return range;
+  }
   function exportRows(file){return entries(file).map(function(r){return [r.letter,r.label,file.rawRows[r.start].ts,file.rawRows[r.end].ts,r.color,r.note];});}
   function summary(file){var rows=exportRows(file);return txt('NOTIZEN UND ZEITBEREICHE (gesamte Datei)','NOTES AND TIME RANGES (complete file)')+'\r\n'+(rows.length?rows.map(function(r){return r.join(' | ');}).join('\r\n'):txt('Keine','None'));}
   return {
@@ -468,7 +480,7 @@ var Annotations=(function(){
     captureColor:txtColor,captureVisible:txtVisible,toggleCaptureMarkers:toggleCaptureMarkers,jumpCapture:jumpCapture,
     sync:sync,fileChanged:fileChanged,editRow:editRow,tableColors:tableColors,draw:draw,drawLabels:drawLabels,entries:entries,
     snapshot:snapshot,restore:restore,summary:summary,exportRows:exportRows,hover:hover,notesAt:notesAt,
-    record:record,undo:undo,redo:redo,history:history,setMode:setMode,mode:function(){return mode;},
+    record:record,undo:undo,redo:redo,history:history,setMode:setMode,mode:function(){return mode;},addRange:addRange,
     isDragging:function(){return !!drag;}
   };
 })();

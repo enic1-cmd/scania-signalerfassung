@@ -144,6 +144,11 @@ kbd{display:inline-block;min-width:22px;padding:2px 7px;border:1px solid #b8cde0
       <div class="hb-new">
         <h2><span data-lang="de">Neu in dieser Version</span><span data-lang="en">New in this version</span></h2>
         <ul data-lang="de">
+          <li><strong>Hervorheben:</strong> per Knopf eine Kurve betonen und die übrigen blass zeigen – ideal bei vielen überlagerten Kurven.</li>
+          <li><strong>Messen mit zwei Cursorn:</strong> Δt und die Werte aller Kurven an A und B mit Differenz, auf Wunsch als Notiz gespeichert.</li>
+          <li><strong>Soll/Ist-Paare:</strong> werden automatisch erkannt, in einer eigenen Spur gezeigt und Abweichungen rot markiert und aufgelistet.</li>
+          <li><strong>PDF-Bericht anpassen:</strong> Kapitel vor dem Erstellen an- und abhaken, mit Seitenschätzung.</li>
+          <li><strong>Alle auswählen / Alle abwählen</strong> in „Signale auswählen“, bei aktiver Suche nur für die Treffer.</li>
           <li><strong>Werkzeugleiste</strong> mit Navigieren, Marker, Zeitraum, Farben, Markerdicke und Rückgängig/Wiederholen (Strg+Z / Strg+Y).</li>
           <li><strong>Erfassungsmarker</strong> sind eine eigene Ebene mit eigener Farbe und Sprungpfeilen und verändern deine Markierungen nicht mehr.</li>
           <li><strong>Kurven übereinanderlegen</strong> und ausgewählte Signale direkt im Diagramm an- und abhaken.</li>
@@ -151,6 +156,11 @@ kbd{display:inline-block;min-width:22px;padding:2px 7px;border:1px solid #b8cde0
           <li><strong>Neuer PDF-Bericht</strong> mit großem, unverzerrtem Kurvendiagramm, Detailseiten und Messwerten an jedem Erfassungsmarker; Excel mit Diagramm, Marker- und Statistikblatt.</li>
         </ul>
         <ul data-lang="en">
+          <li><strong>Highlight:</strong> emphasise one curve with a button and fade the others – ideal with many overlaid curves.</li>
+          <li><strong>Measure with two cursors:</strong> Δt and the values of all curves at A and B with the difference, optionally saved as a note.</li>
+          <li><strong>Setpoint/actual pairs:</strong> detected automatically, shown in their own lane, deviations marked red and listed.</li>
+          <li><strong>Customize PDF report:</strong> tick or untick chapters before the PDF is created, with a page estimate.</li>
+          <li><strong>Select all / Deselect all</strong> in "Choose signals", while searching only for the matches.</li>
           <li><strong>Toolbar</strong> with Navigate, Marker, Time range, colours, marker width and Undo/Redo (Ctrl+Z / Ctrl+Y).</li>
           <li><strong>Capture markers</strong> are a separate layer with their own colour and jump arrows and no longer change your markings.</li>
           <li><strong>Overlay curves</strong> and tick the selected signals directly in the chart.</li>
@@ -236,6 +246,34 @@ kbd{display:inline-block;min-width:22px;padding:2px 7px;border:1px solid #b8cde0
         <figure><a href="handbuch/de-overlay.webp" data-lang="de" target="_blank"><img src="handbuch/de-overlay.webp" alt="Drei überlagerte Kurven" loading="lazy"></a><a href="handbuch/en-overlay.webp" data-lang="en" target="_blank"><img src="handbuch/en-overlay.webp" alt="Three overlaid curves" loading="lazy"></a>
           <figcaption><span data-lang="de">Geschwindigkeit, Pedal und Motordrehzahl übereinander.</span><span data-lang="en">Vehicle speed, pedal and engine speed overlaid.</span></figcaption></figure>
       </div>
+      <h3><span data-lang="de">Hervorheben</span><span data-lang="en">Highlight</span></h3>
+      <div data-lang="de">
+        <p>Der Knopf <strong>Hervorheben</strong> im Diagrammkopf schaltet die Funktion ein und aus. Ist er an:</p>
+        <ul><li><strong>Maus über einen Signalnamen</strong> links: Diese Kurve bleibt kräftig und wird dicker, alle anderen werden blass.</li><li><strong>Klick auf den Namen:</strong> hält die Kurve hervorgehoben, auch wenn die Maus weiterwandert. Ein zweiter Klick löst sie wieder.</li><li>Funktioniert in beiden Ansichten, getrennt und übereinander.</li></ul>
+        <p class="note">Hervorheben ändert nur die Darstellung. Auswahl, Sterne, Projekt und Berichte bleiben unverändert. Ist der Knopf aus, sieht alles aus wie bisher.</p>
+      </div>
+      <div data-lang="en">
+        <p>The <strong>Highlight</strong> button in the chart header turns the function on and off. While it is on:</p>
+        <ul><li><strong>Mouse over a signal name</strong> on the left: that curve stays strong and gets thicker, all others fade.</li><li><strong>Click on the name:</strong> keeps the curve highlighted even when the mouse moves on. A second click releases it.</li><li>Works in both views, separate and overlaid.</li></ul>
+        <p class="note">Highlight only changes the display. Selection, stars, project and reports stay unchanged. With the button off everything looks as before.</p>
+      </div>
+      <h3><span data-lang="de">Soll/Ist-Paare</span><span data-lang="en">Setpoint/actual pairs</span></h3>
+      <div data-lang="de">
+        <p>Das Tool erkennt zusammengehörige Signale am Namen, zum Beispiel <em>Angeforderter Gang ↔ Eingelegter Gang</em>, <em>Requested fuel pressure ↔ Fuel pressure</em> oder <em>Requested torque ↔ Torque</em> – immer vom selben Steuergerät und mit gleicher Einheit. Die erkannten Paare stehen oben in <strong>Signale auswählen</strong>.</p>
+        <ol><li><strong>Als Paar zeigen:</strong> beide Kurven kommen in eine eigene Spur mit gemeinsamer Skala, gekennzeichnet mit „SOLL / IST“.</li><li><strong>Rote Bereiche:</strong> Soll und Ist liegen länger als die Mindestdauer weiter als die Toleranz auseinander.</li><li><strong>Toleranz und Mindestdauer</strong> lassen sich je Paar einstellen. Voreinstellung: ein halber Schritt bei ganzzahligen Signalen wie Gang oder Status, sonst 5 % des Sollwert-Bereichs; Mindestdauer 0,5 s.</li><li><strong>Abweichungen listen:</strong> zeigt jede Stelle mit Uhrzeit, Dauer und größter Abweichung. Ein Klick zoomt das Diagramm genau dorthin.</li></ol>
+        <p class="note">Aktive Paare werden im Projekt gespeichert. Im PDF erscheinen sie im Kurvendiagramm samt roten Bereichen und im Kapitel „Soll/Ist-Abweichungen“.</p>
+      </div>
+      <div data-lang="en">
+        <p>The tool detects signals that belong together by their name, for example <em>Requested fuel pressure ↔ Fuel pressure</em>, <em>Requested torque ↔ Torque</em> or <em>Angeforderter Gang ↔ Eingelegter Gang</em> – always from the same ECU and with the same unit. The detected pairs are listed at the top of <strong>Choose signals</strong>.</p>
+        <ol><li><strong>Show as pair:</strong> both curves get their own lane with a shared scale, labelled "SETPOINT / ACTUAL".</li><li><strong>Red areas:</strong> setpoint and actual value differ by more than the tolerance for longer than the minimum duration.</li><li><strong>Tolerance and minimum duration</strong> can be set per pair. Default: half a step for whole-number signals such as gear or status, otherwise 5 % of the setpoint range; minimum duration 0.5 s.</li><li><strong>List deviations:</strong> shows every spot with time, duration and largest deviation. A click zooms the chart right there.</li></ol>
+        <p class="note">Active pairs are saved in the project. In the PDF they appear in the curve chart with the red areas and in the chapter "Setpoint/actual deviations".</p>
+      </div>
+      <div class="grid2">
+        <figure><a href="handbuch/de-highlight.webp" data-lang="de" target="_blank"><img src="handbuch/de-highlight.webp" alt="Hervorheben: eine Kurve kräftig, die anderen blass" loading="lazy"></a><a href="handbuch/en-highlight.webp" data-lang="en" target="_blank"><img src="handbuch/en-highlight.webp" alt="Highlight: one curve strong, the others faded" loading="lazy"></a>
+          <figcaption><span data-lang="de">Hervorheben an: Motordrehzahl betont, die übrigen Kurven blass.</span><span data-lang="en">Highlight on: engine speed emphasised, the other curves faded.</span></figcaption></figure>
+        <figure><a href="handbuch/de-pairs.webp" data-lang="de" target="_blank"><img src="handbuch/de-pairs.webp" alt="Soll/Ist-Paar mit Abweichungen" loading="lazy"></a><a href="handbuch/en-pairs.webp" data-lang="en" target="_blank"><img src="handbuch/en-pairs.webp" alt="Setpoint/actual pair with deviations" loading="lazy"></a>
+          <figcaption><span data-lang="de">Soll/Ist-Paar Gang: eigene Spur, rote Abweichungen und Liste zum Anspringen.</span><span data-lang="en">Gear setpoint/actual pair: own lane, red deviations and a list to jump to.</span></figcaption></figure>
+      </div>
     </section>
 
     <section class="chapter" id="toolbox">
@@ -245,6 +283,7 @@ kbd{display:inline-block;min-width:22px;padding:2px 7px;border:1px solid #b8cde0
         <div class="tool"><strong>Navigieren</strong><span>Ziehen verschiebt den Zeitstrahl, ein Klick wählt einen Messpunkt für eine Notiz.</span></div>
         <div class="tool"><strong>Marker</strong><span>Klick setzt einen eigenen Marker in Farbe und Dicke. Klick auf einen Marker entfernt ihn.</span></div>
         <div class="tool"><strong>Zeitraum</strong><span>Maustaste gedrückt halten und von Start bis Ende ziehen, im Diagramm oder in der Tabelle. Überlappende Zeiträume bleiben durchscheinend beide sichtbar.</span></div>
+        <div class="tool"><strong>Messen</strong><span>Zwei Cursor A und B setzen: Δt und die Werte aller Kurven mit Differenz vergleichen.</span></div>
         <div class="tool"><strong>Farbe</strong><span>Sechs Schnellfarben und eine frei wählbare Farbe. Marker und Zeitraum merken sich je eine eigene Farbe.</span></div>
         <div class="tool"><strong>Dicke</strong><span>1, 3, 5 oder 8 Pixel für neue Marker.</span></div>
         <div class="tool"><strong>Erfassungsmarker</strong><span>Ein-/ausblenden, Farbe wählen, mit ‹ › zum vorherigen oder nächsten springen (Kapitel 7).</span></div>
@@ -255,6 +294,7 @@ kbd{display:inline-block;min-width:22px;padding:2px 7px;border:1px solid #b8cde0
         <div class="tool"><strong>Navigate</strong><span>Dragging pans the timeline, a click selects a measurement point for a note.</span></div>
         <div class="tool"><strong>Marker</strong><span>A click sets an own marker in colour and width. Clicking a marker removes it.</span></div>
         <div class="tool"><strong>Time range</strong><span>Hold the mouse button and drag from start to end, in the chart or the table. Overlapping ranges stay translucent so both remain visible.</span></div>
+        <div class="tool"><strong>Measure</strong><span>Set two cursors A and B: compare Δt and the values of all curves with their difference.</span></div>
         <div class="tool"><strong>Color</strong><span>Six quick colours and a custom colour. Marker and time range each remember their own colour.</span></div>
         <div class="tool"><strong>Width</strong><span>1, 3, 5 or 8 pixels for new markers.</span></div>
         <div class="tool"><strong>Capture markers</strong><span>Show/hide, choose the colour, jump to the previous or next with ‹ › (chapter 7).</span></div>
@@ -263,6 +303,17 @@ kbd{display:inline-block;min-width:22px;padding:2px 7px;border:1px solid #b8cde0
       </div>
       <p class="tip" data-lang="de"><strong>Nachträglich ändern:</strong> Im Werkzeug „Navigieren“ einen Marker oder Zeitraum anklicken und dann Farbe oder Dicke wählen. Das ändert genau diese Markierung und lässt sich rückgängig machen.</p>
       <p class="tip" data-lang="en"><strong>Change later:</strong> With the "Navigate" tool click a marker or range, then pick a colour or width. That changes exactly this marking and can be undone.</p>
+      <h3><span data-lang="de">Messen mit zwei Cursorn</span><span data-lang="en">Measuring with two cursors</span></h3>
+      <div data-lang="de">
+        <ol><li>Werkzeug <strong>Messen</strong> wählen.</li><li>Erster Klick ins Diagramm setzt <strong>Cursor A</strong> (blau), der zweite <strong>Cursor B</strong> (grün). Beide rasten auf Messzeilen ein und lassen sich mit der Maus ziehen.</li><li>Das Fenster <strong>Messung A → B</strong> zeigt Δt sowie für jede Kurve den Wert an A, an B und die Differenz – grün bei Anstieg, rot bei Abfall. Das Fenster lässt sich an der Titelleiste verschieben.</li><li><strong>Als Notiz übernehmen</strong> speichert A–B als markierten Zeitraum mit allen Werten als Notiz. So steht die Messung auch im PDF und in Excel und lässt sich mit Strg+Z rückgängig machen.</li><li><kbd>Esc</kbd> oder „Entfernen“ löscht die Cursor.</li></ol>
+        <p class="note">Typische Fragen: Wie lange dauert es vom Gaspedal bis zur Drehzahl? Wie schnell baut sich der Druck auf? Wie stark fällt die Drehzahl beim Schalten?</p>
+      </div>
+      <div data-lang="en">
+        <ol><li>Choose the <strong>Measure</strong> tool.</li><li>The first click into the chart sets <strong>cursor A</strong> (blue), the second <strong>cursor B</strong> (green). Both snap to measurement rows and can be dragged with the mouse.</li><li>The <strong>Measurement A → B</strong> panel shows Δt and, for every curve, the value at A, at B and the difference – green when rising, red when falling. Move the panel by its title bar.</li><li><strong>Save as note</strong> stores A–B as a marked time range with all values as a note. The measurement then also appears in the PDF and Excel and can be undone with Ctrl+Z.</li><li><kbd>Esc</kbd> or "Remove" deletes the cursors.</li></ol>
+        <p class="note">Typical questions: how long does it take from the accelerator pedal to engine speed? How fast does pressure build up? How much does engine speed drop during a gear change?</p>
+      </div>
+      <figure><a href="handbuch/de-measure.webp" data-lang="de" target="_blank"><img src="handbuch/de-measure.webp" alt="Messen mit Cursor A und B" loading="lazy"></a><a href="handbuch/en-measure.webp" data-lang="en" target="_blank"><img src="handbuch/en-measure.webp" alt="Measuring with cursors A and B" loading="lazy"></a>
+          <figcaption><span data-lang="de">Cursor A und B mit Δt und der Wertetabelle aller Kurven.</span><span data-lang="en">Cursors A and B with Δt and the value table of all curves.</span></figcaption></figure>
     </section>
 
     <section class="chapter" id="capture">
@@ -341,6 +392,8 @@ kbd{display:inline-block;min-width:22px;padding:2px 7px;border:1px solid #b8cde0
         <p>Der gelbe <strong>Export</strong>-Button erstellt eine von drei Auswertungen. Alle Teile entstehen aus demselben eingefrorenen Arbeitsstand und lokal im Browser.</p>
         <h3>PDF-Auswertung (Diagnosebericht)</h3>
         <ol><li>Zusammenfassung mit Kennzahlen, Messdaten und Inhaltsverzeichnis</li><li>Kurvendiagramm über den gesamten Zeitraum in voller Seitenbreite und unverzerrt, dazu der aktuelle Ausschnitt, falls gezoomt</li><li>Eine Detailseite je markiertem Zeitraum oder Marker mit Notiz</li><li>Erfassungsmarker: Messwerte zu jedem Knopfdruck und Detailansichten (±8 s)</li><li>Notizen &amp; Markierungen, Signalstatistik (Min, Max, Mittelwert), Signalübersicht</li><li>Messdatenauszug an allen Markern sowie Anfang und Ende der Zeiträume</li></ol>
+        <h3>PDF-Bericht anpassen</h3>
+        <p>Vor dem Erstellen öffnet sich das Fenster <strong>PDF-Bericht anpassen</strong>. Jedes Kapitel lässt sich an- oder abhaken, rechts steht die geschätzte Seitenzahl, unten die Summe. Die Zusammenfassung ist immer enthalten, nicht vorhandene Kapitel (z. B. ohne Markierungen) sind ausgegraut. Mit <strong>Auswahl merken</strong> gilt die Wahl auch für die nächsten Berichte; ohne Änderung ist der Bericht vollständig. Bei mehreren Messungen gilt die Auswahl für jede Messung. Das Support-ZIP enthält immer den vollständigen Bericht.</p>
         <h3>Excel-Auswertung</h3>
         <p>Blätter „Übersicht“, „Signale“ (mit Min/Max/Mittelwert), „Messdaten“ (alle Zeilen, Marker farbig, Spalte „Markierung / Notiz“), „Markierungen“, „Diagramm“, „Erfassungsmarker“ und „Notizen und Zeitbereiche“.</p>
         <h3>Support-ZIP</h3>
@@ -353,6 +406,8 @@ kbd{display:inline-block;min-width:22px;padding:2px 7px;border:1px solid #b8cde0
         <p>The yellow <strong>Export</strong> button creates one of three evaluations. All parts come from the same frozen workspace state and are created locally in the browser.</p>
         <h3>PDF evaluation (diagnostic report)</h3>
         <ol><li>Summary with key figures, measurement data and contents</li><li>Curve chart for the full time range at full page width and undistorted, plus the current view if zoomed</li><li>One detail page per marked range or marker with note</li><li>Capture markers: values at every button press and detail views (±8 s)</li><li>Notes &amp; markers, signal statistics (min, max, mean), signal overview</li><li>Measurement excerpt at all markers and at the start and end of ranges</li></ol>
+        <h3>Customize PDF report</h3>
+        <p>Before the PDF is created, the <strong>Customize PDF report</strong> window opens. Every chapter can be ticked or unticked, the estimated page count is shown on the right and the total at the bottom. The summary is always included; chapters that do not exist (e.g. without markings) are greyed out. With <strong>Remember this choice</strong> it also applies to the next reports; without changes the report is complete. With several recordings the choice applies to each one. The support ZIP always contains the complete report.</p>
         <h3>Excel evaluation</h3>
         <p>Sheets "Overview", "Signals" (with min/max/mean), "Measurement data" (all rows, markers coloured, column "Marking / note"), "Markers", "Chart", "Capture markers" and "Notes and time ranges".</p>
         <h3>Support ZIP</h3>
@@ -370,6 +425,8 @@ kbd{display:inline-block;min-width:22px;padding:2px 7px;border:1px solid #b8cde0
           <figcaption><span data-lang="de">Messwerte zu jedem Erfassungsmarker.</span><span data-lang="en">Values at every capture marker.</span></figcaption></figure>
         <figure><a href="handbuch/de-export.webp" data-lang="de" target="_blank"><img src="handbuch/de-export.webp" alt="Exportmenü" loading="lazy"></a><a href="handbuch/en-export.webp" data-lang="en" target="_blank"><img src="handbuch/en-export.webp" alt="Export menu" loading="lazy"></a>
           <figcaption><span data-lang="de">Exportmenü in der Kopfzeile.</span><span data-lang="en">Export menu in the header.</span></figcaption></figure>
+        <figure><a href="handbuch/de-pdf-dialog.webp" data-lang="de" target="_blank"><img src="handbuch/de-pdf-dialog.webp" alt="Fenster PDF-Bericht anpassen" loading="lazy"></a><a href="handbuch/en-pdf-dialog.webp" data-lang="en" target="_blank"><img src="handbuch/en-pdf-dialog.webp" alt="Customize PDF report window" loading="lazy"></a>
+          <figcaption><span data-lang="de">Kapitel wählen, Seitenzahl sehen, Auswahl merken.</span><span data-lang="en">Choose chapters, see the page count, remember the choice.</span></figcaption></figure>
       </div>
     </section>
 

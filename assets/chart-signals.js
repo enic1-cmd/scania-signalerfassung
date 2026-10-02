@@ -116,6 +116,7 @@ var ChartSignals=(function(){
       ?txt(sel.signals.length+' von '+sel.candidates.length+' numerischen Signalen im Diagramm.',sel.signals.length+' of '+sel.candidates.length+' numeric signals in the chart.')
       :txt('Alle '+sel.signals.length+' sichtbaren numerischen Signale im Diagramm. Haken entfernen blendet eine Kurve aus.','All '+sel.signals.length+' visible numeric signals in the chart. Untick to hide a curve.'))+' '+txt('Der Stern an jeder Spur hebt ein Signal hervor.','The star on each lane highlights a signal.');
     if(!panel.hidden)renderList();
+    if(!panel.hidden&&window.ChartPairs)ChartPairs.renderPanel(panel);
   }
   /* Keep the whole panel inside the visible part of the chart card; the signal list scrolls instead of being cut off. */
   function fit(){
@@ -131,7 +132,8 @@ var ChartSignals=(function(){
   if(window.ResizeObserver)new ResizeObserver(fit).observe(card);
   function close(focusButton){if(panel.hidden)return;panel.hidden=true;button.setAttribute('aria-expanded','false');if(focusButton)button.focus();}
   function toggle(){if(panel.hidden)open();else close(false);}
-  document.addEventListener('click',function(e){if(!panel.hidden&&!panel.contains(e.target)&&e.target!==button&&!button.contains(e.target))close(false);});
+  /* A button that re-rendered its own list (e.g. pairs) is no longer in the document: that click was inside the panel. */
+  document.addEventListener('click',function(e){if(!panel.hidden&&e.target.isConnected&&!panel.contains(e.target)&&e.target!==button&&!button.contains(e.target))close(false);});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!panel.hidden){e.stopPropagation();close(true);}},true);
   sync();
   return {toggle:toggle,open:open,close:close,sync:sync};

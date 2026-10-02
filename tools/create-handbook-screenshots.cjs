@@ -41,7 +41,7 @@ async function startServer(){
   try{
     for(const lang of ['de','en']){
       const page=await browser.newPage({viewport:{width:1440,height:860},deviceScaleFactor:1.5});
-      await page.addInitScript(l=>localStorage.setItem('signalerfassung.lang',l),lang);
+      await page.addInitScript(l=>{localStorage.setItem('signalerfassung.lang',l);localStorage.removeItem('signalerfassung.highlight');localStorage.removeItem('signalerfassung.pdfSections');},lang);
       await page.route('**/api/usage',route=>route.fulfill({status:204}));
       await page.goto(BASE+'signalerfassung-analyse-tool.html');
       await page.waitForTimeout(300);
@@ -86,6 +86,37 @@ async function startServer(){
       written.push(save(await page.locator('.chart-card').screenshot(),lang+'-overlay'));
       await page.evaluate(()=>{active().signals.forEach(s=>{s.marked=false;s.overlay=false;});refreshColumns();});
 
+      /* Highlight: six overlaid curves, mouse over engine speed */
+      await page.evaluate(()=>{
+        const want=['EMS-CanVehicleSpeed','EMS-AccPedalFilt','TMS-EngineSpeed','TMS-InputShaftSpeed','TMS-LayShaftSpeed','TMS-MainShaftSpeed'];
+        chartSelection(active()).candidates.forEach(s=>{const on=want.includes(s.id);s.chartHidden=!on;s.overlay=on;});renderChart();
+      });
+      await page.locator('.chart-highlight-toggle').click();
+      const hl=await page.evaluate(()=>{const hits=chartState.layout.labelHits.filter(x=>x.signal),h=hits.find(x=>x.signal.id==='TMS-EngineSpeed')||hits[0],r=document.getElementById('signal-chart').getBoundingClientRect();return {x:r.left+70,y:r.top+(h.y0+h.y1)/2};});
+      await page.mouse.move(hl.x,hl.y);await page.waitForTimeout(200);
+      written.push(save(await page.locator('.chart-card').screenshot(),lang+'-highlight'));
+      await page.mouse.move(10,10);await page.locator('.chart-highlight-toggle').click();
+
+      /* Measure: cursors A and B over pedal, engine speed, vehicle speed and gear */
+      await page.evaluate(()=>{
+        const want=['EMS-AccPedalFilt','TMS-EngineSpeed','EMS-CanVehicleSpeed','TMS-CurrentGear'];
+        chartSelection(active()).candidates.forEach(s=>{s.chartHidden=!want.includes(s.id);s.overlay=false;});renderChart();
+      });
+      await page.locator('.tool-modes [data-mode="measure"]').click();
+      const plot=await page.evaluate(()=>{const r=document.getElementById('signal-chart').getBoundingClientRect(),L=chartState.layout;return {x0:r.left+L.left,w:L.plotW,y:r.top+L.top+L.plotH*.55};});
+      await page.mouse.click(plot.x0+plot.w*.3,plot.y);await page.mouse.click(plot.x0+plot.w*.38,plot.y);await page.mouse.move(10,10);await page.waitForTimeout(200);
+      written.push(save(await page.locator('.chart-card').screenshot(),lang+'-measure'));
+      await page.keyboard.press('Escape');
+
+      /* Set/actual pair: requested and engaged gear with deviations */
+      await page.evaluate(()=>{chartSelection(active()).candidates.forEach(s=>{s.chartHidden=false;s.overlay=false;});renderChart();});
+      await page.locator('.chart-action[onclick="selectChartSignals()"]').click();
+      await page.locator('.pair-box [data-act="toggle"]').click();
+      await page.locator('.pair-box [data-act="list"]').click();await page.waitForTimeout(250);
+      written.push(save(await page.locator('.chart-card').screenshot(),lang+'-pairs'));
+      await page.keyboard.press('Escape');
+      await page.evaluate(()=>{active().chartPairs=[];active().dirty=false;renderChart();});
+
       /* Notes sidebar */
       await page.locator('.annotation-toggle').click();await page.waitForTimeout(300);
       written.push(save(await page.screenshot(),lang+'-notes'));
@@ -94,7 +125,10 @@ async function startServer(){
       /* Export menu */
       await page.locator('#export-menu summary').click();await page.waitForTimeout(200);
       written.push(save(await page.screenshot({clip:{x:860,y:0,width:580,height:330}}),lang+'-export'));
-      await page.locator('#export-menu summary').click();
+      /* PDF chapter dialog */
+      await page.locator('.export-option.btn-pdf').click();await page.waitForTimeout(250);
+      written.push(save(await page.locator('dialog.pdf-options').screenshot(),lang+'-pdf-dialog'));
+      await page.locator('.pdf-options-cancel').click();
 
       /* Help drawer */
       await page.locator('#help-trigger').click();await page.waitForTimeout(400);

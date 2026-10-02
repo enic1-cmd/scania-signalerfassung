@@ -16,7 +16,8 @@ function syncExportScope(){
 document.querySelectorAll('[data-export-scope]').forEach(function(button){
   button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();exportScope=button.dataset.exportScope;syncExportScope();});
 });
-async function saveExport(kind){
+async function saveExport(kind,options){
+  options=options||{};
   if(exportSaveBusy)return;
   var i18n=window.AppI18n||{};
   var t=typeof i18n.t==='function'?i18n.t:function(key){return key;};
@@ -44,7 +45,7 @@ async function saveExport(kind){
     }else if(!confirm(t('browserDownloadConfirm')))return;
     showToast(format.label+t('creating'));
     var blob;
-    if(kind==='pdf')blob=all?exportPDF({files:workspace.files,download:false}):exportPDF({file:file,download:false});
+    if(kind==='pdf')blob=all?exportPDF({files:workspace.files,download:false,sections:options.sections}):exportPDF({file:file,download:false,sections:options.sections});
     else if(kind==='zip')blob=await exportSupportZip({file:file,workspace:workspace,download:false});
     else if(all)blob=await exportAllXLSX(workspace.files);
     else{

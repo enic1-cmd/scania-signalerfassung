@@ -93,8 +93,13 @@ var ReportExport=(function(){
   }
 
   /* ---------- PDF ---------- */
+  /* Chapters that can be switched off in the PDF dialog. The summary page with contents is always included. */
+  var SECTIONS=['chart','zoom','details','capture','pairs','notes','stats','overview','excerpt'];
+  function sectionSwitches(value){var on={};SECTIONS.forEach(function(key){on[key]=!value||value[key]!==false;});return on;}
+  function pairReport(file){return window.ChartPairs&&ChartPairs.report?ChartPairs.report(file):[];}
   function pdf(options){
     options=options||{};
+    var on=sectionSwitches(options.sections);
     var files=(options.files&&options.files.length?options.files:[options.file||captureExportState(active()).file]).filter(function(item){var r=rowsOf(item);return r&&r.length;});
     if(!files.length){alert(t('noData'));return null;}
     /* Several files: overview cover, then one chapter per recording. Page headers carry "1/2 ·". */
@@ -231,15 +236,15 @@ var ReportExport=(function(){
         chartBox(windowOpt,M,35,W-2*M,H-35-21,1.12,group.length?group:null);legend(H-14.5);
       });
     }
-    chartPages(L('Kurvendiagramm','Curve chart'),L('Kurvendiagramm · gesamter Zeitraum','Curve chart · full time range'),chartSel.signals.length+' '+L('Kurven','curves')+' · '+fmtNumber(rows.length)+' '+L('Messpunkte','points')+' · '+periodLabel(file),null);
-    if(isZoomed(file)){
+    if(on.chart)chartPages(L('Kurvendiagramm','Curve chart'),L('Kurvendiagramm · gesamter Zeitraum','Curve chart · full time range'),chartSel.signals.length+' '+L('Kurven','curves')+' · '+fmtNumber(rows.length)+' '+L('Messpunkte','points')+' · '+periodLabel(file),null);
+    if(on.zoom&&isZoomed(file)){
       var zoomRows=chartWindowRows(rows,file.chartWindow).rows;
       chartPages(L('Kurvendiagramm · Ausschnitt','Curve chart · zoomed view'),L('Kurvendiagramm · aktueller Ausschnitt','Curve chart · current view'),zoomRows[0].ts+' '+L('bis','to')+' '+zoomRows[zoomRows.length-1].ts+' · '+L('wie zuletzt in der App angezeigt','as last shown in the app'),'current');
     }
     var detailNote=groups.length>1?' '+L('Detailansichten zeigen die ersten '+firstGroup.length+' von '+chartSel.signals.length+' Kurven.','Detail views show the first '+firstGroup.length+' of '+chartSel.signals.length+' curves.'):'';
 
     /* Detail charts: one page per marked range or own marker */
-    var details=entries.slice(0,MAX_DETAIL_CHARTS);
+    var details=on.details?entries.slice(0,MAX_DETAIL_CHARTS):[];
     details.forEach(function(entry,i){
       var from=file.rawRows[entry.start],to=file.rawRows[entry.end];
       var head=entry.letter+' · '+typeLabel(entry)+' · '+from.ts+(entry.end>entry.start?' '+L('bis','to')+' '+to.ts+' ('+durationLabel(file,entry)+')':'');
@@ -248,10 +253,10 @@ var ReportExport=(function(){
       doc.setFillColor.apply(doc,hexRgb(entry.color));doc.rect(M-4,20.5,1.6,6.5,'F');
       chartBox({start:entry.start,end:entry.end,padding:entry.end>entry.start?.25:0,minPadSec:entry.end>entry.start?2:6},M,38,W-2*M,H-38-21,1,firstGroup);legend(H-14.5);
     });
-    if(entries.length>details.length){doc.setFontSize(8);doc.setTextColor.apply(doc,MUTED);doc.text(L('Weitere '+(entries.length-details.length)+' Markierungen siehe Tabelle "Notizen & Markierungen".','Another '+(entries.length-details.length)+' markings: see table "Notes & markers".'),M,H-11.2);}
+    if(details.length&&entries.length>details.length){doc.setFontSize(8);doc.setTextColor.apply(doc,MUTED);doc.text(L('Weitere '+(entries.length-details.length)+' Markierungen siehe Tabelle "Notizen & Markierungen".','Another '+(entries.length-details.length)+' markings: see table "Notes & markers".'),M,H-11.2);}
 
     /* Capture markers: values table and small detail charts */
-    if(events.length){
+    if(on.capture&&events.length){
       var captureSignals=chartSel.signals.slice(0,8);
       newPage(L('Erfassungsmarker','Capture markers'),L('Erfassungsmarker · Messwerte zum Zeitpunkt des Knopfdrucks','Capture markers · values at the moment of the button press'),events.length+' '+L('Knopfdrücke während der Messfahrt. Werte der Diagramm-Signale in der Zeile des Markers.','button presses during the test drive. Values of the chart signals in the marker row.'));
       table({_section:L('Erfassungsmarker','Capture markers'),_startPage:doc.internal.getNumberOfPages(),startY:36,
@@ -276,8 +281,24 @@ var ReportExport=(function(){
       }
     }
 
+    /* Set/actual deviations of the active pairs */
+    var pairs=on.pairs?pairReport(file):[];
+    if(pairs.length){
+      newPage(L('Soll/Ist-Abweichungen','Setpoint/actual deviations'),L('Soll/Ist-Abweichungen','Setpoint/actual deviations'),L('Zeiträume, in denen Soll- und Istwert länger als die Mindestdauer weiter als die Toleranz auseinanderliegen. Im Diagramm rot hinterlegt.','Periods in which setpoint and actual value differ by more than the tolerance for longer than the minimum duration. Shaded red in the chart.'));
+      var pairBody=[];
+      pairs.forEach(function(pair){
+        var label=clean(nameOf(pair.set),60)+' / '+clean(nameOf(pair.act),60),unit=pair.unit&&!/^[-–]$/.test(String(pair.unit).trim())?' '+clean(pair.unit,12):'',limits=L('Toleranz ','Tolerance ')+fmt(pair.tol,3)+unit+' · '+L('ab ','from ')+fmt(pair.dur,1)+' s';
+        if(!pair.list.length)pairBody.push([label,limits,'-','-','-',L('Keine Abweichung über der Toleranz','No deviation above the tolerance')]);
+        pair.list.forEach(function(d,i){pairBody.push([i?'':label,i?'':limits,d.from.ts,d.to.ts,seconds(d.duration),fmt(d.maxDev,3)+unit]);});
+      });
+      table({_section:L('Soll/Ist-Abweichungen','Setpoint/actual deviations'),_startPage:doc.internal.getNumberOfPages(),startY:36,
+        head:[[L('Soll / Ist','Setpoint / actual'),L('Grenzen','Limits'),L('Von','From'),L('Bis','To'),L('Dauer','Duration'),L('Max. Abweichung','Max. deviation')]],
+        body:pairBody,
+        columnStyles:{0:{cellWidth:'auto',fontStyle:'bold'},1:{cellWidth:46},2:{cellWidth:29,font:'courier'},3:{cellWidth:29,font:'courier'},4:{cellWidth:20,halign:'center'},5:{cellWidth:34,halign:'right'}}});
+    }
+
     /* Notes and markers */
-    if(entries.length){
+    if(on.notes&&entries.length){
       newPage(L('Notizen & Markierungen','Notes & markers'),L('Notizen & Markierungen','Notes & markers'),L('Buchstaben entsprechen den Kennungen im Diagramm.','Letters match the labels in the chart.'));
       table({_section:L('Notizen & Markierungen','Notes & markers'),_startPage:doc.internal.getNumberOfPages(),startY:36,
         head:[[L('Kennung','Label'),L('Typ','Type'),L('Von','From'),L('Bis','To'),L('Dauer','Duration'),L('Notiz','Note')]],
@@ -287,7 +308,7 @@ var ReportExport=(function(){
     }
 
     /* Statistics */
-    var statSignals=numericSignals(file);
+    var statSignals=on.stats?numericSignals(file):[];
     if(statSignals.length){
       newPage(L('Signalstatistik','Signal statistics'),L('Signalstatistik im ausgewerteten Zeitraum','Signal statistics for the evaluated period'),periodLabel(file)+' · '+fmtNumber(rows.length)+' '+L('Messzeilen','rows'));
       table({_section:L('Signalstatistik','Signal statistics'),_startPage:doc.internal.getNumberOfPages(),startY:36,
@@ -297,6 +318,7 @@ var ReportExport=(function(){
     }
 
     /* Signal overview */
+    if(on.overview){
     newPage(L('Signalübersicht','Signal overview'),L('Signalübersicht','Signal overview'),L('Alle erfassten Signale mit Status, Einheit und Signal-ID.','All captured signals with status, unit and signal ID.'));
     table({_section:L('Signalübersicht','Signal overview'),_startPage:doc.internal.getNumberOfPages(),startY:36,
       head:[[L('Status','Status'),L('Steuergerät','ECU'),L('Sensor / Bezeichnung','Sensor / description'),L('Einheit','Unit'),'Signal-ID']],
@@ -308,6 +330,7 @@ var ReportExport=(function(){
       }),
       columnStyles:{0:{cellWidth:34,fontStyle:'bold'},1:{cellWidth:30},2:{cellWidth:'auto'},3:{cellWidth:18,halign:'center'},4:{cellWidth:80}},
       didParseCell:function(data){if(data.section!=='body')return;var s=allSignals[data.row.index];if(s.marked)data.cell.styles.fillColor=[255,241,184];if(s.hidden)data.cell.styles.textColor=[110,120,135];}});
+    }
 
     /* Measurement excerpt: rows around markings, otherwise the first rows */
     var refs=new Map();
@@ -325,6 +348,7 @@ var ReportExport=(function(){
     var dataSignals=visible.filter(function(s){return !/^Marker$/i.test(s.id);}),chunk=6,excerptGroups=[];
     for(var c=0;c<dataSignals.length;c+=chunk)excerptGroups.push(dataSignals.slice(c,c+chunk));
     if(!excerptGroups.length)excerptGroups=[[]];
+    if(!on.excerpt)excerptGroups=[];
     excerptGroups.forEach(function(group,gi){
       var section=L('Messdaten-Auszug','Measurement excerpt')+(excerptGroups.length>1?' '+(gi+1)+'/'+excerptGroups.length:'');
       newPage(section,section,excerptNote);
@@ -414,6 +438,28 @@ var ReportExport=(function(){
     trackUsage('pdf_export');return null;
   }
 
+  /* Rough page count per chapter for the PDF dialog ("approx."). */
+  function estimate(files){
+    var pages={summary:0,chart:0,zoom:0,details:0,capture:0,pairs:0,notes:0,stats:0,overview:0,excerpt:0},available={summary:true};
+    files.forEach(function(file){
+      var rows=rowsOf(file);if(!rows||!rows.length)return;
+      var groups=Math.max(1,chartGroups(file,MAX_LANES_PER_PAGE).length),entries=annotationEntries(file).filter(function(e){return rows.some(function(r){return r.rowId>=e.start&&r.rowId<=e.end;});});
+      var events=captureEvents(file,rows),pairs=pairReport(file),stat=numericSignals(file).length,signals=(file.signals||[]).length;
+      var dataSignals=visibleSignals(file).filter(function(s){return !/^Marker$/i.test(s.id);}).length,refs=events.length+entries.length*2;
+      pages.summary+=1;
+      pages.chart+=groups;available.chart=true;
+      if(isZoomed(file)){pages.zoom+=groups;available.zoom=true;}
+      if(entries.length){pages.details+=Math.min(entries.length,MAX_DETAIL_CHARTS);pages.notes+=Math.ceil(entries.length/16);available.details=available.notes=true;}
+      if(events.length){pages.capture+=Math.ceil(events.length/22)+(captureMarkersShown(file)?Math.ceil(Math.min(events.length,MAX_CAPTURE_CHARTS)/2):0);available.capture=true;}
+      if(pairs.length){pages.pairs+=Math.max(1,Math.ceil(pairs.reduce(function(n,p){return n+Math.max(1,p.list.length);},0)/22));available.pairs=true;}
+      if(stat){pages.stats+=Math.ceil(stat/22);available.stats=true;}
+      pages.overview+=Math.max(1,Math.ceil(signals/22));available.overview=true;
+      pages.excerpt+=Math.max(1,Math.ceil(dataSignals/6))*Math.max(1,Math.ceil(Math.min(refs||150,refs?MAX_EXCERPT_ROWS:150)/24));available.excerpt=true;
+    });
+    if(files.length>1)pages.summary+=1;
+    return {pages:pages,available:available};
+  }
+
   /* ---------- Excel: additional sheets ---------- */
   function argb(rgb){return 'FF'+rgb.map(function(c){return c.toString(16).padStart(2,'0');}).join('').toUpperCase();}
   function fillHex(hex){return {type:'pattern',pattern:'solid',fgColor:{argb:'FF'+String(hex).replace('#','').toUpperCase()}};}
@@ -469,5 +515,5 @@ var ReportExport=(function(){
       });
     }
   }
-  return {pdf:pdf,chartImage:chartImage,chartPngs:chartPngs,canvasBlob:canvasBlob,excelSheets:excelSheets,signalStats:signalStats,numericSignals:numericSignals,rowsOf:rowsOf};
+  return {pdf:pdf,estimate:estimate,sections:SECTIONS.slice(),chartImage:chartImage,chartPngs:chartPngs,canvasBlob:canvasBlob,excelSheets:excelSheets,signalStats:signalStats,numericSignals:numericSignals,rowsOf:rowsOf};
 })();

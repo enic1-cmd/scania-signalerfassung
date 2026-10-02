@@ -156,6 +156,24 @@ function captureFile(){
     await page.locator('.chart-layout-switch [data-layout="separate"]').click();
     assert.deepEqual(await page.evaluate(()=>chartState.layout.lanes.map(l=>l.signals.length)),[1,1]);
     await page.locator('.chart-layout-switch [data-layout="overlay"]').click();
+    /* Deselect all, then tick single curves: they join the overlay again (feedback: Excel-like select / deselect all) */
+    await page.locator('.chart-action[onclick="selectChartSignals()"]').click();
+    await page.locator('[data-action="select-all"]').click();
+    assert.deepEqual(await page.evaluate(()=>chartState.layout.lanes.map(l=>l.signals.length)),[3],'Select all shows every curve, overlaid');
+    await page.locator('[data-action="deselect-all"]').click();
+    assert.equal(await page.evaluate(()=>chartSelection(active()).signals.length),0,'Deselect all hides every curve');
+    assert.equal(await page.locator('.chart-signal-row input[type="checkbox"]:checked').count(),0);
+    await page.locator('.chart-signal-row').nth(0).locator('input[type="checkbox"]').check();
+    await page.locator('.chart-signal-row').nth(2).locator('input[type="checkbox"]').check();
+    assert.deepEqual(await page.evaluate(()=>chartState.layout.lanes.map(l=>l.signals.length)),[2],'Ticked curves join the overlay');
+    const firstName=await page.evaluate(()=>{const s=chartSelection(active()).candidates[1];return s.displayName||s.desc||s.id;});
+    await page.locator('.chart-signal-search').fill(firstName);
+    assert.match(await page.locator('[data-action="select-all"]').textContent(),/Treffer|matches/,'Buttons act on search matches');
+    await page.locator('[data-action="select-all"]').click();
+    assert.equal(await page.evaluate(()=>chartSelection(active()).signals.length),3,'Select matches adds only the match');
+    await page.locator('.chart-signal-search').fill('');
+    await page.locator('.chart-signal-row').nth(1).locator('input[type="checkbox"]').uncheck();
+    await page.keyboard.press('Escape');
     result.overlay='PASS';
 
     /* Lane star highlights a signal like the table star and keeps every curve in the chart */

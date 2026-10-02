@@ -16,7 +16,7 @@ var ChartSignals=(function(){
   var panel=document.createElement('section');panel.className='chart-signal-panel';panel.id='chart-signal-panel';panel.hidden=true;
   panel.innerHTML='<div class="chart-signal-head"><strong></strong><button type="button" class="chart-signal-close"></button></div>'+
     '<p class="chart-signal-info"></p>'+
-    '<div class="chart-signal-actions"><button type="button" data-action="auto"></button><button type="button" data-action="overlay-all"></button><button type="button" data-action="separate-all"></button></div>'+
+    '<div class="chart-signal-actions"><button type="button" data-action="select-all"></button><button type="button" data-action="deselect-all"></button><button type="button" data-action="overlay-all"></button><button type="button" data-action="separate-all"></button></div>'+
     '<label class="chart-signal-shared"><input type="checkbox"><span></span></label>'+
     '<input type="search" class="chart-signal-search">'+
     '<div class="chart-signal-list" role="list"></div>';
@@ -31,10 +31,22 @@ var ChartSignals=(function(){
     if(starsChanged)refreshColumns();else renderChart();
     sync();
   }
+  /* The last clear layout (all overlaid / all separate) is remembered, so curves ticked again after "Deselect all" join the overlay. */
+  function prefersOverlay(){return file()._chartLayout==='overlay';}
   /* A tick shows the curve; unticking hides it from the chart only (table and stars stay untouched). */
   function toggleSignal(signal,checked){
     signal.chartHidden=!checked;
-    if(!checked)signal.overlay=false;
+    signal.overlay=checked&&prefersOverlay();
+    changed(false);
+  }
+  /* Signals the list currently shows: all candidates, or only the search matches. */
+  function searchTerm(){return search.value.trim().toLocaleLowerCase(lang()==='en'?'en-US':'de-DE');}
+  function matches(signal,term){return !term||((signal.displayName||signal.desc||signal.id)+' '+(signal.unit||'')+' '+(signal.id||'')).toLocaleLowerCase().includes(term);}
+  function listed(){var term=searchTerm();return selection().candidates.filter(function(signal){return matches(signal,term);});}
+  function setAll(checked){
+    var signals=listed();if(!signals.length)return;
+    var overlay=checked&&prefersOverlay();
+    signals.forEach(function(signal){if(checked&&!signal.chartHidden)return;signal.chartHidden=!checked;signal.overlay=overlay;});
     changed(false);
   }
   function setOverlay(signals,value){signals.forEach(function(signal){signal.overlay=!!value;});}
@@ -47,20 +59,19 @@ var ChartSignals=(function(){
     changed(false);
   }
   layoutSwitch.querySelectorAll('[data-layout]').forEach(function(b){b.onclick=function(){setLayout(b.dataset.layout);};});
-  panel.querySelector('[data-action="auto"]').onclick=function(){file().signals.forEach(function(signal){signal.chartHidden=false;});changed(false);};
+  panel.querySelector('[data-action="select-all"]').onclick=function(){setAll(true);};
+  panel.querySelector('[data-action="deselect-all"]').onclick=function(){setAll(false);};
   panel.querySelector('[data-action="overlay-all"]').onclick=function(){setLayout('overlay');};
   panel.querySelector('[data-action="separate-all"]').onclick=function(){setLayout('separate');};
   panel.querySelector('.chart-signal-close').onclick=function(){close(true);};
   shared.onchange=function(){file().chartSharedScale=shared.checked;changed(false);};
-  search.oninput=function(){renderList();};
+  search.oninput=function(){sync();};
 
   function renderList(){
     var A=file(),sel=selection(),inChart=new Map(sel.signals.map(function(signal,index){return [signal,index];}));
-    var term=search.value.trim().toLocaleLowerCase(lang()==='en'?'en-US':'de-DE');
     listEl.replaceChildren();
-    sel.candidates.forEach(function(signal){
+    listed().forEach(function(signal){
       var name=signal.displayName||signal.desc||signal.id;
-      if(term&&!(name+' '+(signal.unit||'')+' '+(signal.id||'')).toLocaleLowerCase().includes(term))return;
       var index=inChart.has(signal)?inChart.get(signal):-1;
       var row=document.createElement('div');row.className='chart-signal-row'+(index>=0?' is-active':'');row.setAttribute('role','listitem');
       var label=document.createElement('label');
@@ -72,7 +83,7 @@ var ChartSignals=(function(){
       var overlay=document.createElement('button');overlay.type='button';overlay.className='chart-signal-overlay';
       overlay.innerHTML=ICON_OVERLAY;overlay.disabled=index<0;overlay.setAttribute('aria-pressed',String(!!signal.overlay&&index>=0));
       overlay.title=txt('In gemeinsamer Spur überlagern','Overlay in a shared lane');overlay.setAttribute('aria-label',overlay.title+': '+name);
-      overlay.onclick=function(){signal.overlay=!signal.overlay;changed(false);if(signal.overlay&&selection().signals.filter(function(s){return s.overlay;}).length<2)showToast(txt('Noch eine zweite Kurve zum Überlagern wählen.','Choose a second curve to overlay.'));};
+      overlay.onclick=function(){signal.overlay=!signal.overlay;file()._chartLayout='';changed(false);if(signal.overlay&&selection().signals.filter(function(s){return s.overlay;}).length<2)showToast(txt('Noch eine zweite Kurve zum Überlagern wählen.','Choose a second curve to overlay.'));};
       row.appendChild(overlay);listEl.appendChild(row);
     });
     if(!listEl.children.length){var empty=document.createElement('p');empty.className='chart-signal-empty';empty.textContent=txt('Keine passenden numerischen Signale.','No matching numeric signals.');listEl.appendChild(empty);}
@@ -85,8 +96,11 @@ var ChartSignals=(function(){
     panel.setAttribute('aria-label',txt('Signale im Diagramm','Signals in chart'));
     panel.querySelector('.chart-signal-head strong').textContent=txt('Signale im Diagramm','Signals in chart');
     panel.querySelector('.chart-signal-close').textContent=txt('Schließen','Close');
-    panel.querySelector('[data-action="auto"]').textContent=txt('Alle zeigen','Show all');
-    panel.querySelector('[data-action="auto"]').title=txt('Alle sichtbaren numerischen Signale wieder anzeigen','Show all visible numeric signals again');
+    var searching=!!searchTerm();
+    panel.querySelector('[data-action="select-all"]').textContent=searching?txt('Treffer auswählen','Select matches'):txt('Alle auswählen','Select all');
+    panel.querySelector('[data-action="select-all"]').title=searching?txt('Alle Treffer der Suche im Diagramm zeigen','Show every search match in the chart'):txt('Alle numerischen Signale im Diagramm zeigen','Show every numeric signal in the chart');
+    panel.querySelector('[data-action="deselect-all"]').textContent=searching?txt('Treffer abwählen','Deselect matches'):txt('Alle abwählen','Deselect all');
+    panel.querySelector('[data-action="deselect-all"]').title=searching?txt('Alle Treffer der Suche ausblenden','Hide every search match'):txt('Alle Kurven ausblenden, danach einzelne wieder anhaken','Hide every curve, then tick single ones again');
     panel.querySelector('[data-action="overlay-all"]').textContent=txt('Alle überlagern','Overlay all');
     panel.querySelector('[data-action="separate-all"]').textContent=txt('Alle getrennt','All separate');
     panel.querySelector('.chart-signal-shared span').textContent=txt('Gemeinsame Skala für überlagerte Kurven','Shared scale for overlaid curves');
@@ -95,6 +109,7 @@ var ChartSignals=(function(){
     if(!A||!A.signals)return;
     var sel=selection(),overlayCount=sel.signals.filter(function(s){return s.overlay;}).length;
     var mode=overlayCount===0?'separate':(overlayCount===sel.signals.length&&overlayCount>=2?'overlay':'');
+    if(sel.signals.length>=2)A._chartLayout=mode;
     layoutSwitch.querySelectorAll('[data-layout]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.layout===mode));b.disabled=!sel.signals.length;});
     shared.checked=!!A.chartSharedScale;
     panel.querySelector('.chart-signal-info').textContent=(sel.explicit

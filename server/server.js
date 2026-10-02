@@ -18,6 +18,18 @@ const FEEDBACK_MAX_ATTACHMENTS = 20;
 const FEEDBACK_MAX_ATTACHMENT_BYTES = 12 * 1024 * 1024;
 const RETENTION_DAYS = 180;
 const ACCESS_REQUEST_RETENTION_DAYS = 365;
+/* Open requests nobody answered are removed after this time, so the file cannot grow without end. */
+const ACCESS_REQUEST_PENDING_DAYS = Number(process.env.ACCESS_REQUEST_PENDING_DAYS || 120);
+/* Spam protection for the public forms. Generous enough for a whole workshop team behind one company IP. */
+const PUBLIC_LIMITS = {
+  request: [{ windowMs: 15 * 60000, max: Number(process.env.REQUEST_LIMIT_15MIN || 5) }, { windowMs: 86400000, max: Number(process.env.REQUEST_LIMIT_DAY || 20) }],
+  feedback: [{ windowMs: 15 * 60000, max: Number(process.env.FEEDBACK_LIMIT_15MIN || 6) }, { windowMs: 86400000, max: Number(process.env.FEEDBACK_LIMIT_DAY || 40) }]
+};
+/* Automatic mails triggered by the public forms per day; above it requests and feedback are still stored, only not mailed. */
+const PUBLIC_MAIL_DAILY_CAP = Number(process.env.PUBLIC_MAIL_DAILY_CAP || 150);
+const FEEDBACK_MAX_STORED = Number(process.env.FEEDBACK_MAX_STORED || 1500);
+const ipHits = new Map();
+const publicMailCount = { day: '', count: 0 };
 const ALLOWED_EVENTS = new Set(['page_view', 'app_open', 'file_upload', 'excel_export', 'pdf_export']);
 const publicRequestTimes = [];
 const feedbackRequestTimes = [];
@@ -80,6 +92,45 @@ function verifyMutation(req, res) {
   return true;
 }
 
+/* nginx overwrites X-Real-IP with the real client address; the service itself only listens on 127.0.0.1. */
+function clientIp(req) {
+  const header = String(req.headers['x-real-ip'] || '').trim();
+  return (/^[0-9a-f:.]{2,45}$/i.test(header) ? header : '') || req.socket.remoteAddress || 'unknown';
+}
+
+/* Sliding windows per client IP and form; returns false (and answers 429) when one window is full. */
+function allowFromIp(req, res, kind) {
+  const now = Date.now(), key = kind + '|' + clientIp(req), rules = PUBLIC_LIMITS[kind];
+  const longest = Math.max(...rules.map((rule) => rule.windowMs));
+  const hits = (ipHits.get(key) || []).filter((time) => time > now - longest);
+  const blocked = rules.some((rule) => hits.filter((time) => time > now - rule.windowMs).length >= rule.max);
+  if (blocked) {
+    ipHits.set(key, hits);
+    sendJson(res, 429, { error: 'Zu viele Anfragen von diesem Anschluss. Bitte später erneut versuchen. / Too many requests from this connection. Please try again later.' });
+    return false;
+  }
+  hits.push(now);
+  ipHits.set(key, hits);
+  return true;
+}
+
+function pruneIpHits() {
+  const cutoff = Date.now() - 86400000;
+  for (const [key, hits] of ipHits) {
+    const kept = hits.filter((time) => time > cutoff);
+    if (kept.length) ipHits.set(key, kept); else ipHits.delete(key);
+  }
+}
+
+/* Reserves automatic mails within the daily cap; false means: store only, do not mail. */
+function reservePublicMails(count) {
+  const day = new Date().toISOString().slice(0, 10);
+  if (publicMailCount.day !== day) { publicMailCount.day = day; publicMailCount.count = 0; }
+  if (publicMailCount.count + count > PUBLIC_MAIL_DAILY_CAP) return false;
+  publicMailCount.count += count;
+  return true;
+}
+
 function verifyPublicMutation(req, res) {
   if (req.headers['x-requested-with'] !== 'signalerfassung-access-request') {
     sendJson(res, 403, { error: 'Ungültige Anfrage.' });
@@ -92,7 +143,7 @@ function verifyPublicMutation(req, res) {
     return false;
   }
   publicRequestTimes.push(now);
-  return true;
+  return allowFromIp(req, res, 'request');
 }
 
 function verifyFeedbackMutation(req, res) {
@@ -107,7 +158,7 @@ function verifyFeedbackMutation(req, res) {
     return false;
   }
   feedbackRequestTimes.push(now);
-  return true;
+  return allowFromIp(req, res, 'feedback');
 }
 
 function readBody(req, maxBytes = MAX_BODY) {
@@ -601,6 +652,7 @@ function storeFeedback(feedback, mailOk) {
       report: feedback.report, attachments: feedback.attachments.map((item) => ({ filename: item.filename, size: item.content.length })),
       mailOk, status: 'new', replies: []
     });
+    if (entries.length > FEEDBACK_MAX_STORED) entries.length = FEEDBACK_MAX_STORED;
     writeJsonFile(FEEDBACK_FILE, entries);
   }).catch((error) => console.error('Feedback not stored:', error.message));
 }
@@ -889,11 +941,11 @@ function projektMasterKpis(now = Date.now()) {
 function pruneAccessRequests() {
   if (!fs.existsSync(ACCESS_REQUEST_FILE)) return;
   const cutoff = Date.now() - ACCESS_REQUEST_RETENTION_DAYS * 86400000;
-  const stale = Date.now() - 10 * 60000;
+  const stale = Date.now() - 10 * 60000, pendingCutoff = Date.now() - ACCESS_REQUEST_PENDING_DAYS * 86400000;
   const requests = readAccessRequests()
     .map((entry) => (entry.status === 'processing' && !(Date.parse(entry.updatedAt) >= stale)
       ? { ...entry, status: 'pending', lastError: 'Freigabe wurde unterbrochen, bitte erneut freigeben.' } : entry))
-    .filter((entry) => entry.status === 'pending' || Date.parse(entry.updatedAt) >= cutoff);
+    .filter((entry) => (entry.status === 'pending' ? !(Date.parse(entry.createdAt) < pendingCutoff) : Date.parse(entry.updatedAt) >= cutoff));
   writeAccessRequests(requests);
 }
 
@@ -969,7 +1021,13 @@ const server = http.createServer(async (req, res) => {
       const email = validateEmail(body.email);
       const language = body.language === 'en' ? 'en' : 'de';
       const result = await createAccessRequest(name, email, language);
-      if (!result.duplicate) {
+      if (!result.duplicate && !reservePublicMails(2)) {
+        console.error('Daily mail cap reached: access request stored without mails');
+        await updateAccessRequest(result.request.id, {
+          confirmationMailStatus: 'skipped', adminMailStatus: 'skipped', mailStatus: 'skipped',
+          lastError: 'Tageslimit für automatische Mails erreicht – Anfrage nur im Admin Hub.'
+        });
+      } else if (!result.duplicate) {
         const [confirmation, notification] = await Promise.allSettled([
           mailer.sendAccessRequestConfirmation(result.request),
           mailer.sendAccessRequestNotification(result.request)
@@ -992,12 +1050,24 @@ const server = http.createServer(async (req, res) => {
       if (!verifyFeedbackMutation(req, res)) return;
       const body = await readBody(req, FEEDBACK_MAX_BODY);
       const feedback = validateFeedback(body);
+      if (!reservePublicMails(1)) {
+        console.error('Daily mail cap reached: feedback stored without mail');
+        recordFeedback(feedback, false);
+        await storeFeedback(feedback, false);
+        sendJson(res, 202, { ok: true, mailed: false });
+        return;
+      }
       try {
         await mailer.sendFeedback(feedback);
       } catch (error) {
+        console.error('Feedback mail failed:', error.message);
         recordFeedback(feedback, false);
         await storeFeedback(feedback, false);
-        throw error;
+        /* The report itself is saved in the Admin Hub; only the mail with the attachments failed. No SMTP details to the public. */
+        sendJson(res, 502, { error: feedback.language === 'en'
+          ? 'Your report has arrived, but the notification with the attachments could not be sent. Please send screenshots or files separately if needed.'
+          : 'Dein Bericht ist angekommen, aber die Benachrichtigung mit den Anhängen konnte nicht versendet werden. Bitte sende Screenshots oder Dateien bei Bedarf separat.' });
+        return;
       }
       recordFeedback(feedback, true);
       await storeFeedback(feedback, true);
@@ -1253,6 +1323,7 @@ pruneAdminData();
 sweepExpiredAccounts();
 setInterval(pruneUsage, 24 * 60 * 60 * 1000).unref();
 setInterval(pruneAccessRequests, 24 * 60 * 60 * 1000).unref();
+setInterval(pruneIpHits, 60 * 60 * 1000).unref();
 setInterval(pruneAdminData, 24 * 60 * 60 * 1000).unref();
 setInterval(sweepExpiredAccounts, 60 * 1000).unref();
 server.listen(PORT, '127.0.0.1', () => {

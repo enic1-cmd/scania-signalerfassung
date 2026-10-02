@@ -20,6 +20,21 @@ const ADMIN_REPLY_TO = String(process.env.ADMIN_REPLY_TO || REQUEST_NOTIFY_TO).t
 /* Every personal message from the hub also goes to the admin as a blind copy, so it shows up in the own mailbox. */
 const ADMIN_COPY_TO = String(process.env.ADMIN_COPY_TO ?? ADMIN_REPLY_TO).trim();
 const ADMIN_SIGNATURE_NAME = String(process.env.ADMIN_SIGNATURE_NAME || 'David Breuer').trim();
+/* Everything that goes to the admin also lands in the app mailbox, where it is filed and archived. Empty value turns it off. */
+const ARCHIVE_COPY_TO = String(process.env.ARCHIVE_COPY_TO ?? 'contact.breuer.apps@gmail.com').trim();
+
+/** Comma-separated address list without duplicates and without the excluded addresses. */
+function addressList(values, exclude = []) {
+  const skip = new Set(exclude.map((value) => String(value || '').trim().toLowerCase()));
+  const result = [];
+  for (const address of values.flatMap((value) => String(value || '').split(','))) {
+    const trimmed = address.trim();
+    if (!trimmed || skip.has(trimmed.toLowerCase())) continue;
+    skip.add(trimmed.toLowerCase());
+    result.push(trimmed);
+  }
+  return result.join(', ');
+}
 
 function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, (character) => ({
@@ -84,7 +99,7 @@ function buildAccessRequestNotification(request) {
   const language = languageOf(request);
   const content = `<table role="presentation" style="width:100%;border-collapse:collapse;font-size:15px"><tr><td style="padding:11px 0;color:#6b7d91;border-bottom:1px solid #e4ebf1">Name</td><td style="padding:11px 0;text-align:right;font-weight:700;border-bottom:1px solid #e4ebf1">${escapeHtml(request.name)}</td></tr><tr><td style="padding:11px 0;color:#6b7d91;border-bottom:1px solid #e4ebf1">E-Mail</td><td style="padding:11px 0;text-align:right;font-weight:700;border-bottom:1px solid #e4ebf1">${escapeHtml(request.email)}</td></tr><tr><td style="padding:11px 0;color:#6b7d91;border-bottom:1px solid #e4ebf1">Sprache</td><td style="padding:11px 0;text-align:right;font-weight:700;border-bottom:1px solid #e4ebf1">${language.toUpperCase()}</td></tr><tr><td style="padding:11px 0;color:#6b7d91">Eingang</td><td style="padding:11px 0;text-align:right;font-weight:700">${escapeHtml(new Date(request.createdAt).toLocaleString('de-DE'))}</td></tr></table>`;
   return {
-    to: REQUEST_NOTIFY_TO,
+    to: addressList([REQUEST_NOTIFY_TO, ARCHIVE_COPY_TO]),
     replyTo: request.email,
     subject: `Neue Zugangsanfrage von ${request.name}`,
     headers: { 'Content-Language': 'de' },
@@ -205,9 +220,10 @@ function messageParagraphs(message) {
 function buildAdminMessage({ email, name, language: requestedLanguage, subject, message }) {
   const language = languageOf({ language: requestedLanguage });
   const english = language === 'en';
+  const bcc = addressList([ADMIN_COPY_TO, ARCHIVE_COPY_TO], [email]);
   return {
     to: name ? `"${String(name).replace(/["\\]/g, '')}" <${email}>` : email,
-    ...(ADMIN_COPY_TO && ADMIN_COPY_TO.toLowerCase() !== String(email).toLowerCase() ? { bcc: ADMIN_COPY_TO } : {}),
+    ...(bcc ? { bcc } : {}),
     replyTo: ADMIN_REPLY_TO,
     subject,
     headers: { 'Content-Language': language },
@@ -274,5 +290,5 @@ module.exports = {
   sendAccessRequestConfirmation,
   sendWelcomeEmail,
   sendFeedback,
-  status: () => ({ configured: configured(), sender: SMTP_USER || null, copyTo: ADMIN_COPY_TO || null, notifyTo: REQUEST_NOTIFY_TO, feedbackTo: FEEDBACK_NOTIFY_TO })
+  status: () => ({ configured: configured(), sender: SMTP_USER || null, copyTo: ADMIN_COPY_TO || null, archiveTo: ARCHIVE_COPY_TO || null, notifyTo: REQUEST_NOTIFY_TO, feedbackTo: FEEDBACK_NOTIFY_TO })
 };

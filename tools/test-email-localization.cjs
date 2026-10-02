@@ -22,6 +22,12 @@ assert.match(notificationEn.html,/Neue Zugangsanfrage/);
 assert.match(notificationEn.html,/Sprache/);
 assert.match(notificationEn.text,/Sprache: EN/);
 assert.doesNotMatch(notificationEn.html,/New access request|Review in Admin Hub/);
+assert.equal(notificationEn.to,'david.breuer@breuer-trucks.de, contact.breuer.apps@gmail.com','Admin notification also goes to the app mailbox');
+
+const adminMessage=mailer.buildAdminMessage({email:'alex@example.com',name:'Alex Smith',subject:'Hallo',message:'Test'});
+assert.equal(adminMessage.bcc,'david.breuer@breuer-trucks.de, contact.breuer.apps@gmail.com','Admin message copy goes to both mailboxes');
+const adminToArchive=mailer.buildAdminMessage({email:'Contact.Breuer.Apps@gmail.com',subject:'Hallo',message:'Test'});
+assert.equal(adminToArchive.bcc,'david.breuer@breuer-trucks.de','No blind copy to the recipient itself');
 
 assert.equal(welcomeEn.subject,'Your access to the Signal Capture Analysis Tool');
 assert.equal(welcomeEn.headers['Content-Language'],'en');

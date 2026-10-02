@@ -431,12 +431,24 @@ function validateLanguage(value) {
   return value === 'en' ? 'en' : 'de';
 }
 
-function validateExpiry(value) {
+/** End of the chosen day in German time, independent of the server time zone. */
+function berlinEndOfDay(text) {
+  const guess = Date.parse(`${text}T23:59:59Z`);
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Berlin', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    .formatToParts(new Date(guess)).map((part) => [part.type, part.value]));
+  const shownAsUtc = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour), Number(parts.minute), Number(parts.second));
+  return new Date(guess - (shownAsUtc - guess));
+}
+
+function validateExpiry(value, { future = false } = {}) {
   if (value === null || value === undefined || value === '') return null;
   const text = String(value).trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) throw new Error('Bitte ein gültiges Ablaufdatum wählen.');
-  const date = new Date(`${text}T23:59:59`);
-  if (!Number.isFinite(date.getTime())) throw new Error('Bitte ein gültiges Ablaufdatum wählen.');
+  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const check = match && new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  // Round trip rejects impossible days such as 2026-02-31 instead of rolling them over.
+  if (!check || check.toISOString().slice(0, 10) !== text) throw new Error('Bitte ein gültiges Ablaufdatum wählen.');
+  const date = berlinEndOfDay(text);
+  if (future && date.getTime() <= Date.now()) throw new Error('Das Ablaufdatum muss in der Zukunft liegen.');
   return date.toISOString();
 }
 
@@ -848,7 +860,11 @@ function projektMasterKpis(now = Date.now()) {
 function pruneAccessRequests() {
   if (!fs.existsSync(ACCESS_REQUEST_FILE)) return;
   const cutoff = Date.now() - ACCESS_REQUEST_RETENTION_DAYS * 86400000;
-  const requests = readAccessRequests().filter((entry) => entry.status === 'pending' || Date.parse(entry.updatedAt) >= cutoff);
+  const stale = Date.now() - 10 * 60000;
+  const requests = readAccessRequests()
+    .map((entry) => (entry.status === 'processing' && !(Date.parse(entry.updatedAt) >= stale)
+      ? { ...entry, status: 'pending', lastError: 'Freigabe wurde unterbrochen, bitte erneut freigeben.' } : entry))
+    .filter((entry) => entry.status === 'pending' || Date.parse(entry.updatedAt) >= cutoff);
   writeAccessRequests(requests);
 }
 
@@ -996,6 +1012,7 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       const username = validateUsername(body.username);
       const password = validatePassword(body.password);
+      const expiresAt = validateExpiry(body.expiresAt, { future: true });
       const request = await transitionAccessRequest(id, 'pending', { status: 'processing', lastError: null });
       let userCreated = false;
       try {
@@ -1015,7 +1032,6 @@ const server = http.createServer(async (req, res) => {
         status: 'approved', approvedAt: new Date().toISOString(), approvedBy: admin,
         username, mailStatus: 'sent', lastError: null
       });
-      const expiresAt = validateExpiry(body.expiresAt);
       await serializePasswordMutation(() => saveAccountDetails(username, {
         name: request.name, email: request.email, language: request.language, createdAt: new Date().toISOString(), createdBy: admin,
         source: 'request', requestId: id, expiresAt
@@ -1062,7 +1078,7 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       const username = validateUsername(body.username);
       const password = validatePassword(body.password);
-      const details = { name: validateOptionalName(body.name), email: validateOptionalEmail(body.email), language: validateLanguage(body.language), expiresAt: validateExpiry(body.expiresAt) };
+      const details = { name: validateOptionalName(body.name), email: validateOptionalEmail(body.email), language: validateLanguage(body.language), expiresAt: validateExpiry(body.expiresAt, { future: true }) };
       if (body.sendMail && !details.email) throw new Error('Für die Zugangsmail wird eine E-Mail-Adresse benötigt.');
       if (body.sendMail && !mailer.configured()) throw new Error('Der E-Mail-Versand ist noch nicht konfiguriert. Das Konto wurde nicht angelegt.');
       await upsertUser(username, password, true);
@@ -1088,9 +1104,17 @@ const server = http.createServer(async (req, res) => {
       const account = findAccount(username);
       if (body.sendMail && !account.email) throw new Error('Für diesen Benutzer ist keine E-Mail-Adresse hinterlegt.');
       await upsertUser(username, password, false);
-      if (body.sendMail) await mailer.sendPasswordEmail({ name: account.name || username, email: account.email, username, password, language: account.language });
-      auditLog(admin, 'password_changed', username, body.sendMail ? 'per E-Mail gesendet' : '');
-      sendJson(res, 200, { ok: true, username, mailed: Boolean(body.sendMail) });
+      let mailError = '';
+      if (body.sendMail) {
+        try {
+          await mailer.sendPasswordEmail({ name: account.name || username, email: account.email, username, password, language: account.language });
+        } catch (error) {
+          mailError = cleanEventValue(error.message, 240);
+          console.error('Password mail failed:', mailError);
+        }
+      }
+      auditLog(admin, 'password_changed', username, body.sendMail ? (mailError ? 'E-Mail fehlgeschlagen' : 'per E-Mail gesendet') : '');
+      sendJson(res, 200, { ok: true, username, mailed: Boolean(body.sendMail) && !mailError, mailError });
       return;
     }
     const userMatch = url.pathname.match(/^\/admin\/api\/users\/([^/]+)$/);

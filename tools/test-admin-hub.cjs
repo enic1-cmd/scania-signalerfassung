@@ -133,6 +133,31 @@ async function waitForServer(){
     const csv=fs.readFileSync(await download.path(),'utf8');
     assert.match(csv,/"max\.mustermann";"Max M\. Mustermann";"max@example\.com";"aktiv"/);
     result.csv='PASS';
+
+    /* Phone: no sideways scrolling, card rows, feedback list -> reader -> back, bottom-sheet dialogs */
+    const phone=await browser.newPage({viewport:{width:375,height:812},isMobile:true,hasTouch:true});
+    phone.on('pageerror',e=>errors.push(e.message));
+    await phone.goto(`http://127.0.0.1:${webPort}/admin/`);
+    await phone.waitForFunction(()=>document.querySelector('#user-table [data-user]'));
+    for(const tab of ['overview','requests','users','feedback','log']){
+      await phone.locator(`[data-tab="${tab}"]`).click();
+      assert.equal(await phone.evaluate(()=>document.documentElement.scrollWidth),375,'No horizontal scrolling on '+tab);
+    }
+    await phone.locator('[data-tab="users"]').click();
+    assert.equal(await phone.locator('#user-table .row.head').isVisible(),false,'Table head is hidden on phones');
+    await phone.locator('[data-tab="feedback"]').click();
+    assert.equal(await phone.locator('#feedback-reader').isVisible(),false,'Reader stays hidden until an item is picked');
+    await phone.locator('[data-feedback-filter="all"]').click();
+    await phone.locator('.feedback-item',{hasText:'Stefan Herrmann'}).click();
+    assert.equal(await phone.locator('.feedback-list-card').isVisible(),false);assert.equal(await phone.locator('[data-reader-back]').isVisible(),true);
+    await phone.locator('[data-reply]').click();
+    const sheet=await phone.locator('#reply-dialog').boundingBox();
+    assert.equal(Math.round(sheet.width),375,'Reply dialog uses the full phone width');
+    await phone.locator('#reply-dialog [data-close]').first().click();
+    await phone.locator('[data-reader-back]').click();
+    assert.equal(await phone.locator('.feedback-list-card').isVisible(),true);
+    await phone.close();
+    result.phone='PASS';
     assert.deepEqual(errors,[]);
     console.log(JSON.stringify({result:'PASS',...result,pageErrors:errors},null,2));
   }finally{

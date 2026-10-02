@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>Admin Hub | Signalerfassung Analyse-Tool</title>
 <link rel="icon" type="image/png" href="../assets/signalerfassung-app-icon.png">
-<link rel="stylesheet" href="../assets/admin.css?v=20261001-1">
+<link rel="stylesheet" href="../assets/admin.css?v=20261002-2">
 </head>
 <body>
 <svg class="icon-sprite" aria-hidden="true">
@@ -153,7 +153,7 @@
     <div class="modal-head"><div><span class="modal-icon"><svg><use href="#i-key"/></svg></span><div><h2 id="dialog-title">Benutzer anlegen</h2><p id="dialog-subtitle">Neuen Zugang zur Analyse-App einrichten.</p></div></div><button class="icon-button" type="button" data-close aria-label="Dialog schließen"><svg><use href="#i-x"/></svg></button></div>
     <div class="modal-body">
       <div class="create-only field-grid">
-        <label class="field">Benutzername<input id="username" autocomplete="off" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]+"><small>3–32 Zeichen: Buchstaben, Zahlen, Punkt, Unterstrich, Bindestrich.</small></label>
+        <label class="field">Benutzername<input id="username" autocomplete="off" minlength="3" maxlength="32" pattern="[A-Za-z0-9._\-]+"><small>3–32 Zeichen: Buchstaben, Zahlen, Punkt, Unterstrich, Bindestrich.</small></label>
         <label class="field">Name<input id="create-name" maxlength="100" placeholder="Vor- und Nachname"></label>
         <label class="field">E-Mail<input id="create-email" type="email" maxlength="254" placeholder="name@werkstatt.de"></label>
         <label class="field">Sprache der Mails<select id="create-language"><option value="de">Deutsch</option><option value="en">English</option></select></label>
@@ -173,7 +173,7 @@
     <div class="modal-head"><div><span class="modal-icon"><svg><use href="#i-mail"/></svg></span><div><h2>Zugang freigeben</h2><p>Zugangsdaten festlegen und per E-Mail senden.</p></div></div><button class="icon-button" type="button" data-close aria-label="Dialog schließen"><svg><use href="#i-x"/></svg></button></div>
     <div class="modal-body">
       <div class="recipient-card"><span id="approve-name">–</span><strong id="approve-email">–</strong></div>
-      <label class="field">Benutzername<input id="approve-username" autocomplete="off" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]+" required><small>Der Vorschlag kann vor der Freigabe geändert werden.</small></label>
+      <label class="field">Benutzername<input id="approve-username" autocomplete="off" minlength="3" maxlength="32" pattern="[A-Za-z0-9._\-]+" required><small>Der Vorschlag kann vor der Freigabe geändert werden.</small></label>
       <label class="field">Startpasswort<div class="password-input"><input id="approve-password" type="text" autocomplete="new-password" minlength="10" maxlength="128" required><button type="button" id="copy-approve-password">Kopieren</button></div><small>Das Passwort wird einmalig in der Zugangsmail übermittelt.</small></label>
       <div class="password-tools"><button class="btn btn-soft btn-small" id="generate-approve-password" type="button">Neues Passwort erzeugen</button></div>
       <label class="field">Befristet bis <span class="optional">(optional)</span><input id="approve-expiry" type="date"><small>Danach wird der Zugang automatisch gesperrt. Lässt sich später ändern.</small></label>
@@ -203,6 +203,6 @@
 <dialog id="confirm-dialog" class="confirm-dialog"><form method="dialog" class="confirm-content" id="confirm-form"><span class="danger-icon" id="confirm-icon"><svg><use href="#i-alert"/></svg></span><h2 id="confirm-title">Bestätigen</h2><p id="confirm-copy"></p><label class="field" id="confirm-reason-field" hidden>Grund <span class="optional">(optional, nur intern)</span><input id="confirm-reason" maxlength="200"></label><div class="modal-actions"><button class="btn btn-soft" type="button" data-close>Abbrechen</button><button class="btn btn-danger" type="submit" id="confirm-ok">Bestätigen</button></div></form></dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="../assets/admin.js?v=20261001-1"></script>
+<script src="../assets/admin.js?v=20261002-2"></script>
 </body>
 </html>

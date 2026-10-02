@@ -25,7 +25,7 @@
     if(!value)return 'Noch nie aktiv';
     const minutes=Math.floor((Date.now()-Date.parse(value))/60000);
     if(minutes<1)return 'Gerade eben';if(minutes<60)return `Vor ${minutes} Min.`;
-    if(minutes<1440)return `Vor ${Math.floor(minutes/60)} Std.`;if(minutes<10080)return `Vor ${Math.floor(minutes/1440)} Tagen`;
+    if(minutes<1440)return `Vor ${Math.floor(minutes/60)} Std.`;if(minutes<10080){const d=Math.floor(minutes/1440);return d===1?'Vor 1 Tag':`Vor ${d} Tagen`;}
     return dayLabel(value);
   }
   function inputDate(iso){if(!iso)return '';const d=new Date(iso);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
@@ -50,6 +50,9 @@
     document.querySelectorAll('[data-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.tab===tab)));
     document.querySelectorAll('.tab-panel').forEach(panel=>{panel.hidden=panel.id!=='panel-'+tab;});
     if(updateHash)history.replaceState(null,'','#'+tab);
+    const bar=document.querySelector('.tabs'),active=bar.querySelector(`[data-tab="${tab}"]`);
+    if(bar.scrollWidth>bar.clientWidth)bar.scrollTo({left:active.offsetLeft-(bar.clientWidth-active.offsetWidth)/2,behavior:'smooth'});
+    showFeedbackReader(false);
     if(tab==='feedback'&&!state.selectedFeedback){const first=filteredFeedback()[0];if(first)selectFeedback(first.id,false);}
   }
   document.querySelectorAll('[data-tab]').forEach(button=>button.addEventListener('click',()=>setTab(button.dataset.tab)));
@@ -78,16 +81,17 @@
     for(let offset=days-1;offset>=0;offset--){const d=new Date();d.setDate(d.getDate()-offset);const key=inputDate(d.toISOString());list.push({date:key,...(map.get(key)||{})});}
     const max=niceMax(Math.max(1,...list.map(d=>SERIES.reduce((sum,s)=>sum+(d[s[0]]||0),0))));
     $('usage-legend').innerHTML=SERIES.map(s=>`<span><i style="background:${s[2]}"></i>${s[1]}</span>`).join('');
-    $('usage-chart').innerHTML=`<div class="usage-axis"><span>${fmt.format(max)}</span><span>${fmt.format(max/2)}</span><span>0</span></div><div class="usage-plot"><div class="usage-bars">${list.map(d=>`<div class="usage-day" data-date="${d.date}">${SERIES.map(s=>`<i style="height:${(d[s[0]]||0)/max*100}%;background:${s[2]}"></i>`).join('')}</div>`).join('')}</div><div class="usage-dates"><span>${dayLabel(list[0].date+'T12:00:00')}</span><span>heute</span></div></div>`;
+    $('usage-chart').innerHTML=`<div class="usage-axis"><span>${fmt.format(max)}</span><span>${fmt.format(max/2)}</span><span>0</span></div><div class="usage-plot"><div class="usage-bars"${days>60?' data-dense':''}>${list.map(d=>`<div class="usage-day" data-date="${d.date}">${SERIES.map(s=>`<i style="height:${(d[s[0]]||0)/max*100}%;background:${s[2]}"></i>`).join('')}</div>`).join('')}</div><div class="usage-dates"><span>${dayLabel(list[0].date+'T12:00:00')}</span><span>heute</span></div></div>`;
     const bars=$('usage-chart').querySelector('.usage-bars'),tip=document.createElement('div');tip.className='usage-tip';tip.hidden=true;$('usage-chart').appendChild(tip);
-    bars.addEventListener('mousemove',event=>{
+    const showTip=event=>{
       const day=event.target.closest('.usage-day');if(!day){tip.hidden=true;return;}
       const d=list.find(item=>item.date===day.dataset.date)||{};
       tip.innerHTML=`<b>${dayLabel(d.date+'T12:00:00')}</b><br>${SERIES.map(s=>`${s[1]}: ${fmt.format(d[s[0]]||0)}`).join('<br>')}`;
       const box=$('usage-chart').getBoundingClientRect(),r=day.getBoundingClientRect();
       tip.hidden=false;tip.style.left=Math.min(box.width-tip.offsetWidth-8,Math.max(8,r.left-box.left-tip.offsetWidth/2+r.width/2))+'px';tip.style.top='6px';
-    });
-    bars.addEventListener('mouseleave',()=>{tip.hidden=true;});
+    };
+    bars.addEventListener('pointermove',showTip);bars.addEventListener('pointerdown',showTip);
+    bars.addEventListener('pointerleave',event=>{if(event.pointerType==='mouse')tip.hidden=true;});
   }
   function renderTodos(){
     const users=state.data.users,soon=Date.now()+14*86400000,items=[];
@@ -159,7 +163,7 @@
   function renderUsers(){
     const users=filteredUsers();
     const head='<div class="row head"><span>Benutzer</span><span>Status</span><span>Aufrufe</span><span>Dateien</span><span>Exporte</span><span class="last-col">Zuletzt aktiv</span><span></span></div>';
-    $('user-table').innerHTML=head+(users.length?users.map(u=>`<div class="row" data-user="${esc(u.username)}" tabindex="0" role="button" aria-label="Details zu ${esc(displayName(u))}"><div class="person"><span class="avatar">${esc(initials(u.name||u.username))}</span><div class="person-text"><strong>${esc(displayName(u))} ${u.isAdmin?'<span class="badge admin">Admin</span>':''}</strong>${u.email?`<small>${esc(u.email)}</small>`:'<small class="missing">keine E-Mail hinterlegt</small>'}<small>@${esc(u.username)}</small></div></div>${accountBadge(u)}<span class="num">${fmt.format(u.pageViews)}</span><span class="num">${fmt.format(u.uploads)}</span><span class="num">${fmt.format(u.exports)}</span><span class="last-col" title="${esc(dateLabel(u.lastSeen))}">${esc(relative(u.lastSeen))}</span><span class="muted">${icon('i-chevron')}</span></div>`).join(''):'<div class="empty-state">Keine passenden Benutzer.</div>');
+    $('user-table').innerHTML=head+(users.length?users.map(u=>`<div class="row" data-user="${esc(u.username)}" tabindex="0" role="button" aria-label="Details zu ${esc(displayName(u))}"><div class="person"><span class="avatar">${esc(initials(u.name||u.username))}</span><div class="person-text"><strong>${esc(displayName(u))} ${u.isAdmin?'<span class="badge admin">Admin</span>':''}</strong>${u.email?`<small>${esc(u.email)}</small>`:'<small class="missing">keine E-Mail hinterlegt</small>'}<small>@${esc(u.username)}</small></div></div>${accountBadge(u)}<span class="num" data-label="Aufrufe">${fmt.format(u.pageViews)}</span><span class="num" data-label="Dateien">${fmt.format(u.uploads)}</span><span class="num" data-label="Exporte">${fmt.format(u.exports)}</span><span class="last-col" title="${esc(dateLabel(u.lastSeen))}">${esc(relative(u.lastSeen))}</span><span class="muted">${icon('i-chevron')}</span></div>`).join(''):'<div class="empty-state">Keine passenden Benutzer.</div>');
   }
   $('user-table').addEventListener('click',event=>{const row=event.target.closest('[data-user]');if(row)openUser(row.dataset.user);});
   $('user-table').addEventListener('keydown',event=>{if(event.key==='Enter'){const row=event.target.closest('[data-user]');if(row)openUser(row.dataset.user);}});
@@ -221,10 +225,11 @@
     }
     if(event.target.closest('[data-profile-save]')){
       const body={name:$('profile-name').value,email:$('profile-email').value,language:$('profile-language').value};
-      if(!a.isAdmin)body.expiresAt=$('profile-expiry').value||null;
+      /* Only send the expiry when it was edited, so saving a name never moves the date. */
+      if(!a.isAdmin&&$('profile-expiry').value!==inputDate(a.expiresAt))body.expiresAt=$('profile-expiry').value||null;
       await mutate(()=>api('/admin/api/users/'+encodeURIComponent(a.username),{method:'PATCH',body:JSON.stringify(body)}),'Benutzerdaten wurden gespeichert.');return;
     }
-    const fb=event.target.closest('[data-goto-feedback]');if(fb){event.preventDefault();closeDrawer();state.feedbackFilter='all';syncPills('feedback-filter','all');setTab('feedback');selectFeedback(fb.dataset.gotoFeedback);}
+    const fb=event.target.closest('[data-goto-feedback]');if(fb){event.preventDefault();closeDrawer();state.feedbackFilter='all';syncPills('feedback-filter','all');setTab('feedback');selectFeedback(fb.dataset.gotoFeedback);showFeedbackReader(true);}
   });
   document.querySelector('.drawer-backdrop').addEventListener('click',closeDrawer);
   async function mutate(action,message,reopen=true){
@@ -241,7 +246,12 @@
     const items=filteredFeedback();
     $('feedback-list').innerHTML=items.length?items.map(f=>`<button type="button" class="feedback-item ${f.status==='new'?'unread':''} ${f.id===state.selectedFeedback?'selected':''}" data-feedback="${esc(f.id)}"><div class="feedback-item-top"><strong>${esc(feedbackTitle(f))}</strong>${feedbackStatus(f)}</div><small>${esc([f.workshop,dateLabel(f.receivedAt),f.attachments&&f.attachments.length?`${f.attachments.length} ${f.attachments.length===1?'Anhang':'Anhänge'}`:''].filter(Boolean).join(' · '))}</small><p>${esc(preview(f.report))}</p></button>`).join(''):'<div class="empty-state">Kein Feedback in dieser Ansicht.</div>';
   }
-  $('feedback-list').addEventListener('click',event=>{const item=event.target.closest('[data-feedback]');if(item)selectFeedback(item.dataset.feedback);});
+  $('feedback-list').addEventListener('click',event=>{const item=event.target.closest('[data-feedback]');if(item){selectFeedback(item.dataset.feedback);showFeedbackReader(true);}});
+  /* On phones list and reader share the screen: the reader replaces the list until "back" is tapped. */
+  function showFeedbackReader(show){
+    $('panel-feedback').querySelector('.feedback-layout').classList.toggle('show-reader',show);
+    if(show&&matchMedia('(max-width:700px)').matches)$('panel-feedback').scrollIntoView({block:'start'});
+  }
   /* Opening the tab only shows the first form; it counts as read once it is clicked. */
   async function selectFeedback(id,markRead=true){
     state.selectedFeedback=id;renderFeedbackList();renderFeedbackReader();
@@ -252,7 +262,7 @@
     const f=state.feedback.find(x=>x.id===state.selectedFeedback),reader=$('feedback-reader');
     if(!f){reader.innerHTML='<div class="empty-state">Feedback in der Liste auswählen.</div>';return;}
     const meta=[f.workshop&&`Werkstatt: ${esc(f.workshop)}`,f.role&&esc(f.role),f.testDate&&`Testdatum: ${esc(dayLabel(f.testDate+'T12:00:00'))}`,`Eingang: ${esc(dateLabel(f.receivedAt))}`,`Sprache: ${f.language==='en'?'EN':'DE'}`].filter(Boolean);
-    reader.innerHTML=`<div class="reader-head"><div><h2>${esc(feedbackTitle(f))}</h2><div class="reader-meta">${f.email?`<a href="mailto:${esc(f.email)}">${esc(f.email)}</a>`:'<span>keine E-Mail-Adresse</span>'}${meta.map(m=>`<span>${m}</span>`).join('')}</div></div><div class="reader-actions">${feedbackStatus(f)}</div></div>
+    reader.innerHTML=`<button class="btn btn-soft btn-small reader-back" type="button" data-reader-back>${icon('i-chevron')}Alle Feedbacks</button><div class="reader-head"><div><h2>${esc(feedbackTitle(f))}</h2><div class="reader-meta">${f.email?`<a href="mailto:${esc(f.email)}">${esc(f.email)}</a>`:'<span>keine E-Mail-Adresse</span>'}${meta.map(m=>`<span>${m}</span>`).join('')}</div></div><div class="reader-actions">${feedbackStatus(f)}</div></div>
       <div class="reader-body">
         <div class="reader-actions" style="justify-content:flex-start"><button class="btn btn-primary" type="button" data-reply ${f.email?'':'disabled'}>${icon('i-reply')}Antworten</button>${f.status==='done'?'<button class="btn btn-soft" type="button" data-feedback-status="read">Wieder öffnen</button>':'<button class="btn btn-soft" type="button" data-feedback-status="done">Als erledigt markieren</button>'}<button class="btn btn-danger-soft" type="button" data-feedback-delete>${icon('i-trash')}Löschen</button></div>
         ${f.email?'':`<p class="reader-note">${f.anonymous?'Anonym abgegeben':'Ohne E-Mail-Adresse abgegeben'}: eine Antwort ist nicht möglich.</p>`}
@@ -263,6 +273,7 @@
       </div>`;
   }
   $('feedback-reader').addEventListener('click',async event=>{
+    if(event.target.closest('[data-reader-back]')){showFeedbackReader(false);return;}
     const f=state.feedback.find(x=>x.id===state.selectedFeedback);if(!f)return;
     if(event.target.closest('[data-reply]')){openReply(f);return;}
     const status=event.target.closest('[data-feedback-status]');
@@ -270,7 +281,7 @@
     if(event.target.closest('[data-feedback-delete]')){
       const ok=await confirmAction({title:'Feedback löschen?',copy:'Der Feedbackbogen wird aus dem Admin Hub entfernt. Die ursprüngliche E-Mail mit den Anhängen bleibt in deinem Postfach.',ok:'Löschen'});
       if(ok===false)return;
-      try{await api('/admin/api/feedback/'+encodeURIComponent(f.id),{method:'DELETE'});state.feedback=state.feedback.filter(x=>x.id!==f.id);state.selectedFeedback='';renderAllFeedback();showToast('Feedback wurde gelöscht.');}catch(error){showToast(error.message,true);}
+      try{await api('/admin/api/feedback/'+encodeURIComponent(f.id),{method:'DELETE'});state.feedback=state.feedback.filter(x=>x.id!==f.id);state.selectedFeedback='';showFeedbackReader(false);renderAllFeedback();showToast('Feedback wurde gelöscht.');}catch(error){showToast(error.message,true);}
     }
   });
   function renderAllFeedback(){renderFeedbackList();renderFeedbackReader();renderKpis();renderTodos();}
@@ -402,8 +413,10 @@
         await api('/admin/api/users',{method:'POST',body:JSON.stringify({username:$('username').value,password:$('password').value,name:$('create-name').value,email:$('create-email').value,language:$('create-language').value,expiresAt:$('create-expiry').value||null,sendMail})});
         $('user-dialog').close();showToast(sendMail?'Benutzer angelegt, Zugangsdaten per E-Mail gesendet.':'Benutzer wurde angelegt.');await load();
       }else{
-        await api(`/admin/api/users/${encodeURIComponent(state.dialogUser)}/password`,{method:'PUT',body:JSON.stringify({password:$('password').value,sendMail})});
-        $('user-dialog').close();showToast(sendMail?'Passwort geändert und per E-Mail gesendet.':'Passwort wurde geändert.');await load();if(state.drawerUser)await openUser(state.drawerUser);
+        const r=await api(`/admin/api/users/${encodeURIComponent(state.dialogUser)}/password`,{method:'PUT',body:JSON.stringify({password:$('password').value,sendMail})});
+        $('user-dialog').close();
+        if(r.mailError)showToast('Passwort wurde geändert, aber die E-Mail konnte nicht gesendet werden. Bitte selbst weitergeben.',true);
+        else showToast(sendMail?'Passwort geändert und per E-Mail gesendet.':'Passwort wurde geändert.');await load();if(state.drawerUser)await openUser(state.drawerUser);
       }
     }catch(error){showToast(error.message,true);}finally{button.disabled=false;}
   });
@@ -443,7 +456,8 @@
   document.querySelectorAll('[data-user-filter]').forEach(b=>b.addEventListener('click',()=>{state.userFilter=b.dataset.userFilter;syncPills('user-filter',state.userFilter);renderUsers();}));
   $('user-search').addEventListener('input',renderUsers);$('user-sort').addEventListener('change',renderUsers);
   $('range').addEventListener('change',()=>load());$('refresh').addEventListener('click',()=>load(true));
-  function csvCell(value){return `"${String(value??'').replace(/"/g,'""')}"`;}
+  /* A leading = + - @ would run as a formula in Excel: prefix it so names from the public form stay text. */
+  function csvCell(value){const text=String(value??'');return `"${(/^[=+\-@\t\r]/.test(text)?"'"+text:text).replace(/"/g,'""')}"`;}
   $('export-csv').addEventListener('click',()=>{
     if(!state.data)return;
     const rows=[['Benutzer','Name','E-Mail','Status','Befristet bis','Seitenaufrufe','Datei-Auswertungen','Exporte','Aktionen gesamt','Zuletzt aktiv'],...state.data.users.map(u=>[u.username,u.name,u.email,u.status==='active'?'aktiv':u.status==='blocked'?'gesperrt':'abgelaufen',u.expiresAt?dayLabel(u.expiresAt):'',u.pageViews,u.uploads,u.exports,u.totalActions,u.lastSeen||''])];
@@ -451,6 +465,8 @@
     const link=document.createElement('a');link.href=url;link.download=`Signalerfassung_Admin_${state.data.days}_Tage.csv`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);showToast('CSV-Auswertung wurde erstellt.');
   });
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('drawer-layer').hidden&&!document.querySelector('dialog[open]'))closeDrawer();});
-  const initial=location.hash.replace('#','');if(['overview','requests','users','feedback','log'].includes(initial))setTab(initial,false);
+  const TABS=['overview','requests','users','feedback','log'],hashTab=()=>location.hash.replace('#','');
+  if(TABS.includes(hashTab()))setTab(hashTab(),false);
+  window.addEventListener('hashchange',()=>{if(TABS.includes(hashTab()))setTab(hashTab(),false);});
   load();
 })();

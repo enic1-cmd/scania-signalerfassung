@@ -53,6 +53,8 @@ new Function(fs.readFileSync(path.join(root,'assets/help.js'),'utf8'));
     await page.locator('#view-chart-btn').click();
     await page.waitForTimeout(200);
     await trigger.click();
+    /* The section opens on the next animation frame after the drawer appears. */
+    await page.waitForFunction(()=>document.querySelector('[data-help-section="chart"]').open,{},{timeout:3000}).catch(()=>{});
     assert(await page.locator('[data-help-section="chart"]').evaluate(node=>node.open),'Chart context must open chart help');
 
     await page.setViewportSize({width:390,height:740});

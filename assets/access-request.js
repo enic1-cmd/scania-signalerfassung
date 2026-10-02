@@ -134,7 +134,7 @@
       if(current)current.textContent=activeLanguage.toUpperCase();
       menu.querySelectorAll('[data-lang-set]').forEach(item=>item.setAttribute('aria-pressed',String(item.dataset.langSet===activeLanguage)));
     });
-    localStorage.setItem(STORAGE_KEY,activeLanguage);
+    try{localStorage.setItem(STORAGE_KEY,activeLanguage);}catch(error){}
   }
 
   document.querySelectorAll('[data-lang-set]').forEach(item=>item.addEventListener('click',()=>{
@@ -149,7 +149,8 @@
   if(launcher)launcher.addEventListener('toggle',()=>{if(launcher.open)languageMenus.forEach(menu=>{menu.open=false;});});
   languageMenus.forEach(menu=>menu.addEventListener('toggle',()=>{if(menu.open&&launcher)launcher.open=false;}));
 
-  applyLanguage(localStorage.getItem(STORAGE_KEY)||'de');
+  var storedLanguage='';try{storedLanguage=localStorage.getItem(STORAGE_KEY);}catch(error){}
+  applyLanguage(storedLanguage||'de');
   if(!form||!button||!errorBox||!success)return;
 
   form.addEventListener('submit',async event=>{

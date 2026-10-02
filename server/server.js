@@ -948,6 +948,10 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (req.method === 'POST' && url.pathname === '/api/usage') {
+      if (!String(req.headers['content-type'] || '').toLowerCase().startsWith('application/json')) {
+        sendJson(res, 415, { error: 'Ungültige Anfrage.' });
+        return;
+      }
       const body = await readBody(req);
       appendUsage(req, cleanEventValue(body.event, 32), cleanEventValue(body.page, 120));
       res.writeHead(204, { 'Cache-Control': 'no-store' });

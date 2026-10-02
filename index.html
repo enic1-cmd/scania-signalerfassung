@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Signalerfassung Analyse-Tool fuer SWS und SDP3</title>
-  <meta name="description" content="Signalerfassung Analyse-Tool fuer SWS- und SDP3-TXT-Dateien: Messdaten lokal auswerten, relevante Signale markieren und professionelle Excel- und PDF-Exporte fuer Diagnose, Werkstatt und Support erstellen.">
+  <title>Signalerfassung Analyse-Tool für SWS und SDP3</title>
+  <meta name="description" content="Signalerfassung Analyse-Tool für SWS- und SDP3-TXT-Dateien: Messdaten lokal auswerten, relevante Signale markieren und professionelle Excel- und PDF-Exporte für Diagnose, Werkstatt und Support erstellen.">
   <link rel="canonical" href="https://signalerfassung.com/">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Signalerfassung Analyse-Tool fuer SWS und SDP3">
-  <meta property="og:description" content="Lokale Auswertung von SWS- und SDP3-Signalerfassungen mit uebersichtlichen Exporten fuer Diagnose, Werkstatt und Support.">
+  <meta property="og:title" content="Signalerfassung Analyse-Tool für SWS und SDP3">
+  <meta property="og:description" content="Lokale Auswertung von SWS- und SDP3-Signalerfassungen mit übersichtlichen Exporten für Diagnose, Werkstatt und Support.">
   <meta property="og:url" content="https://signalerfassung.com/">
   <meta property="og:site_name" content="Signalerfassung Analyse-Tool">
   <meta property="og:locale" content="de_DE">
@@ -17,12 +17,12 @@
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Signalerfassung Analyse-Tool fuer SWS- und SDP3-Messdaten">
+  <meta property="og:image:alt" content="Signalerfassung Analyse-Tool für SWS- und SDP3-Messdaten">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Signalerfassung Analyse-Tool fuer SWS und SDP3">
+  <meta name="twitter:title" content="Signalerfassung Analyse-Tool für SWS und SDP3">
   <meta name="twitter:description" content="Messdaten lokal analysieren, Auffaelligkeiten markieren und als Excel oder PDF exportieren.">
   <meta name="twitter:image" content="https://signalerfassung.com/assets/signalerfassung-share-preview.png">
-  <meta name="twitter:image:alt" content="Signalerfassung Analyse-Tool fuer SWS- und SDP3-Messdaten">
+  <meta name="twitter:image:alt" content="Signalerfassung Analyse-Tool für SWS- und SDP3-Messdaten">
   <meta name="theme-color" content="#002b55">
   <link rel="icon" type="image/png" sizes="1024x1024" href="assets/signalerfassung-app-icon.png">
   <link rel="apple-touch-icon" href="assets/signalerfassung-app-icon.png">
@@ -1012,8 +1012,8 @@
     const I18N_STORAGE_KEY = 'signalerfassung.lang';
     const pageCopy = {
       de: {
-        title: 'Signalerfassung Analyse-Tool fuer SWS und SDP3',
-        description: 'Signalerfassung Analyse-Tool fuer SWS- und SDP3-TXT-Dateien: Messdaten lokal auswerten, relevante Signale markieren und professionelle Excel- und PDF-Exporte fuer Diagnose, Werkstatt und Support erstellen.',
+        title: 'Signalerfassung Analyse-Tool für SWS und SDP3',
+        description: 'Signalerfassung Analyse-Tool für SWS- und SDP3-TXT-Dateien: Messdaten lokal auswerten, relevante Signale markieren und professionelle Excel- und PDF-Exporte für Diagnose, Werkstatt und Support erstellen.',
         navAria: 'Hauptnavigation',
         langAria: 'Sprache',
         brandAria: 'Startseite',
@@ -1317,7 +1317,7 @@
       Object.entries(copy.selectors).forEach(([selector, html]) => {
         document.querySelectorAll(selector).forEach(node => { node.innerHTML = html; });
       });
-      localStorage.setItem(I18N_STORAGE_KEY, lang);
+      try { localStorage.setItem(I18N_STORAGE_KEY, lang); } catch (error) {}
     }
     document.querySelectorAll('[data-lang-set]').forEach(button => {
       button.addEventListener('click', () => {
@@ -1326,7 +1326,9 @@
         if(menu) menu.open = false;
       });
     });
-    applyPageLanguage(localStorage.getItem(I18N_STORAGE_KEY) || 'de');
+    let storedLanguage = '';
+    try { storedLanguage = localStorage.getItem(I18N_STORAGE_KEY); } catch (error) {}
+    applyPageLanguage(storedLanguage || 'de');
 
     const launcher = document.getElementById('tool-launcher');
     const languageMenus = [...document.querySelectorAll('.language-switch')];

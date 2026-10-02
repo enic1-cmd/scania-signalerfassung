@@ -125,7 +125,7 @@
         button.setAttribute('aria-pressed', String(button.dataset.langSet === lang));
       });
     });
-    localStorage.setItem(STORAGE_KEY, lang);
+    try { localStorage.setItem(STORAGE_KEY, lang); } catch (error) {}
   }
 
   document.querySelectorAll('[data-lang-set]').forEach(button => {
@@ -148,5 +148,7 @@
   launchers.forEach(launcher => launcher.addEventListener('toggle', () => {
     if(launcher.open) languageMenus.forEach(menu => { menu.open = false; });
   }));
-  applyLanguage(localStorage.getItem(STORAGE_KEY) || 'de');
+  let storedLanguage = '';
+  try { storedLanguage = localStorage.getItem(STORAGE_KEY); } catch (error) {}
+  applyLanguage(storedLanguage || 'de');
 })();

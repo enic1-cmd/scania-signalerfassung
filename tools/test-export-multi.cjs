@@ -50,6 +50,13 @@ if(!files.every(file=>fs.existsSync(file))){console.log(JSON.stringify({result:'
     assert.equal(result.zip.filter(name=>/^03_Diagramm\/0[12]_.*\.png$/.test(name)).length>=2,true,'ZIP has a chart per recording');
     assert.equal(result.zip.filter(name=>name.startsWith('01_Originaldateien/')).length,2,'ZIP has both originals');
     assert.match(result.readme,/ALLE MESSUNGEN IM PAKET/);
+    /* Closing a tab left of the active one keeps the active recording on screen */
+    const closing=await page.evaluate(()=>{
+      S.files.push(S.files[0]);setActive(1);const shown=active().filename;closeFile(0);
+      const keep={same:active().filename===shown,idx:S.activeIdx};closeFile(S.activeIdx);
+      return {...keep,left:S.files.length,idxAfter:S.activeIdx};
+    });
+    assert.deepEqual(closing,{same:true,idx:0,left:1,idxAfter:0},'Closing tabs keeps a sensible active file');
     assert.deepEqual(errors,[]);
     console.log(JSON.stringify({result:'PASS',pdfPages:{single:result.singlePages,combined:result.combinedPages},sheets:result.sheets.length,zip:result.zip.length,pageErrors:errors},null,2));
   }finally{await browser.close();}

@@ -88,3 +88,15 @@ body.analysis-focus .workspace-summary{color:#07579c}
   .workspace-bar{padding-top:5px;padding-bottom:5px}
   .analysis-surface .chart-subtitle{display:none}
 }
+/* SWS notice: info button (amber when values arrive slower than every 1.5 s) and its panel */
+.sws-notice-button[hidden]{display:none}
+.sws-notice-button.is-slow{border-color:#e0a100;background:#fff7e0;color:#7a5200}
+.sws-notice-button[aria-expanded="true"]{background:#07579c;border-color:#07579c;color:#fff}
+.sws-notice-panel{left:auto;width:min(520px,calc(100% - 28px))}
+.sws-notice-body{display:flex;flex-direction:column;gap:8px;padding:4px 6px 6px;color:#143b61;font-size:12.5px;line-height:1.45}
+.sws-notice-body p{margin:0}
+.sws-notice-measured{padding:7px 9px;border-radius:8px;background:#fff7e0;color:#5c3d00}
+.sws-notice-future{color:#5b7086;font-style:italic}
+.sws-notice-points{align-self:flex-start;font:inherit;font-weight:700;border:1px solid #07579c;background:#07579c;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer}
+.sws-notice-points:disabled{background:#e8f0f7;border-color:#c6d8e8;color:#5b7086;cursor:default}
+.sws-notice-points:focus-visible,.sws-notice-button:focus-visible{outline:2px solid #0055a0;outline-offset:2px}

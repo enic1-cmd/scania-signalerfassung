@@ -1011,7 +1011,7 @@ function applyAppLanguage(lang){
   if(window.WorkspaceLayout&&WorkspaceLayout.sync)WorkspaceLayout.sync();
   if(window.ChartHeight&&ChartHeight.sync)ChartHeight.sync();
   if(window.ChartSignals&&ChartSignals.sync)ChartSignals.sync();
-  ['ChartHighlight','ChartPoints','ChartMeasure','ChartPairs','PdfOptions'].forEach(function(name){if(window[name]&&window[name].sync)window[name].sync();});
+  ['ChartHighlight','ChartPoints','SwsNotice','ChartMeasure','ChartPairs','PdfOptions'].forEach(function(name){if(window[name]&&window[name].sync)window[name].sync();});
   if(S.files&&S.files.length&&S.view==='chart')renderChart();
   if(typeof syncExportScope==='function')syncExportScope();
   if(window.AppHelp&&AppHelp.rebuild)AppHelp.rebuild();
@@ -2934,6 +2934,7 @@ function showErr(msg){var e=document.getElementById('upload-error');e.style.disp
 </script>
 <script src="assets/annotations.js?v=20261001-1"></script>
 <script src="assets/workspace-layout.js?v=20260930-3"></script>
+<script src="assets/sws-notice.js?v=20261006-1"></script>
 <script src="assets/chart-height.js?v=20261001-1"></script>
 <script src="assets/chart-signals.js?v=20261001-1"></script>
 <script src="assets/chart-highlight.js?v=20261002-1"></script>

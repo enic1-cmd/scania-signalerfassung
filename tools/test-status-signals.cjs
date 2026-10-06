@@ -77,6 +77,16 @@ function recording(){
     await points.click();
     assert.equal(await page.evaluate(()=>ChartPoints.enabled()),false);
 
+    /* SWS note: visible for SWS files, shows the real refresh interval, can switch sample dots on */
+    const notice=page.locator('.sws-notice-button');
+    assert.equal(await notice.isVisible(),true,'SWS files get the SWS note');
+    assert.match(await notice.getAttribute('title'),/alle 1 s/,'Synthetic file changes every second');
+    await notice.click();
+    assert.match(await page.locator('.sws-notice-panel').innerText(),/5 Signale/);
+    await page.locator('.sws-notice-points').click();
+    assert.equal(await page.evaluate(()=>ChartPoints.enabled()),true,'Button in the note switches sample dots on');
+    await points.click();
+
     /* English */
     await page.locator('[data-lang-set="en"]').first().click();await page.waitForTimeout(150);
     await page.locator('#view-chart-btn').click();await page.waitForTimeout(150);

@@ -1801,6 +1801,22 @@ function drawCaptureMarkers(ctx,A,rows,left,top,plotW,height,windowData,scale){
     ctx.globalAlpha=1;ctx.fillStyle=textColor;ctx.fillText(label,x,top+11*scale);
   });
 }
+/* Value scale of a numeric lane: round values with faint grid lines across the plot, about one every 22 px, so
+   a level such as 16,6 mm can be read directly from the curve. Taller lanes (Höhe) give a finer scale. */
+function drawValueTicks(ctx,s,left,bottomY,usable,scale,plotW){
+  var count=Math.max(2,Math.min(9,Math.floor(usable/(22*scale))+1)),raw=(s.max-s.min)/Math.max(1,count-1);
+  if(!(raw>0))return;
+  var mag=Math.pow(10,Math.floor(Math.log10(raw))),norm=raw/mag,step=(norm<=1?1:norm<=2?2:norm<=2.5?2.5:norm<=5?5:10)*mag;
+  ctx.save();ctx.font=(9*scale)+'px Consolas, monospace';ctx.textAlign='left';ctx.textBaseline='middle';
+  for(var v=Math.ceil(s.min/step)*step;v<=s.max+step*1e-6;v+=step){
+    var y=bottomY-((v-s.min)/s.range)*usable,label=Number(v.toFixed(6)).toLocaleString(locale()),w=ctx.measureText(label).width+6*scale;
+    ctx.strokeStyle='rgba(157,180,200,.28)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(left+(plotW||0),y);ctx.stroke();
+    ctx.strokeStyle='#c9d8e6';ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(left+5*scale,y);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.8)';ctx.fillRect(left+6*scale,y-6*scale,w,12*scale);
+    ctx.fillStyle='#6b7f92';ctx.fillText(label,left+9*scale,y);
+  }
+  ctx.restore();
+}
 /* State names on the left edge of a status lane, drawn above the curve. States that occur in the recording are
    always labelled; the others only where they do not overlap. */
 function drawStateTicks(ctx,signal,left,bottomY,usable,scale){
@@ -1911,6 +1927,7 @@ function drawChartCanvas(canvas,A,allRows,signals,options){
     ctx.fillStyle='#61758a';ctx.textAlign=gx===0?'left':(gx===6?'right':'center');
     ctx.fillText(rows[rowIndex]?rows[rowIndex].ts:'',gridX,cssH-17*scale);
   }
+  var showPoints=rows.length>1&&rows.length<=plotW/(9*scale);
   var buckets=Math.min(1400,Math.max(160,Math.round(plotW*(exportMode?Math.max(1,dpr):1)/2))),labelHits=[],starSpots=[];
   /* Highlight (screen only): one curve stays strong, the others fade. Exports are never affected. */
   var highlighted=!exportMode&&window.ChartHighlight?ChartHighlight.current(A,signals):null;
@@ -1970,13 +1987,17 @@ function drawChartCanvas(canvas,A,allRows,signals,options){
       }
     }
     if(lane.pair&&window.ChartPairs)ChartPairs.drawDeviations(ctx,A,lane.pair,allRows,windowData,left,plotW,y0,y1,scale);
+    var scales=lane.signals.map(function(signal,k){
+      var r=reduced[k];if(!r.segments.length)return null;
+      var min=lane.shared?sharedMin:r.min,max=lane.shared?sharedMax:r.max,range=max-min;
+      return {min:min,max:max,range:range===0?Math.max(1,Math.abs(max)*.1):range};
+    });
     /* The highlighted curve is drawn last so it stays on top of an overlay lane. */
     var order=lane.signals.map(function(signal,k){return k;});
     if(highlighted)order.sort(function(a,b){return (lane.signals[a]===highlighted)-(lane.signals[b]===highlighted);});
     order.forEach(function(k){
       var signal=lane.signals[k],r=reduced[k];if(!r.segments.length)return;
-      var min=lane.shared?sharedMin:r.min,max=lane.shared?sharedMax:r.max,range=max-min,color=colors.get(signal);
-      if(range===0)range=Math.max(1,Math.abs(max)*.1);
+      var min=scales[k].min,range=scales[k].range,color=colors.get(signal);
       var faded=highlighted&&signal!==highlighted;
       ctx.globalAlpha=faded?.16:1;
       ctx.strokeStyle=color;ctx.lineWidth=(highlighted===signal?2.8:1.7)*scale;ctx.lineJoin='round';ctx.lineCap='round';
@@ -1994,10 +2015,13 @@ function drawChartCanvas(canvas,A,allRows,signals,options){
           lastY=y;
         });
         ctx.stroke();
+        /* Zoomed in far enough, every measured value gets a dot: shows where real samples are and where the line only connects them. */
+        if(showPoints){ctx.fillStyle=color;segment.forEach(function(point){var px=left+point.ratio*plotW,py=y1-pad-((point.value-min)/range)*usable;ctx.fillRect(px-2*scale,py-2*scale,4*scale,4*scale);});}
       });
       ctx.globalAlpha=1;
     });
     if(!lane.overlay&&isStateSignal(lane.signals[0])&&reduced[0].segments.length)drawStateTicks(ctx,lane.signals[0],left,y1-pad,usable,scale);
+    else if(!lane.overlay&&scales[0])drawValueTicks(ctx,scales[0],left,y1-pad,usable,scale,plotW);
   });
   drawMarkedChartRuns(ctx,rows,left,top,plotW,plotH,windowData,'lines',scale);
   drawCaptureMarkers(ctx,A,rows,left,top,plotW,plotH,windowData,scale);

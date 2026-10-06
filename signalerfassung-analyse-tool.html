@@ -633,7 +633,7 @@ th.signal-th{position:relative;padding-right:42px}
       </div>
       <div class="chart-stage" id="chart-stage">
         <canvas id="signal-chart" aria-label="Kurvendiagramm der gefilterten Messdaten"></canvas>
-        <div class="chart-empty" id="chart-empty"><div><strong>Keine numerischen Signale ausgewählt</strong><span>Markiere in „Erfasste Signale“ die gewünschten Messwerte mit dem Stern oder blende passende Signale ein.</span></div></div>
+        <div class="chart-empty" id="chart-empty"><div><strong>Keine Signale ausgewählt</strong><span>Markiere in „Erfasste Signale“ die gewünschten Messwerte mit dem Stern oder blende passende Signale ein.</span></div></div>
         <div class="chart-tooltip" id="chart-tooltip"></div>
       </div>
     </div>
@@ -718,8 +718,8 @@ var I18N={
     chartReset:'Gesamter Zeitraum',
     chartZoom:'Zeitachse',
     chartZoomAria:'Zeitachse vergr\u00f6\u00dfern oder verkleinern',
-    chartEmptyTitle:'Keine numerischen Signale ausgew\u00e4hlt',
-    chartEmptyText:'Blende in \u201eErfasste Signale\u201c numerische Signale ein oder hake sie unter \u201eSignale ausw\u00e4hlen\u201c an.',
+    chartEmptyTitle:'Keine Signale ausgew\u00e4hlt',
+    chartEmptyText:'Blende in \u201eErfasste Signale\u201c Signale ein oder hake sie unter \u201eSignale ausw\u00e4hlen\u201c an.',
     footerCopy:'SWS / SDP3 &mdash; Signalerfassung &mdash; Tool &mdash; By <a href="https://reflex.scania.com/profile/dbreue" target="_blank" rel="noopener noreferrer">David Breuer</a>',
     noData:'Keine Daten.',
     noExportData:'Keine Daten zum Exportieren.',
@@ -783,11 +783,12 @@ var I18N={
     chartCurves:'{count} Kurven \u00b7 eigene Skala je Signal \u00b7 {rows} Messpunkte{suffix}',
     chartMarkedSuffix:' \u00b7 eigene Auswahl',
     chartAutoSuffix:' \u00b7 alle sichtbaren Signale',
-    chartSelectHint:'Blende numerische Signale ein oder hake sie unter \u201eSignale ausw\u00e4hlen\u201c an.',
+    chartSelectHint:'Blende Signale ein oder hake sie unter \u201eSignale ausw\u00e4hlen\u201c an.',
     chartToast:'Haken w\u00e4hlen die Kurven, der Stern hebt ein Signal hervor. Weitere Spuren erreichst du \u00fcber die Scrollleiste rechts.',
     markedWord:'markiert',
     range:'bis',
     noValues:'keine Werte',
+    stateUnit:'Status',
     outsideFilter:'Diese Markierung liegt au\u00dferhalb des aktuellen Filters. Bitte den Filter zur\u00fccksetzen.',
     rangeMarkedToast:'Zeitraum markiert. \u00dcber \u201eNotiz hinzuf\u00fcgen\u201c kannst du ihn beschreiben.',
     captureMarker:'Erfassungsmarker',
@@ -859,8 +860,8 @@ var I18N={
     chartReset:'Full time range',
     chartZoom:'Timeline',
     chartZoomAria:'Zoom the timeline in or out',
-    chartEmptyTitle:'No numeric signals selected',
-    chartEmptyText:'Show numeric signals in "Captured signals" or tick them under "Choose signals".',
+    chartEmptyTitle:'No signals selected',
+    chartEmptyText:'Show signals in "Captured signals" or tick them under "Choose signals".',
     footerCopy:'SWS / SDP3 &mdash; Signal Capture &mdash; Tool &mdash; By <a href="https://reflex.scania.com/profile/dbreue" target="_blank" rel="noopener noreferrer">David Breuer</a>',
     noData:'No data.',
     noExportData:'No data to export.',
@@ -924,11 +925,12 @@ var I18N={
     chartCurves:'{count} curves · own scale per signal · {rows} measurement points{suffix}',
     chartMarkedSuffix:' · custom selection',
     chartAutoSuffix:' · all visible signals',
-    chartSelectHint:'Show numeric signals or tick them under "Choose signals".',
+    chartSelectHint:'Show signals or tick them under "Choose signals".',
     chartToast:'Ticks choose the curves, the star highlights a signal. Reach further lanes with the scrollbar on the right.',
     markedWord:'marked',
     range:'to',
     noValues:'no values',
+    stateUnit:'State',
     outsideFilter:'This marker is outside the current filter. Please reset the filter.',
     rangeMarkedToast:'Time range marked. Use "Add note" to describe it.',
     captureMarker:'Capture marker',
@@ -1173,6 +1175,7 @@ function parse(text,filename,uploadedAt,options){
       if(value!==null){hasNumeric=true;values[row.rowId]=value;}
     });
     signal.chartNumeric=hasNumeric;signal.numericValues=values;
+    if(!hasNumeric)assignChartStates(signal,rows);
   });
   var fileDate=dateFromFilename(filename);
   var date=fileDate||formatDateDE(uploadedAt)||formatDateDE(new Date());
@@ -1596,8 +1599,36 @@ function numericAt(row,index){
   row._numeric[index]=value;
   return value;
 }
+/* Status signals carry text instead of numbers ("Aktiv", "Nicht bereit", "Elektroantrieb" ...). Each state becomes
+   one level so the chart can draw them as step curves. State scales known from the SWS curve view keep the SWS order
+   from bottom to top; short scales are shown completely, like in SWS, even when a state does not occur.
+   Unknown signals keep the order of first appearance, with "Nicht definiert" on top. */
+var CHART_STATE_SCALES=[
+  ['Aktiviert','Nicht aktiviert','Nicht definiert'],
+  ['Aktiv','Nicht aktiv','Nicht definiert'],
+  ['Fehler','Nicht verfügbar','Nicht bereit','Bereit','Start','Schaltet ab','Nicht definiert'],
+  ['Bremsenergierückgewinnung','Vorrangige Batterieladung','Elektrische Verstärkung','Elektroantrieb','Elektrischer Nebenantrieb','Heizungsanfrage von EMS','Strategie zum Laden der Antriebsbatterie','Status des Hybridsystems','Verbrennungsmotor gestartet','Es wird keine Prüfung durchgeführt','Anfahren','Geänderte Gangposition','Nicht definiert']
+];
+var CHART_STATE_FULL_SCALE=8,CHART_STATE_UNDEFINED=/^(nicht definiert|not defined|undefined)$/i;
+function chartStateOrder(seen){
+  var scale=CHART_STATE_SCALES.find(function(list){return seen.every(function(v){return list.indexOf(v)>=0;});});
+  if(scale)return scale.length<=CHART_STATE_FULL_SCALE?scale.slice():scale.filter(function(v){return seen.indexOf(v)>=0;});
+  return seen.filter(function(v){return !CHART_STATE_UNDEFINED.test(v);}).concat(seen.filter(function(v){return CHART_STATE_UNDEFINED.test(v);}));
+}
+function assignChartStates(signal,rows){
+  var seen=[],has=Object.create(null);
+  rows.forEach(function(row){var v=String(row.parts[signal.index]==null?'':row.parts[signal.index]).trim();if(v&&!has[v]){has[v]=true;seen.push(v);}});
+  if(!seen.length)return;
+  var states=chartStateOrder(seen);
+  var level=Object.create(null),values=new Float64Array(rows.length);values.fill(NaN);
+  states.forEach(function(v,i){level[v]=i;});
+  rows.forEach(function(row){var v=String(row.parts[signal.index]==null?'':row.parts[signal.index]).trim();if(v)values[row.rowId]=level[v];});
+  signal.chartStates=states;signal.chartStatesSeen=seen;signal.stateValues=values;
+}
+function isStateSignal(signal){return !!(signal&&signal.chartStates&&signal.chartStates.length&&!signal.chartNumeric);}
 function isChartSignal(A,signal,rows){
   if(!signal||signal===markerSignal(A))return false;
+  if(isStateSignal(signal))return true;
   if(typeof signal.chartNumeric==='boolean')return signal.chartNumeric;
   rows=A.rawRows||rows||[];
   for(var i=0;i<rows.length;i++)if(numericAt(rows[i],signal.index)!==null)return true;
@@ -1606,7 +1637,7 @@ function isChartSignal(A,signal,rows){
 var CHART_LANE_MIN_HEIGHT=56;
 var CHART_COLORS=['#0066b3','#e23b3b','#22a35a','#8a49ad','#ef9f00','#00a1a7','#d65c9e','#64748b','#1d3f8f','#b5651d','#6b8e23','#c2185b','#008b8b','#8d6e00','#5b2c83','#37474f','#d35400','#2e86c1','#7d9d0a','#a93226','#117a65','#9b59b6','#b7950b','#1f618d'];
 function chartCandidates(A){return visibleSignals(A).filter(function(s){return isChartSignal(A,s);});}
-/* Every visible numeric signal is a chart curve unless it was unticked in "Choose signals" (signal.chartHidden).
+/* Every visible numeric or status signal is a chart curve unless it was unticked in "Choose signals" (signal.chartHidden).
    Stars only highlight a signal (table column and chart lane). No upper limit: lanes keep a readable
    minimum height and the chart scrolls vertically. */
 function chartSelection(A){
@@ -1696,9 +1727,10 @@ function buildChartSegments(rows,signal,windowData,maxBuckets){
     bucket=null;
   }
   function flushSegment(){flushBucket();if(segment.length)segments.push(segment);segment=[];}
+  var states=isStateSignal(signal)?signal.stateValues:null;
   for(var index=0;index<rows.length;index++){
-    var row=rows[index],cached=signal.numericValues&&signal.numericValues[row.rowId];
-    var value=Number.isFinite(cached)?cached:numericAt(row,signal.index);
+    var row=rows[index],cached=states?states[row.rowId]:signal.numericValues&&signal.numericValues[row.rowId];
+    var value=Number.isFinite(cached)?cached:(states?null:numericAt(row,signal.index));
     if(value===null){flushSegment();continue;}
     min=Math.min(min,value);max=Math.max(max,value);
     var ratio=rowChartRatio(row,index,windowData),bucketId=Math.min(maxBuckets-1,Math.floor(ratio*maxBuckets));
@@ -1707,7 +1739,9 @@ function buildChartSegments(rows,signal,windowData,maxBuckets){
     else{bucket.last=point;if(value<bucket.min.value)bucket.min=point;if(value>bucket.max.value)bucket.max=point;}
   }
   flushSegment();
-  return {segments:segments,min:min,max:max};
+  /* Status lanes keep all their levels on screen, also when the zoomed window only contains some states. */
+  if(states&&segments.length){min=0;max=signal.chartStates.length-1;}
+  return {segments:segments,min:min,max:max,step:!!states};
 }
 function markedChartRuns(rows){
   var runs=[],start=-1,color='';
@@ -1766,6 +1800,23 @@ function drawCaptureMarkers(ctx,A,rows,left,top,plotW,height,windowData,scale){
     ctx.globalAlpha=.92;ctx.fillStyle=color;ctx.fillRect(x-width/2,top+4*scale,width,14*scale);
     ctx.globalAlpha=1;ctx.fillStyle=textColor;ctx.fillText(label,x,top+11*scale);
   });
+}
+/* State names on the left edge of a status lane, drawn above the curve. States that occur in the recording are
+   always labelled; the others only where they do not overlap. */
+function drawStateTicks(ctx,signal,left,bottomY,usable,scale){
+  var states=signal.chartStates,count=states.length,gap=count>1?usable/(count-1):usable,seen=signal.chartStatesSeen||states,taken=[];
+  var order=states.map(function(s,i){return i;}).sort(function(a,b){return (seen.indexOf(states[b])>=0)-(seen.indexOf(states[a])>=0)||a-b;});
+  ctx.save();ctx.font='600 '+(9*scale)+'px Segoe UI, sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
+  order.forEach(function(i){
+    var y=count>1?bottomY-i*gap:bottomY;
+    if(seen.indexOf(states[i])<0&&taken.some(function(other){return Math.abs(other-y)<11*scale;}))return;
+    taken.push(y);
+    var label=fitCanvasText(ctx,states[i],150*scale),w=ctx.measureText(label).width+6*scale;
+    ctx.strokeStyle='#9db4c8';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(left+5*scale,y);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillRect(left+6*scale,y-6*scale,w,12*scale);
+    ctx.fillStyle='#4b6177';ctx.fillText(label,left+9*scale,y);
+  });
+  ctx.restore();
 }
 /* Time window around a row range (used for detail charts in reports). */
 /* Star next to every signal name in the label column (one per listed curve in an overlay lane): highlights the signal like the table star. */
@@ -1871,7 +1922,9 @@ function drawChartCanvas(canvas,A,allRows,signals,options){
     var reduced=lane.signals.map(function(signal){return buildChartSegments(rows,signal,windowData,buckets);});
     var sharedMin=Infinity,sharedMax=-Infinity;
     reduced.forEach(function(r){if(isFinite(r.min)){sharedMin=Math.min(sharedMin,r.min);sharedMax=Math.max(sharedMax,r.max);}});
-    function rangeText(signal,r){return (signal.unit?'['+signal.unit+']  ':'')+(isFinite(r.min)?r.min.toLocaleString(locale())+' '+t('range')+' '+r.max.toLocaleString(locale()):t('noValues'));}
+    function rangeText(signal,r){
+      if(isStateSignal(signal))return '['+t('stateUnit')+']  '+signal.chartStates.slice().reverse().join(' · ');
+      return (signal.unit?'['+signal.unit+']  ':'')+(isFinite(r.min)?r.min.toLocaleString(locale())+' '+t('range')+' '+r.max.toLocaleString(locale()):t('noValues'));}
     if(!lane.overlay){
       var signal=lane.signals[0],name=signal.displayName||signal.desc||signal.id,nameY=compact?y0+laneH/2:y0+18*scale;
       ctx.fillStyle=colors.get(signal);ctx.globalAlpha=highlighted&&signal!==highlighted?.3:1;ctx.fillRect(14*scale,nameY-1.5*scale,18*scale,3*scale);ctx.globalAlpha=1;
@@ -1933,14 +1986,18 @@ function drawChartCanvas(canvas,A,allRows,signals,options){
           ctx.fillStyle=color;ctx.fillRect(onlyX-1.5*scale,onlyY-1.5*scale,3*scale,3*scale);return;
         }
         ctx.beginPath();
+        var lastY=0;
         segment.forEach(function(point,p){
           var x=left+point.ratio*plotW,y=y1-pad-((point.value-min)/range)*usable;
-          if(!p)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+          /* Status curves hold their state until the next sample (step), numeric curves are connected directly. */
+          if(!p)ctx.moveTo(x,y);else{if(r.step)ctx.lineTo(x,lastY);ctx.lineTo(x,y);}
+          lastY=y;
         });
         ctx.stroke();
       });
       ctx.globalAlpha=1;
     });
+    if(!lane.overlay&&isStateSignal(lane.signals[0])&&reduced[0].segments.length)drawStateTicks(ctx,lane.signals[0],left,y1-pad,usable,scale);
   });
   drawMarkedChartRuns(ctx,rows,left,top,plotW,plotH,windowData,'lines',scale);
   drawCaptureMarkers(ctx,A,rows,left,top,plotW,plotH,windowData,scale);

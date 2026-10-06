@@ -13,7 +13,8 @@ var ReportExport=(function(){
   }
   function hexRgb(hex){hex=/^#[0-9a-f]{6}$/i.test(hex||'')?hex:'#cccccc';return [1,3,5].map(function(i){return parseInt(hex.slice(i,i+2),16);});}
   function rowsOf(file){return file.filtered&&file.filtered.length?file.filtered:file.rawRows;}
-  function numericSignals(file){return visibleSignals(file).filter(function(s){return isChartSignal(file,s);});}
+  function numericSignals(file){return visibleSignals(file).filter(function(s){return isChartSignal(file,s)&&!isStateSignal(s);});}
+  function capturedSignals(file){return visibleSignals(file).filter(function(s){return isChartSignal(file,s);});}
   function signalStats(file,signal,rows){
     var min=Infinity,max=-Infinity,sum=0,n=0;
     (rows||rowsOf(file)).forEach(function(row){var v=numericAt(row,signal.index);if(v===null)return;if(v<min)min=v;if(v>max)max=v;sum+=v;n++;});
@@ -485,12 +486,12 @@ var ReportExport=(function(){
     }
     /* Capture markers */
     if(events.length){
-      var signals=numericSignals(file).filter(function(s){return !/^Marker$/i.test(s.id);});
+      var signals=capturedSignals(file).filter(function(s){return !/^Marker$/i.test(s.id);});
       var capWs=wb.addWorksheet(name(L('Erfassungsmarker','Capture markers')),{properties:{tabColor:{argb:'FF0B4F8A'}},views:[{state:'frozen',xSplit:3,ySplit:4,showGridLines:false}]});
       var cols=3+signals.length;
       capWs.columns=[{width:9},{width:17},{width:13}].concat(signals.map(function(){return {width:16};}));
       band(capWs,1,Math.max(cols,6),L('Erfassungsmarker (Markerknopf während der Messfahrt)','Capture markers (marker button during the test drive)'),'#003D75',15);
-      band(capWs,2,Math.max(cols,6),L('Messwerte aller sichtbaren numerischen Signale in der Zeile, in der der Markerzähler hochzählt.','Values of all visible numeric signals in the row where the marker counter increases.'),'#0055A0',11);
+      band(capWs,2,Math.max(cols,6),L('Messwerte aller sichtbaren Signale (Zahlen- und Statussignale) in der Zeile, in der der Markerzähler hochzählt.','Values of all visible signals (numeric and status signals) in the row where the marker counter increases.'),'#0055A0',11);
       capWs.getRow(4).values=[L('Nr.','No.'),L('Zeitstempel','Timestamp'),L('t ab Start [s]','t from start [s]')].concat(signals.map(function(s){return nameOf(s)+(s.unit?'\n['+clean(s.unit,16)+']':'');}));
       styleHead(capWs.getRow(4),58);
       events.forEach(function(event,i){

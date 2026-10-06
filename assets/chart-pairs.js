@@ -30,7 +30,7 @@ var ChartPairs=(function(){
     var base=list.filter(function(w){return SET_WORDS.indexOf(w)<0&&ACT_WORDS.indexOf(w)<0&&FILLER.indexOf(w)<0;}).join(' ');
     return {isSet:isSet,isAct:list.some(function(w){return ACT_WORDS.indexOf(w)>=0;}),base:base,device:deviceOf(signal),unit:String(signal.unit||'').trim().toLowerCase()};
   }
-  function candidates(file){return file&&file.signals&&typeof chartCandidates==='function'?chartCandidates(file):[];}
+  function candidates(file){return file&&file.signals&&typeof chartCandidates==='function'?chartCandidates(file).filter(function(s){return !isStateSignal(s);}):[];}
   /* All set/actual pairs the recording offers (independent of whether they are shown as a pair). */
   function detect(file){
     var list=candidates(file),info=new Map(list.map(function(s){return [s,analyse(s)];})),pairs=[],used=new Set();

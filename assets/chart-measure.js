@@ -14,6 +14,11 @@ var ChartMeasure=(function(){
   function fmt(value){return value==null||!isFinite(value)?'–':Number(value).toLocaleString(loc(),{maximumFractionDigits:Math.abs(value)<10?3:2});}
   function signed(value){return value==null||!isFinite(value)?'–':(value>0?'+':'')+fmt(value);}
   function seconds(value){return Number(value).toLocaleString(loc(),{minimumFractionDigits:1,maximumFractionDigits:Math.abs(value)<10?3:1})+' s';}
+  /* Status signals show their state text instead of a number; Δ says whether the state changed. */
+  function stateText(row,signal){return String(row&&row.parts[signal.index]||'').trim()||'–';}
+  function valueA(item){return item.ta!=null?item.ta:fmt(item.a);}
+  function valueB(item){return item.ta!=null?(item.tb==null?'–':item.tb):fmt(item.b);}
+  function deltaOf(item){return item.ta!=null?(item.tb==null?'–':(item.changed?txt('geändert','changed'):'=')):signed(item.d);}
   function state(file){file=file||active();return file?(file._measure||(file._measure={a:null,b:null})):{a:null,b:null};}
   function rowOf(file,id){return id==null||!file||!file.rawRows?null:file.rawRows[id]||null;}
 
@@ -50,6 +55,7 @@ var ChartMeasure=(function(){
     var st=state(file),a=rowOf(file,st.a),b=rowOf(file,st.b);
     if(!a)return null;
     var list=signalsOf(file).map(function(signal){
+      if(isStateSignal(signal)){var sa=stateText(a,signal),sb=b?stateText(b,signal):null;return {signal:signal,a:null,b:null,d:null,ta:sa,tb:sb,changed:b?sa!==sb:false};}
       var va=numericAt(a,signal.index),vb=b?numericAt(b,signal.index):null;
       return {signal:signal,a:va,b:vb,d:va!=null&&vb!=null?vb-va:null};
     });
@@ -69,7 +75,7 @@ var ChartMeasure=(function(){
     panel.querySelector('thead').innerHTML='<tr><th>'+esc(txt('Signal','Signal'))+'</th><th class="num" style="color:'+COLORS.a+'">A</th><th class="num" style="color:'+COLORS.b+'">B</th><th class="num">Δ</th><th></th></tr>';
     panel.querySelector('tbody').innerHTML=m.list.length?m.list.map(function(item){
       var name=item.signal.displayName||item.signal.desc||item.signal.id,cls=item.d>0?'up':item.d<0?'down':'';
-      return '<tr><td title="'+esc(name)+'">'+esc(name)+'</td><td class="num">'+esc(fmt(item.a))+'</td><td class="num">'+esc(m.b?fmt(item.b):'–')+'</td><td class="num delta '+cls+'">'+esc(m.b?signed(item.d):'–')+'</td><td class="unit">'+esc(item.signal.unit||'')+'</td></tr>';
+      return '<tr><td title="'+esc(name)+'">'+esc(name)+'</td><td class="num">'+esc(valueA(item))+'</td><td class="num">'+esc(m.b?valueB(item):'–')+'</td><td class="num delta '+cls+'">'+esc(m.b?deltaOf(item):'–')+'</td><td class="unit">'+esc(item.ta!=null?'':(item.signal.unit||''))+'</td></tr>';
     }).join(''):'<tr><td colspan="5">'+esc(txt('Keine Kurven im Diagramm.','No curves in the chart.'))+'</td></tr>';
     var save=panel.querySelector('.measure-save');save.textContent=txt('Als Notiz übernehmen','Save as note');
     save.disabled=!m.b||m.a===m.b;save.title=txt('Bereich A–B als markierten Zeitraum mit allen Werten als Notiz speichern (erscheint auch in PDF und Excel)','Save A–B as a marked time range with all values as a note (also appears in PDF and Excel)');
@@ -160,8 +166,8 @@ var ChartMeasure=(function(){
   function noteText(m){
     var lines=[txt('Messung A → B','Measurement A → B')+': '+m.a.ts+' → '+m.b.ts+' · Δt '+seconds(m.dt)];
     m.list.slice(0,MAX_NOTE_SIGNALS).forEach(function(item){
-      var name=item.signal.displayName||item.signal.desc||item.signal.id,unit=item.signal.unit?' '+item.signal.unit:'';
-      lines.push(name+': '+fmt(item.a)+' → '+fmt(item.b)+unit+' ('+signed(item.d)+')');
+      var name=item.signal.displayName||item.signal.desc||item.signal.id,unit=item.signal.unit&&item.ta==null?' '+item.signal.unit:'';
+      lines.push(name+': '+valueA(item)+' → '+valueB(item)+unit+' ('+deltaOf(item)+')');
     });
     if(m.list.length>MAX_NOTE_SIGNALS)lines.push(txt('… weitere ','… another ')+(m.list.length-MAX_NOTE_SIGNALS)+txt(' Kurven',' curves'));
     return lines.join('\n').slice(0,4000);

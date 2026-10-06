@@ -78,7 +78,7 @@ var ChartSignals=(function(){
       var box=document.createElement('input');box.type='checkbox';box.checked=index>=0;box.onchange=function(){toggleSignal(signal,box.checked);};
       var dot=document.createElement('span');dot.className='chart-signal-dot';dot.style.background=index>=0?chartColor(index):'transparent';
       var text=document.createElement('span');text.className='chart-signal-name';text.textContent=name;text.title=name;
-      var unit=document.createElement('small');unit.textContent=signal.unit||'';
+      var unit=document.createElement('small');unit.textContent=isStateSignal(signal)?txt('Status','State'):(signal.unit||'');
       label.append(box,dot,text,unit);row.appendChild(label);
       var overlay=document.createElement('button');overlay.type='button';overlay.className='chart-signal-overlay';
       overlay.innerHTML=ICON_OVERLAY;overlay.disabled=index<0;overlay.setAttribute('aria-pressed',String(!!signal.overlay&&index>=0));
@@ -86,7 +86,7 @@ var ChartSignals=(function(){
       overlay.onclick=function(){signal.overlay=!signal.overlay;file()._chartLayout='';changed(false);if(signal.overlay&&selection().signals.filter(function(s){return s.overlay;}).length<2)showToast(txt('Noch eine zweite Kurve zum Überlagern wählen.','Choose a second curve to overlay.'));};
       row.appendChild(overlay);listEl.appendChild(row);
     });
-    if(!listEl.children.length){var empty=document.createElement('p');empty.className='chart-signal-empty';empty.textContent=txt('Keine passenden numerischen Signale.','No matching numeric signals.');listEl.appendChild(empty);}
+    if(!listEl.children.length){var empty=document.createElement('p');empty.className='chart-signal-empty';empty.textContent=txt('Keine passenden Signale.','No matching signals.');listEl.appendChild(empty);}
   }
   function sync(){
     var A=file();
@@ -98,7 +98,7 @@ var ChartSignals=(function(){
     panel.querySelector('.chart-signal-close').textContent=txt('Schließen','Close');
     var searching=!!searchTerm();
     panel.querySelector('[data-action="select-all"]').textContent=searching?txt('Treffer auswählen','Select matches'):txt('Alle auswählen','Select all');
-    panel.querySelector('[data-action="select-all"]').title=searching?txt('Alle Treffer der Suche im Diagramm zeigen','Show every search match in the chart'):txt('Alle numerischen Signale im Diagramm zeigen','Show every numeric signal in the chart');
+    panel.querySelector('[data-action="select-all"]').title=searching?txt('Alle Treffer der Suche im Diagramm zeigen','Show every search match in the chart'):txt('Alle Signale im Diagramm zeigen','Show every signal in the chart');
     panel.querySelector('[data-action="deselect-all"]').textContent=searching?txt('Treffer abwählen','Deselect matches'):txt('Alle abwählen','Deselect all');
     panel.querySelector('[data-action="deselect-all"]').title=searching?txt('Alle Treffer der Suche ausblenden','Hide every search match'):txt('Alle Kurven ausblenden, danach einzelne wieder anhaken','Hide every curve, then tick single ones again');
     panel.querySelector('[data-action="overlay-all"]').textContent=txt('Alle überlagern','Overlay all');
@@ -113,8 +113,8 @@ var ChartSignals=(function(){
     layoutSwitch.querySelectorAll('[data-layout]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.layout===mode));b.disabled=!sel.signals.length;});
     shared.checked=!!A.chartSharedScale;
     panel.querySelector('.chart-signal-info').textContent=(sel.explicit
-      ?txt(sel.signals.length+' von '+sel.candidates.length+' numerischen Signalen im Diagramm.',sel.signals.length+' of '+sel.candidates.length+' numeric signals in the chart.')
-      :txt('Alle '+sel.signals.length+' sichtbaren numerischen Signale im Diagramm. Haken entfernen blendet eine Kurve aus.','All '+sel.signals.length+' visible numeric signals in the chart. Untick to hide a curve.'))+' '+txt('Der Stern an jeder Spur hebt ein Signal hervor.','The star on each lane highlights a signal.');
+      ?txt(sel.signals.length+' von '+sel.candidates.length+' Signalen im Diagramm.',sel.signals.length+' of '+sel.candidates.length+' signals in the chart.')
+      :txt('Alle '+sel.signals.length+' sichtbaren Signale im Diagramm, Statussignale als Stufenkurve. Haken entfernen blendet eine Kurve aus.','All '+sel.signals.length+' visible signals in the chart, status signals as step curves. Untick to hide a curve.'))+' '+txt('Der Stern an jeder Spur hebt ein Signal hervor.','The star on each lane highlights a signal.');
     if(!panel.hidden)renderList();
     if(!panel.hidden&&window.ChartPairs)ChartPairs.renderPanel(panel);
   }

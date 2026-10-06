@@ -162,6 +162,8 @@ server {
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     add_header X-Robots-Tag "noindex, nofollow, noarchive" always;
     add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
+    # Pages are revalidated on every visit, so a new release shows up at once (assets carry a version stamp).
+    add_header Cache-Control "no-cache" always;
 }
 
 server {
@@ -240,4 +242,6 @@ server {
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     add_header X-Robots-Tag "noindex, nofollow, noarchive" always;
     add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
+    # Pages are revalidated on every visit, so a new release shows up at once (assets carry a version stamp).
+    add_header Cache-Control "no-cache" always;
 }

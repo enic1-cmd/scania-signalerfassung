@@ -45,8 +45,8 @@ const EXCLUDE=[/^server\/test\//,/^assets\/upload-logo-original-extracted\.png$/
   for(const file of files){
     let content=fs.readFileSync(path.join(root,file));
     if(file.endsWith('.html')){
-      /* Bind every local CSS/JS reference to this release so browsers never mix old and new files. */
-      const text=content.toString('utf8').replace(/((?:\.\.\/)?assets\/[^"'?\s]+\.(?:css|js))\?v=[^"'\s]+/g,(match,url)=>{stamped++;return url+'?v='+stamp;});
+      /* Bind every local CSS/JS reference and manual image to this release so browsers never mix old and new files. */
+      const text=content.toString('utf8').replace(/((?:\.\.\/)?(?:assets|handbuch)\/[^"'?\s]+\.(?:css|js|webp))\?v=[^"'\s]+/g,(match,url)=>{stamped++;return url+'?v='+stamp;});
       content=Buffer.from(text,'utf8');
     }
     zip.file(file,content);

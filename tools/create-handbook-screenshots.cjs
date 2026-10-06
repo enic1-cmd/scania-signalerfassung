@@ -1,5 +1,5 @@
 /* Creates the DE/EN screenshots for handbuch.html from a real recording in samples/ (gitignored).
-   Usage: node tools/create-handbook-screenshots.cjs ["samples/<file>.txt"]
+   Usage: node tools/create-handbook-screenshots.cjs ["samples/<file>.txt"] ["samples/<sws-file>.txt"]
    Output: handbuch/<lang>-<name>.webp (converted with ImageMagick when available, otherwise PNG). */
 const fs=require('node:fs');
 const path=require('node:path');
@@ -8,6 +8,7 @@ const {chromium}=require('playwright');
 
 const root=path.resolve(__dirname,'..');
 const sample=path.resolve(root,process.argv[2]||'samples/2026-09-21 160628.txt');
+const swsSample=path.resolve(root,process.argv[3]||'samples/2026-10-06 112638 2210754.txt');
 const out=path.join(root,'handbuch');
 if(!fs.existsSync(sample))throw new Error('Sample recording missing: '+sample);
 fs.mkdirSync(out,{recursive:true});
@@ -155,6 +156,41 @@ async function startServer(){
         await viewer.close();
       }else console.warn('pdfjs-dist not installed - report pages skipped (npm install --no-save pdfjs-dist@3.11.174)');
       await page.close();
+
+      /* SWS recording (BEV, gitignored): status signals, value scale with sample dots, SWS note.
+         Loaded under a neutral file name so no chassis number appears in the handbook. */
+      if(fs.existsSync(swsSample)){
+        const neutral=path.join(require('node:os').tmpdir(),'SWS-Beispiel 2026-10-06.txt');
+        fs.copyFileSync(swsSample,neutral);
+        const sws=await browser.newPage({viewport:{width:1440,height:860},deviceScaleFactor:1.5});
+        await sws.addInitScript(l=>{localStorage.setItem('signalerfassung.lang',l);localStorage.removeItem('signalerfassung.samplePoints');},lang);
+        await sws.route('**/api/usage',route=>route.fulfill({status:204}));
+        await sws.goto(BASE+'signalerfassung-analyse-tool.html');
+        await sws.locator('#file-input').setInputFiles(neutral);
+        await sws.waitForFunction(()=>S.files.length===1);
+        await sws.addStyleTag({content:'.toast{display:none!important}'});
+        await sws.locator('#view-chart-btn').click();await sws.waitForTimeout(300);
+        /* Status signals next to the shift sleeve position */
+        await sws.evaluate(()=>{
+          const want=['Hauptgetriebe, Gangstellung S1','Soll-Gang für Primärgetriebe','Gang 1 im Getriebe','Gang 2 im Getriebe','Antriebsstatus','Aktuelle Regelstrategie'];
+          chartSelection(active()).candidates.forEach(s=>{const name=s.displayName||s.id;s.chartHidden=!want.some(w=>name===w||name.endsWith('- '+w));s.overlay=false;});renderChart();
+        });
+        await sws.mouse.move(10,10);await sws.waitForTimeout(200);
+        written.push(save(await sws.locator('.chart-card').screenshot(),lang+'-status'));
+        /* Value scale and sample dots, zoomed to the gear 2 request at 11:21:28 */
+        await sws.evaluate(()=>{
+          const want=['Hauptgetriebe, Gangstellung S1','Soll-Gang für Primärgetriebe','Geschätzte Drehzahl, Elektromaschine M33'];
+          chartSelection(active()).candidates.forEach(s=>{const name=s.displayName||s.id;s.chartHidden=!want.some(w=>name===w||name.endsWith('- '+w));});
+          chartState.start=.12;chartState.end=.42;renderChart();
+        });
+        await sws.locator('.chart-points-toggle').click();await sws.mouse.move(10,10);await sws.waitForTimeout(250);
+        written.push(save(await sws.locator('.chart-card').screenshot(),lang+'-points'));
+        await sws.locator('.chart-points-toggle').click();
+        /* SWS note */
+        await sws.locator('.sws-notice-button').click();await sws.waitForTimeout(250);
+        written.push(save(await sws.screenshot({clip:{x:0,y:60,width:1440,height:470}}),lang+'-sws-note'));
+        await sws.close();
+      }else console.warn('SWS sample missing - status, points and SWS note screenshots skipped: '+swsSample);
     }
   }finally{await browser.close();server.kill();}
   console.log(JSON.stringify({written,converted:magick?'webp':'png'},null,2));

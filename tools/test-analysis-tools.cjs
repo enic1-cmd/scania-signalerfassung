@@ -155,6 +155,7 @@ if(!fs.existsSync(sample)){console.log(JSON.stringify({result:'SKIPPED',reason:'
     await page.locator('.pdf-options-cancel').click();
     await page.locator('.tool-modes [data-mode="measure"]').click();
     await page.mouse.click(plot.x0+plot.w*.3,plot.y);await page.mouse.click(plot.x0+plot.w*.35,plot.y);
+    await page.waitForFunction(()=>/Measurement/.test(document.querySelector('.measure-head strong').textContent));
     assert.match(await page.locator('.measure-head strong').textContent(),/Measurement A → B/);
     assert.equal(await page.locator('.measure-save').textContent(),'Save as note');
     await page.keyboard.press('Escape');

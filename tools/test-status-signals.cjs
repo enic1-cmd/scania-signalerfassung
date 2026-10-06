@@ -67,10 +67,21 @@ function recording(){
     assert(/Nicht aktiv\s+Aktiv\s+geändert/.test(row),'Measure shows both states and "geändert": '+row);
     await page.keyboard.press('Escape');
 
+    /* Sample dots: off by default, button switches them on and is remembered */
+    const points=page.locator('.chart-points-toggle');
+    assert.equal(await points.getAttribute('aria-pressed'),'false','Sample dots are off by default');
+    assert.equal(await points.innerText(),'Messpunkte');
+    await points.click();
+    assert.equal(await page.evaluate(()=>ChartPoints.enabled()),true);
+    assert.equal(await page.evaluate(()=>localStorage.getItem('signalerfassung.samplePoints')),'1');
+    await points.click();
+    assert.equal(await page.evaluate(()=>ChartPoints.enabled()),false);
+
     /* English */
     await page.locator('[data-lang-set="en"]').first().click();await page.waitForTimeout(150);
     await page.locator('#view-chart-btn').click();await page.waitForTimeout(150);
     assert.equal(await page.evaluate(()=>t('stateUnit')),'State');
+    assert.equal(await page.locator('.chart-points-toggle').innerText(),'Samples');
     assert.equal(await page.evaluate(()=>chartState.layout.labelHits.filter(h=>h.signal).length),5,'All five signals have a lane in English too');
 
     await page.screenshot({path:path.join(os.tmpdir(),'status-signals.png')});

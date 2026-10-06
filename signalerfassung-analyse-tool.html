@@ -1011,7 +1011,7 @@ function applyAppLanguage(lang){
   if(window.WorkspaceLayout&&WorkspaceLayout.sync)WorkspaceLayout.sync();
   if(window.ChartHeight&&ChartHeight.sync)ChartHeight.sync();
   if(window.ChartSignals&&ChartSignals.sync)ChartSignals.sync();
-  ['ChartHighlight','ChartMeasure','ChartPairs','PdfOptions'].forEach(function(name){if(window[name]&&window[name].sync)window[name].sync();});
+  ['ChartHighlight','ChartPoints','ChartMeasure','ChartPairs','PdfOptions'].forEach(function(name){if(window[name]&&window[name].sync)window[name].sync();});
   if(S.files&&S.files.length&&S.view==='chart')renderChart();
   if(typeof syncExportScope==='function')syncExportScope();
   if(window.AppHelp&&AppHelp.rebuild)AppHelp.rebuild();
@@ -1927,7 +1927,7 @@ function drawChartCanvas(canvas,A,allRows,signals,options){
     ctx.fillStyle='#61758a';ctx.textAlign=gx===0?'left':(gx===6?'right':'center');
     ctx.fillText(rows[rowIndex]?rows[rowIndex].ts:'',gridX,cssH-17*scale);
   }
-  var showPoints=rows.length>1&&rows.length<=plotW/(9*scale);
+  var showPoints=!!(window.ChartPoints&&ChartPoints.enabled())&&rows.length>1&&rows.length<=plotW/(9*scale);
   var buckets=Math.min(1400,Math.max(160,Math.round(plotW*(exportMode?Math.max(1,dpr):1)/2))),labelHits=[],starSpots=[];
   /* Highlight (screen only): one curve stays strong, the others fade. Exports are never affected. */
   var highlighted=!exportMode&&window.ChartHighlight?ChartHighlight.current(A,signals):null;
@@ -2937,6 +2937,7 @@ function showErr(msg){var e=document.getElementById('upload-error');e.style.disp
 <script src="assets/chart-height.js?v=20261001-1"></script>
 <script src="assets/chart-signals.js?v=20261001-1"></script>
 <script src="assets/chart-highlight.js?v=20261002-1"></script>
+<script src="assets/chart-points.js?v=20261006-1"></script>
 <script src="assets/chart-measure.js?v=20261002-1"></script>
 <script src="assets/chart-pairs.js?v=20261002-1"></script>
 <script src="assets/report-export.js?v=20261001-1"></script>

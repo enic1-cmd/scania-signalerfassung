@@ -181,11 +181,11 @@ async function startServer(){
         await sws.evaluate(()=>{
           const want=['Hauptgetriebe, Gangstellung S1','Soll-Gang für Primärgetriebe','Geschätzte Drehzahl, Elektromaschine M33'];
           chartSelection(active()).candidates.forEach(s=>{const name=s.displayName||s.id;s.chartHidden=!want.some(w=>name===w||name.endsWith('- '+w));});
-          chartState.start=.12;chartState.end=.42;renderChart();
+          chartState.start=.15;chartState.end=.31;renderChart();
         });
         await sws.locator('.chart-points-toggle').click();await sws.mouse.move(10,10);await sws.waitForTimeout(250);
         written.push(save(await sws.locator('.chart-card').screenshot(),lang+'-points'));
-        await sws.locator('.chart-points-toggle').click();
+        /* Dots stay on for the SWS note, so the picture shows how rarely new values arrive */
         /* SWS note */
         await sws.locator('.sws-notice-button').click();await sws.waitForTimeout(250);
         written.push(save(await sws.screenshot({clip:{x:0,y:60,width:1440,height:470}}),lang+'-sws-note'));

@@ -248,14 +248,16 @@ kbd{display:inline-block;min-width:22px;padding:2px 7px;border:1px solid #b8cde0
       <h3 id="samples"><span data-lang="de">Werteskala &amp; Messpunkte</span><span data-lang="en">Value scale &amp; samples</span></h3>
       <div data-lang="de">
         <p>Jede Zahlenspur hat links eine <strong>Werteskala mit feinen Hilfslinien</strong>. Je höher die Spuren (Regler „Höhe“), desto feiner die Skala – so lässt sich z. B. ablesen, dass eine Schaltmuffe bei 16,6 mm stehen bleibt.</p>
-        <p>Der Knopf <strong>Messpunkte</strong> im Diagrammkopf (standardmäßig aus) zeigt beim Hineinzoomen jeden echten Messwert als Punkt. So erkennst du, wo wirklich gemessen wurde und wo die Linie nur zwei Messwerte verbindet – wichtig bei SWS-Dateien, in denen Werte oft nur alle paar Sekunden neu kommen.</p>
+        <p>Der Knopf <strong>Messpunkte</strong> im Diagrammkopf ist standardmäßig aus. <strong>Ist er aktiviert, zeigt beim Hineinzoomen jeder Punkt, wann ein Wert des Signals in der Datei steht.</strong> So siehst du, wo wirklich gemessen wurde und wo die Linie nur zwei Messwerte verbindet.</p>
+        <p class="tip">Bei SWS-Dateien gut zu erkennen: Liegen mehrere Punkte hintereinander auf derselben Höhe und springt der Wert erst dann, kam in dieser Zeit kein neuer Wert vom Steuergerät. Der Abstand zwischen den Sprüngen zeigt, wie oft das Signal wirklich aktualisiert wurde (bei ca. 20 Signalen etwa alle 4 s).</p>
       </div>
       <div data-lang="en">
         <p>Every numeric lane has a <strong>value scale with fine grid lines</strong> on the left. The taller the lanes ("Height" slider), the finer the scale – for example you can read that a shift sleeve stops at 16.6 mm.</p>
-        <p>The <strong>Samples</strong> button in the chart header (off by default) shows every real measured value as a dot when zoomed in. You can see where values were really measured and where the line only connects two values – important for SWS files, where values often only arrive every few seconds.</p>
+        <p>The <strong>Samples</strong> button in the chart header is off by default. <strong>When it is switched on and you zoom in, every dot shows when a value of the signal is in the file.</strong> You can see where values were really measured and where the line only connects two values.</p>
+        <p class="tip">Easy to see in SWS files: if several dots in a row sit at the same height and the value only jumps afterwards, no new value came from the ECU in that time. The distance between the jumps shows how often the signal was really updated (about every 4 s with about 20 signals).</p>
       </div>
       <figure><a href="handbuch/de-points.webp" data-lang="de" target="_blank"><img src="handbuch/de-points.webp" alt="Werteskala und Messpunkte" loading="lazy"></a><a href="handbuch/en-points.webp" data-lang="en" target="_blank"><img src="handbuch/en-points.webp" alt="Value scale and sample dots" loading="lazy"></a>
-        <figcaption><span data-lang="de">Hineingezoomt mit Messpunkten: Soll-Gang 2 ist angefordert, die Muffe bleibt bei 16,6 mm stehen.</span><span data-lang="en">Zoomed in with samples: target gear 2 is requested, the sleeve stops at 16.6 mm.</span></figcaption></figure>
+        <figcaption><span data-lang="de">Messpunkte an: Jeder Punkt ist ein Wert aus der Datei. Soll-Gang 2 ist angefordert, die Muffe bleibt bei 16,6 mm stehen; die Werte springen nur alle paar Punkte.</span><span data-lang="en">Samples on: every dot is a value from the file. Target gear 2 is requested, the sleeve stops at 16.6 mm; the values only jump every few dots.</span></figcaption></figure>
       <h3 id="sws-note"><span data-lang="de">SWS-Hinweis</span><span data-lang="en">SWS note</span></h3>
       <div data-lang="de">
         <p>Bei Dateien aus dem <strong>SWS-Signallogger</strong> erscheint in der Ansichtsleiste der Knopf <strong>SWS-Hinweis</strong> (gelb, wenn die Werte seltener als etwa alle 1,5 s kommen). Er erklärt:</p>
@@ -268,7 +270,7 @@ kbd{display:inline-block;min-width:22px;padding:2px 7px;border:1px solid #b8cde0
         <p class="note">SDP3 files are not affected (about every 0.1 s there). As soon as Scania makes the sample rate adjustable in SWS, the tool will be developed further accordingly.</p>
       </div>
       <figure><a href="handbuch/de-sws-note.webp" data-lang="de" target="_blank"><img src="handbuch/de-sws-note.webp" alt="SWS-Hinweis mit gemessener Abtastrate" loading="lazy"></a><a href="handbuch/en-sws-note.webp" data-lang="en" target="_blank"><img src="handbuch/en-sws-note.webp" alt="SWS note with measured sample rate" loading="lazy"></a>
-        <figcaption><span data-lang="de">SWS-Hinweis: 19 Signale – neuer Wert je Signal ca. alle 4 s.</span><span data-lang="en">SWS note: 19 signals – new value per signal about every 4 s.</span></figcaption></figure>
+        <figcaption><span data-lang="de">SWS-Hinweis: 19 Signale – neuer Wert je Signal ca. alle 4 s. Im Hintergrund die Messpunkte.</span><span data-lang="en">SWS note: 19 signals – new value per signal about every 4 s. Sample dots in the background.</span></figcaption></figure>
     </section>
 
     <section class="chapter" id="signals">
